@@ -10,6 +10,7 @@ export default function PlatformPreview() {
       <Container>
         <ScrollReveal>
           <SectionHeading 
+            eyebrow="06 / The Interface"
             title="Experience the platform."
             description="A conceptual preview of the MEDIMESH healthcare discovery interface."
             alignment="center"
@@ -17,53 +18,24 @@ export default function PlatformPreview() {
         </ScrollReveal>
 
         <ScrollReveal delay={0.2} className="mt-12">
-          <SpotlightCard className="w-full aspect-[4/3] md:aspect-[16/9] bg-surface-elevated rounded-3xl border border-border p-2 md:p-4 overflow-hidden">
-            <div className="w-full h-full bg-white rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden">
-              {/* App Header Mock */}
-              <div className="h-14 border-b border-border flex items-center px-4 md:px-6 justify-between bg-surface">
-                <div className="font-bold text-lg tracking-tight">MEDI<span className="text-primary">MESH</span></div>
-                <div className="hidden md:flex items-center gap-4">
-                  <div className="h-2 w-16 bg-border rounded-full"></div>
-                  <div className="h-2 w-16 bg-border rounded-full"></div>
-                  <div className="h-8 w-8 rounded-full bg-primary/10"></div>
+          <SpotlightCard className="w-full aspect-[4/3] md:aspect-[16/9] bg-surface-elevated rounded-[2rem] border border-border p-2 md:p-3 overflow-hidden shadow-2xl">
+            <div className="w-full h-full relative rounded-2xl overflow-hidden group">
+              <img 
+                src="/images/healthcare_data.png" 
+                alt="MEDIMESH Interface Preview" 
+                className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-700 ease-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80 mix-blend-overlay"></div>
+              
+              {/* Overlay Metadata */}
+              <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl text-white">
+                  <p className="text-xs font-bold tracking-widest uppercase text-white/70 mb-1">Preview Dashboard</p>
+                  <p className="text-sm font-medium">Data Intelligence & Verification Module</p>
                 </div>
-              </div>
-              {/* App Body Mock */}
-              <div className="flex-1 flex bg-surface-elevated/30">
-                {/* Sidebar */}
-                <div className="hidden md:block w-64 border-r border-border p-6 bg-surface">
-                  <div className="h-4 w-24 bg-border rounded mb-6"></div>
-                  <div className="space-y-4">
-                    <div className="h-3 w-full bg-surface-elevated rounded"></div>
-                    <div className="h-3 w-3/4 bg-surface-elevated rounded"></div>
-                    <div className="h-3 w-5/6 bg-surface-elevated rounded"></div>
-                  </div>
-                </div>
-                {/* Main Content */}
-                <div className="flex-1 p-4 md:p-8 overflow-hidden flex flex-col gap-6">
-                  {/* Search / Filter Area */}
-                  <div className="flex gap-4">
-                    <div className="flex-1 h-12 bg-white border border-border rounded-lg shadow-sm"></div>
-                    <div className="w-24 h-12 bg-primary/10 rounded-lg border border-primary/20"></div>
-                  </div>
-                  {/* Results Grid */}
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1, 2, 3, 4, 5, 6].map(i => (
-                      <div key={i} className="bg-white border border-border rounded-xl p-4 shadow-sm h-32 flex flex-col justify-between">
-                        <div className="flex gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-surface-elevated shrink-0"></div>
-                          <div className="space-y-2 flex-1">
-                            <div className="h-3 w-3/4 bg-border rounded"></div>
-                            <div className="h-2 w-1/2 bg-surface-elevated rounded"></div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="h-5 w-16 bg-primary/5 rounded-md"></div>
-                          <div className="h-5 w-16 bg-primary/5 rounded-md"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="hidden md:flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-light shadow-[0_0_10px_rgba(141,185,217,0.8)] animate-pulse"></span>
+                  <span className="text-white text-xs font-semibold tracking-wider uppercase">Live Sync</span>
                 </div>
               </div>
             </div>

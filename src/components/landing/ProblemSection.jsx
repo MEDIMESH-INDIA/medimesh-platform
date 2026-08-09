@@ -2,7 +2,7 @@ import Section from "../common/Section";
 import Container from "../common/Container";
 import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import InteractiveBackground from "../effects/InteractiveBackground";
+import AnimatedContent from "../react-bits/AnimatedContent";
 import { motion } from "framer-motion";
 
 export default function ProblemSection() {
@@ -16,18 +16,21 @@ export default function ProblemSection() {
   ];
 
   return (
-    <Section className="relative overflow-hidden border-t border-border" background="transparent">
-      <InteractiveBackground variant="problem" />
+    <Section className="relative overflow-hidden border-t border-border" background="muted">
+      
+      {/* Subtle Peach -> Coral gradient wash for patient confusion/human side */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1/2 h-[60vh] bg-gradient-to-tr from-peach/10 to-coral/5 rounded-full blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+
       <Container className="grid lg:grid-cols-2 gap-16 items-center py-8 relative z-10">
         <div className="z-10">
-          <ScrollReveal>
+          <AnimatedContent distance={50} direction="vertical" reverse={false} config={{ tension: 80, friction: 20 }}>
             <SectionHeading 
               eyebrow="01 / The Challenge"
               title="Finding healthcare is easy. Understanding it isn't."
               description="Information is fragmented across hospital websites, directories, search engines, and public portals. Finding the right place means navigating a maze of unverified and disconnected data."
               className="mb-0 max-w-lg"
             />
-          </ScrollReveal>
+          </AnimatedContent>
         </div>
 
         <div className="relative h-[450px] w-full rounded-[2rem] bg-surface-elevated/50 border border-border overflow-hidden">

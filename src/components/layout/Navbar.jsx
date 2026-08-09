@@ -6,11 +6,11 @@ import Button from "../common/Button";
 import Container from "../common/Container";
 
 const navLinks = [
-  { name: "Discover", href: "#discover" },
-  { name: "Compare", href: "#compare" },
-  { name: "For Doctors", href: "#doctors" },
-  { name: "For Hospitals", href: "#hospitals" },
-  { name: "About", href: "#about" },
+  { name: "Discover", href: "/discover" },
+  { name: "Compare", href: "/compare" },
+  { name: "For Doctors", href: "/doctors" },
+  { name: "For Hospitals", href: "/hospitals" },
+  { name: "About", href: "/about" },
 ];
 
 export default function Navbar() {
@@ -60,23 +60,27 @@ export default function Navbar() {
             <ul className="flex items-center gap-6">
               {navLinks.map((link) => (
                 <li key={link.name}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="relative text-sm font-semibold text-muted-foreground hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring rounded-sm px-1 py-1 group"
                   >
                     {link.name}
                     <span className="absolute left-1/2 bottom-0 w-0 h-0.5 bg-primary/50 transition-all duration-300 group-hover:w-full group-hover:left-0 rounded-full"></span>
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
             <div className="flex items-center gap-4 border-l border-border pl-6">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-              <Button variant="primary" size="sm">
-                Get Started
-              </Button>
+              <Link to="/sign-in" className="focus:outline-none rounded-md">
+                <Button variant="ghost" size="sm" className="w-full">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/get-started" className="focus:outline-none rounded-md">
+                <Button variant="primary" size="sm" className="w-full">
+                  Get Started
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -108,24 +112,28 @@ export default function Navbar() {
           <ul className="flex flex-col gap-6 mb-8">
             {navLinks.map((link) => (
               <li key={link.name}>
-                <a
-                  href={link.href}
+                <Link
+                  to={link.href}
                   className="text-lg font-medium text-foreground block transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring rounded-sm w-fit"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
           
           <div className="mt-auto flex flex-col gap-4">
-            <Button variant="outline" size="lg" className="w-full">
-              Sign In
-            </Button>
-            <Button variant="primary" size="lg" className="w-full">
-              Get Started
-            </Button>
+            <Link to="/sign-in" className="w-full focus:outline-none rounded-md">
+              <Button variant="outline" size="lg" className="w-full">
+                Sign In
+              </Button>
+            </Link>
+            <Link to="/get-started" className="w-full focus:outline-none rounded-md">
+              <Button variant="primary" size="lg" className="w-full">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

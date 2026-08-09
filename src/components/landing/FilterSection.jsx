@@ -47,7 +47,7 @@ export default function FilterSection() {
           <div className="lg:col-span-5 order-1 lg:order-2">
             <ScrollReveal>
               <SectionHeading 
-                eyebrow="02 / Filter"
+                eyebrow="04 / Refine"
                 title="Narrow down to what you need."
                 description="Easily filter healthcare providers by location, specialties, required facilities, and accepted insurance plans."
                 className="mb-0 lg:ml-auto"

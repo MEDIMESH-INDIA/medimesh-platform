@@ -4,13 +4,17 @@ import SectionHeading from "../common/SectionHeading";
 import SpotlightCard from "../react-bits/SpotlightCard";
 import ScrollReveal from "../react-bits/ScrollReveal";
 import { DEMO_HOSPITALS } from "../../data/landingData";
-import { Building2, MapPin, Star, ChevronRight } from "lucide-react";
+import { Building2, MapPin, Star, ChevronRight, Search } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DiscoverSection() {
   return (
-    <Section id="discover" background="white" className="border-t border-border">
-      <Container>
+    <Section id="discover" background="white" className="border-t border-border relative overflow-hidden">
+      
+      {/* Subtle Sky Blue gradient wash for discovery */}
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-light/10 to-transparent blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+
+      <Container className="relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center py-8">
           <div className="lg:col-span-5">
             <ScrollReveal>
@@ -28,13 +32,14 @@ export default function DiscoverSection() {
             {/* Subtle decorative background */}
             <div className="absolute -inset-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-elevated via-transparent to-transparent -z-10 rounded-full"></div>
 
-            <div className="flex items-center justify-between mb-4 px-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-border"></span>
-                Discovery Feed
-              </span>
-              <span className="text-[10px] font-bold bg-surface-elevated/50 px-2.5 py-1 rounded-md text-muted-foreground uppercase tracking-wider border border-border">DEMO DATA</span>
-            </div>
+            <ScrollReveal delay={0.1}>
+              <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4 px-2">
+                <div className="flex items-center w-full bg-surface border border-border rounded-xl shadow-sm px-4 py-3 group focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                  <Search className="w-4 h-4 text-muted-foreground mr-3" />
+                  <input type="text" placeholder="Search hospitals by name, location, or specialty..." className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/60" disabled />
+                </div>
+              </div>
+            </ScrollReveal>
             
             {DEMO_HOSPITALS.map((hospital, index) => (
               <ScrollReveal key={hospital.id} delay={0.2 + (index * 0.1)}>

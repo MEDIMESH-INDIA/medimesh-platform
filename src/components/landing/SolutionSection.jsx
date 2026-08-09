@@ -18,7 +18,7 @@ export default function SolutionSection() {
   ];
 
   return (
-    <Section className="relative overflow-hidden border-t border-border" background="muted">
+    <Section className="relative overflow-hidden border-t border-border" background="transparent">
       <Container className="flex flex-col items-center py-12">
         <ScrollReveal>
           <SectionHeading 

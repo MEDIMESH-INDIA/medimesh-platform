@@ -2,7 +2,6 @@ import Section from "../common/Section";
 import Container from "../common/Container";
 import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import InteractiveBackground from "../effects/InteractiveBackground";
 import { Check, Minus, Building2, MapPin, Activity } from "lucide-react";
 
 export default function CompareSection() {
@@ -17,13 +16,15 @@ export default function CompareSection() {
   ];
 
   return (
-    <Section background="transparent" className="border-t border-border relative overflow-hidden z-0">
-      <InteractiveBackground variant="comparison" />
+    <Section background="muted" className="border-t border-border relative overflow-hidden z-0">
+      
+      {/* Soft Lavender gradient wash for data intelligence */}
+      <div className="absolute top-0 right-1/4 w-1/2 h-full bg-gradient-to-b from-lavender/10 to-transparent blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
 
       <Container className="py-12 relative z-10">
         <ScrollReveal>
           <SectionHeading 
-            eyebrow="04 / Compare"
+            eyebrow="05 / Compare"
             title="Don't just find a hospital. Understand the difference."
             description="View side-by-side comparisons of facilities, services, and infrastructure to make the best choice based on structured information."
             alignment="center"
@@ -69,27 +70,29 @@ export default function CompareSection() {
             {/* Data Rows */}
             <div className="divide-y divide-border">
               {comparisonData.map((row, i) => (
-                <div key={i} className="grid grid-cols-1 md:grid-cols-3 group hover:bg-surface-elevated/30 transition-colors">
-                  <div className="p-4 md:p-6 text-sm font-semibold text-foreground flex items-center bg-surface group-hover:bg-transparent transition-colors">
-                    {row.feature}
+                <ScrollReveal key={i} delay={0.3 + (i * 0.1)}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 group hover:bg-surface-elevated/50 transition-colors duration-300">
+                    <div className="p-4 md:p-6 text-sm font-semibold text-foreground flex items-center bg-surface group-hover:bg-transparent transition-colors">
+                      {row.feature}
+                    </div>
+                    <div className="px-6 py-3 md:p-6 border-t md:border-t-0 md:border-l border-border flex items-center justify-end md:justify-center bg-surface-elevated/30 group-hover:bg-transparent transition-colors">
+                      <span className="md:hidden text-xs text-muted-foreground mr-auto font-medium uppercase tracking-wider">Apollo</span>
+                      {row.h1 ? (
+                        <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center text-success"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-surface-elevated flex items-center justify-center text-muted-foreground"><Minus className="w-3.5 h-3.5" /></div>
+                      )}
+                    </div>
+                    <div className="px-6 py-3 md:p-6 border-t md:border-t-0 md:border-l border-border flex items-center justify-end md:justify-center group-hover:bg-transparent transition-colors">
+                      <span className="md:hidden text-xs text-muted-foreground mr-auto font-medium uppercase tracking-wider">Fortis</span>
+                      {row.h2 ? (
+                        <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center text-success"><Check className="w-3.5 h-3.5" /></div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-surface-elevated flex items-center justify-center text-muted-foreground"><Minus className="w-3.5 h-3.5" /></div>
+                      )}
+                    </div>
                   </div>
-                  <div className="px-6 py-3 md:p-6 border-t md:border-t-0 md:border-l border-border flex items-center justify-end md:justify-center bg-surface-elevated/30 group-hover:bg-transparent transition-colors">
-                    <span className="md:hidden text-xs text-muted-foreground mr-auto font-medium uppercase tracking-wider">Apollo</span>
-                    {row.h1 ? (
-                      <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center text-success"><Check className="w-3.5 h-3.5" /></div>
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-surface-elevated flex items-center justify-center text-muted-foreground"><Minus className="w-3.5 h-3.5" /></div>
-                    )}
-                  </div>
-                  <div className="px-6 py-3 md:p-6 border-t md:border-t-0 md:border-l border-border flex items-center justify-end md:justify-center group-hover:bg-transparent transition-colors">
-                    <span className="md:hidden text-xs text-muted-foreground mr-auto font-medium uppercase tracking-wider">Fortis</span>
-                    {row.h2 ? (
-                      <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center text-success"><Check className="w-3.5 h-3.5" /></div>
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-surface-elevated flex items-center justify-center text-muted-foreground"><Minus className="w-3.5 h-3.5" /></div>
-                    )}
-                  </div>
-                </div>
+                </ScrollReveal>
               ))}
             </div>
           </div>

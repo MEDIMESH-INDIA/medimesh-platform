@@ -4,14 +4,17 @@ import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
 import ShinyText from "../react-bits/ShinyText";
 import { ShieldCheck } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function TrustSection() {
   const words = ["Verified", "Structured", "Comparable", "Transparent"];
 
   return (
-    <Section background="muted" className="border-t border-border">
-      <Container className="grid lg:grid-cols-2 gap-16 items-center">
+    <Section background="muted" className="border-t border-border relative overflow-hidden">
+      
+      {/* Sage + Amber subtle wash for trust and verification */}
+      <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-sage/5 via-transparent to-amber/5 blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+
+      <Container className="grid lg:grid-cols-2 gap-16 items-center relative z-10">
         <div>
           <ScrollReveal>
             <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center mb-6">

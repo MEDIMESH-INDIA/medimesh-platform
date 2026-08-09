@@ -47,32 +47,59 @@ export default function EcosystemSection() {
             eyebrow="05 / The Ecosystem"
             title="A platform for everyone in healthcare."
             description="MEDIMESH connects patients looking for clarity with healthcare professionals and institutions providing care."
-            alignment="center"
           />
         </ScrollReveal>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 mt-16 max-w-6xl mx-auto">
-          {cards.map((card, index) => (
-            <ScrollReveal key={index} delay={card.delay}>
-              <motion.div 
-                whileHover={{ y: -5 }}
-                className={`flex flex-col h-full bg-white/90 backdrop-blur rounded-[2rem] border border-border p-8 shadow-sm transition-all duration-300 ${card.borderHover} cursor-default`}
-              >
-                <div className={`w-16 h-16 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center mb-8 border border-border/50`}>
-                  {card.icon}
-                </div>
-                <h3 className="text-2xl font-semibold mb-3 tracking-tight">{card.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-8 flex-1">
-                  {card.description}
-                </p>
-                <div className="mt-auto pt-6 border-t border-border">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    Platform Capability
-                  </span>
-                </div>
-              </motion.div>
-            </ScrollReveal>
-          ))}
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 mt-12 items-center">
+          
+          {/* Left Column: Cards */}
+          <div className="lg:col-span-6 flex flex-col gap-6">
+            {cards.map((card, index) => (
+              <ScrollReveal key={index} delay={card.delay}>
+                <motion.div 
+                  whileHover={{ x: 5 }}
+                  className={`flex items-start gap-6 bg-white/90 backdrop-blur rounded-2xl border border-border p-6 shadow-sm transition-all duration-300 ${card.borderHover} cursor-default`}
+                >
+                  <div className={`w-14 h-14 shrink-0 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center border border-border/50`}>
+                    {card.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 tracking-tight">{card.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {card.description}
+                    </p>
+                  </div>
+                </motion.div>
+              </ScrollReveal>
+            ))}
+          </div>
+
+          {/* Right Column: Imagery */}
+          <div className="lg:col-span-6 relative h-[600px] hidden lg:block rounded-[2rem] overflow-hidden shadow-2xl border border-border/50">
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-muted/20 to-lavender/20 mix-blend-overlay z-10"></div>
+            <img 
+              src="/images/doctor_consultation.png" 
+              alt="Doctor Consultation" 
+              className="w-full h-full object-cover object-center"
+            />
+            {/* Floating verification card */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="absolute top-12 -left-6 bg-white p-4 rounded-xl shadow-card border border-border z-20 flex items-center gap-4"
+            >
+              <div className="w-10 h-10 rounded-full bg-blue-light/20 flex items-center justify-center text-blue-muted font-bold">
+                DR
+              </div>
+              <div>
+                <p className="text-sm font-bold">Dr. Anjali Sharma</p>
+                <p className="text-xs text-muted-foreground">Verified Senior Specialist</p>
+              </div>
+            </motion.div>
+          </div>
+
         </div>
       </Container>
     </Section>
