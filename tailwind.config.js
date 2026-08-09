@@ -28,8 +28,18 @@ export default {
         
         'focus-ring': '#0A7A6A',
       },
+      keyframes: {
+        shine: {
+          '0%': { backgroundPosition: '200% center' },
+          '100%': { backgroundPosition: '-200% center' },
+        },
+      },
+      animation: {
+        shine: 'shine 8s linear infinite',
+      },
       fontFamily: {
         sans: ['Inter', 'Roboto', 'Helvetica Neue', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
       },
     },
   },
