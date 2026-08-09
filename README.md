@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏥 MEDICARE INDIA
+# 🏥 MEDIMESH INDIA
 
 ### Discover. Compare. Decide.
 
@@ -21,13 +21,13 @@
 
 ---
 
-# 🏥 About MEDICARE INDIA
+# 🏥 About MEDIMESH INDIA
 
 Healthcare information in India is highly fragmented.
 
 A patient looking for the right hospital or doctor may need to search across multiple hospital websites, search engines, maps, healthcare directories, government portals, and other sources before being able to make an informed decision.
 
-**MEDICARE INDIA** aims to provide a unified platform where users can discover, filter, compare, and understand healthcare facilities and professionals through structured and trustworthy information.
+**MEDIMESH INDIA** aims to provide a unified platform where users can discover, filter, compare, and understand healthcare facilities and professionals through structured and trustworthy information.
 
 The platform is being designed as a **healthcare discovery and comparison layer**, rather than simply another hospital directory.
 
@@ -51,7 +51,7 @@ DECIDE
 
 > ## Build India's trusted healthcare discovery and comparison layer.
 
-MEDICARE INDIA aims to connect:
+MEDIMESH INDIA aims to connect:
 
 * 👤 Patients
 * 👨⚕️ Doctors
@@ -103,13 +103,13 @@ This creates an unnecessary information barrier.
                        Decision
 ```
 
-### MEDICARE INDIA
+### MEDIMESH INDIA
 
 ```text
                         PATIENT
                            │
                            ▼
-                   MEDICARE INDIA
+                   MEDIMESH INDIA
                            │
              ┌─────────────┼─────────────┐
              │             │             │
@@ -131,7 +131,7 @@ This creates an unnecessary information barrier.
 
 # 💡 Core Concept
 
-MEDICARE INDIA is built around four fundamental capabilities:
+MEDIMESH INDIA is built around four fundamental capabilities:
 
 ### 🔎 Healthcare Discovery
 
@@ -239,7 +239,7 @@ A doctor should not automatically receive a verified status simply by creating a
 
 # 🛡️ Verified Healthcare Information
 
-Trust is a fundamental principle of MEDICARE INDIA.
+Trust is a fundamental principle of MEDIMESH INDIA.
 
 Healthcare information should have an identifiable lifecycle.
 
@@ -278,7 +278,7 @@ Potential metadata includes:
 
 Hospital organizations may submit changes, but trusted public information should pass through an appropriate verification workflow.
 
-> **MEDICARE INDIA will not fabricate healthcare data.**
+> **MEDIMESH INDIA will not fabricate healthcare data.**
 
 ---
 
@@ -300,7 +300,7 @@ It is **not** intended to replace doctors or provide clinical diagnosis.
                     INTENT DETECTION
                            │
                            ▼
-                 MEDICARE SEARCH LAYER
+                 MEDIMESH SEARCH LAYER
                            │
                            ▼
                   VERIFIED PLATFORM DATA
@@ -321,7 +321,7 @@ A user may ask:
 The AI should:
 
 1. Understand the user's intent.
-2. Search MEDICARE's structured data.
+2. Search MEDIMESH's structured data.
 3. Retrieve relevant healthcare facilities.
 4. Present the available information clearly.
 5. Ground its response in platform data.
@@ -341,7 +341,7 @@ The AI should:
 
 # 🚑 Emergency Philosophy
 
-MEDICARE INDIA is **not being designed around the assumption that users will open an application during an absolute emergency**.
+MEDIMESH INDIA is **not being designed around the assumption that users will open an application during an absolute emergency**.
 
 The primary product is:
 
@@ -356,7 +356,7 @@ A future emergency-support experience may provide:
 
 However:
 
-> **MEDICARE INDIA is not a replacement for emergency services or professional medical care.**
+> **MEDIMESH INDIA is not a replacement for emergency services or professional medical care.**
 
 ---
 
@@ -367,7 +367,7 @@ The platform is currently planned around a **modular monolith architecture**.
 The initial system intentionally avoids unnecessary microservices complexity.
 
 ```text
-                         MEDICARE INDIA
+                         MEDIMESH INDIA
                               │
           ┌───────────────────┼───────────────────┐
           │                   │                   │
@@ -393,7 +393,7 @@ The initial system intentionally avoids unnecessary microservices complexity.
 
 # 🧠 Engineering Principles
 
-MEDICARE INDIA is being developed around the following principles.
+MEDIMESH INDIA is being developed around the following principles.
 
 ### 01 — Modular
 
@@ -427,7 +427,7 @@ The platform should be capable of integrating with appropriate official/public h
 
 # 👨💻 Development Team
 
-MEDICARE INDIA is being developed by a student engineering team under the **MEDICARE-INDIA** GitHub organization.
+MEDIMESH INDIA is being developed by a student engineering team under the **MEDIMESH-INDIA** GitHub organization.
 
 | Member      | Primary Responsibility                                      |
 | ----------- | ----------------------------------------------------------- |
@@ -462,7 +462,7 @@ Responsible for assigned modules, features, testing, data workflows, QA, and eng
 
 # 🔐 GitHub Organization Governance
 
-GitHub organization permissions are separate from MEDICARE application permissions.
+GitHub organization permissions are separate from MEDIMESH application permissions.
 
 ### Organization / Repository Admins
 
@@ -533,8 +533,8 @@ The team follows a feature-based Git workflow.
 The primary repository is:
 
 ```text
-MEDICARE-INDIA/
-└── medicare-platform/
+MEDIMESH-INDIA/
+└── medimesh-platform/
 ```
 
 The repository is currently in the **product planning and architecture phase**.
@@ -638,7 +638,7 @@ The platform follows a simple principle:
                BETTER DECISIONS
 ```
 
-MEDICARE INDIA is not intended to replace:
+MEDIMESH INDIA is not intended to replace:
 
 * Doctors
 * Hospitals
@@ -651,10 +651,10 @@ Instead, the platform aims to improve how people **discover, understand, and com
 
 # 🌐 Long-Term Vision
 
-The long-term vision is to evolve MEDICARE INDIA into a reliable healthcare information layer connecting patients, doctors, hospitals, verified data, intelligent search, and potentially official healthcare sources.
+The long-term vision is to evolve MEDIMESH INDIA into a reliable healthcare information layer connecting patients, doctors, hospitals, verified data, intelligent search, and potentially official healthcare sources.
 
 ```text
-                         MEDICARE INDIA
+                         MEDIMESH INDIA
                               │
           ┌───────────────────┼───────────────────┐
           │                   │                   │
@@ -680,7 +680,7 @@ The long-term vision is to evolve MEDICARE INDIA into a reliable healthcare info
 
 # 🏆 Smart India Hackathon
 
-MEDICARE INDIA is being developed for **Smart India Hackathon 2026**.
+MEDIMESH INDIA is being developed for **Smart India Hackathon 2026**.
 
 The project focuses on addressing a real-world healthcare information problem through a scalable, secure, and practical technology platform.
 
@@ -728,7 +728,7 @@ We intentionally prioritize architecture and product clarity before large-scale 
 
 <div align="center">
 
-# 🏥 MEDICARE INDIA
+# 🏥 MEDIMESH INDIA
 
 ### Discover. Compare. Decide.
 
@@ -736,11 +736,11 @@ We intentionally prioritize architecture and product clarity before large-scale 
 
 <br/>
 
-Built by the **MEDICARE INDIA Team**
+Built by the **MEDIMESH INDIA Team**
 
 <br/>
 
-`MEDICARE-INDIA/medicare-platform`
+`MEDIMESH-INDIA/medimesh-platform`
 
 <br/>
 
