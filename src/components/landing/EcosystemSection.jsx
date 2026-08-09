@@ -76,7 +76,7 @@ export default function EcosystemSection() {
 
           {/* Right Column: Imagery */}
           <div className="lg:col-span-6 relative h-[600px] hidden lg:block rounded-[2rem] overflow-hidden shadow-2xl border border-border/50">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-muted/20 to-lavender/20 mix-blend-overlay z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-muted/30 to-lavender/30 z-10"></div>
             <img 
               src="/images/doctor_consultation.png" 
               alt="Doctor Consultation" 

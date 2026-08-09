@@ -1,18 +1,32 @@
 import Container from "../common/Container";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   const footerLinks = [
     {
       title: "Platform",
-      links: ["Discover", "Compare", "For Doctors", "For Hospitals"],
+      links: [
+        { name: "Discover", href: "/discover" },
+        { name: "Compare", href: "/compare" },
+        { name: "For Doctors", href: "/doctors" },
+        { name: "For Hospitals", href: "/hospitals" }
+      ],
     },
     {
       title: "Resources",
-      links: ["About", "Documentation", "How It Works"],
+      links: [
+        { name: "About", href: "/about" },
+        { name: "Documentation", href: "/about" },
+        { name: "How It Works", href: "/about" }
+      ],
     },
     {
       title: "Legal",
-      links: ["Privacy", "Terms", "Contact"],
+      links: [
+        { name: "Privacy", href: "/about" },
+        { name: "Terms", href: "/about" },
+        { name: "Contact", href: "/about" }
+      ],
     },
   ];
 
@@ -40,9 +54,9 @@ export default function Footer() {
               <ul className="flex flex-col gap-3">
                 {column.links.map((link, j) => (
                   <li key={j}>
-                    <a href="#" className="text-sm text-white/60 hover:text-white transition-colors">
-                      {link}
-                    </a>
+                    <Link to={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
+                      {link.name}
+                    </Link>
                   </li>
                 ))}
               </ul>

@@ -12,7 +12,7 @@ export default function Hero() {
     <Section className="relative min-h-[95vh] flex items-center pt-32 pb-16 overflow-hidden" background="transparent">
       
       {/* Subtle Teal -> Blue gradient wash in background */}
-      <div className="absolute top-0 right-0 w-3/4 h-[80vh] bg-gradient-to-bl from-blue-light/10 via-primary/5 to-transparent rounded-bl-full blur-3xl -z-10 mix-blend-multiply"></div>
+      <div className="absolute top-0 right-0 w-3/4 h-[80vh] bg-gradient-to-bl from-blue-light/10 via-primary/5 to-transparent rounded-bl-full blur-3xl -z-10"></div>
 
       <Container className="relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
         {/* Left Column: Copy */}
@@ -80,7 +80,7 @@ export default function Hero() {
               initial={{ opacity: 0, x: -30 }} 
               animate={{ opacity: 1, x: 0 }} 
               transition={{ delay: 1.0, duration: 0.6 }}
-              className="absolute top-12 left-0 w-[340px] z-30 flex items-center gap-3 px-4 py-3.5 bg-white/95 backdrop-blur-xl rounded-xl border border-border shadow-card group hover:shadow-card-hover hover:border-primary/30 transition-all"
+              className="absolute top-12 left-0 w-[340px] z-30 flex items-center gap-3 px-4 py-3.5 bg-white/95 backdrop-blur-md rounded-xl border border-border shadow-card group hover:shadow-card-hover hover:border-primary/30 transition-all will-change-transform"
             >
               <Search className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
               <span className="text-sm font-medium text-foreground/80">Cardiology in Mumbai</span>
@@ -91,7 +91,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 30 }} 
               animate={{ opacity: 1, y: 0 }} 
               transition={{ delay: 1.2, duration: 0.6 }}
-              className="absolute bottom-16 -left-8 w-[380px] z-30 flex flex-col gap-4 p-5 rounded-2xl border border-border bg-white/95 backdrop-blur-xl shadow-card hover:shadow-card-hover hover:border-sage/40 transition-all cursor-default"
+              className="absolute bottom-16 -left-8 w-[380px] z-30 flex flex-col gap-4 p-5 rounded-2xl border border-border bg-white/95 backdrop-blur-md shadow-card hover:shadow-card-hover hover:border-sage/40 transition-all cursor-default will-change-transform"
             >
               <div className="flex justify-between items-start">
                 <div className="flex gap-4">

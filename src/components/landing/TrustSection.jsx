@@ -12,7 +12,7 @@ export default function TrustSection() {
     <Section background="muted" className="border-t border-border relative overflow-hidden">
       
       {/* Sage + Amber subtle wash for trust and verification */}
-      <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-sage/5 via-transparent to-amber/5 blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-sage/5 via-transparent to-amber/5 blur-3xl -z-10 pointer-events-none"></div>
 
       <Container className="grid lg:grid-cols-2 gap-16 items-center relative z-10">
         <div>

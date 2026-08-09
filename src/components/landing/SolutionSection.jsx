@@ -36,7 +36,7 @@ export default function SolutionSection() {
 
           {/* Connective Lines (SVG) */}
           <svg className="absolute inset-0 w-full h-full z-0 overflow-visible pointer-events-none">
-            <g transform="translate(50%, 50%)" style={{ transformOrigin: 'center' }}>
+            <g style={{ transform: 'translate(50%, 50%)', transformOrigin: 'center' }}>
               {nodes.map((node, i) => {
                 const radius = 200; // base distance
                 const rad = (node.angle * Math.PI) / 180;

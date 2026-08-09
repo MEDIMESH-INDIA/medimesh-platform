@@ -19,7 +19,7 @@ export default function CompareSection() {
     <Section background="muted" className="border-t border-border relative overflow-hidden z-0">
       
       {/* Soft Lavender gradient wash for data intelligence */}
-      <div className="absolute top-0 right-1/4 w-1/2 h-full bg-gradient-to-b from-lavender/10 to-transparent blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+      <div className="absolute top-0 right-1/4 w-1/2 h-full bg-gradient-to-b from-lavender/10 to-transparent blur-3xl -z-10 pointer-events-none"></div>
 
       <Container className="py-12 relative z-10">
         <ScrollReveal>

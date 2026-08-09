@@ -19,7 +19,7 @@ export default function ProblemSection() {
     <Section className="relative overflow-hidden border-t border-border" background="muted">
       
       {/* Subtle Peach -> Coral gradient wash for patient confusion/human side */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1/2 h-[60vh] bg-gradient-to-tr from-peach/10 to-coral/5 rounded-full blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1/2 h-[60vh] bg-gradient-to-tr from-peach/10 to-coral/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
       <Container className="grid lg:grid-cols-2 gap-16 items-center py-8 relative z-10">
         <div className="z-10">
@@ -50,7 +50,7 @@ export default function ProblemSection() {
               <motion.div
                 animate={{ y: src.yAnim }}
                 transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut" }}
-                className="bg-white/90 backdrop-blur px-4 py-2.5 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-border text-sm font-semibold text-muted-foreground flex items-center gap-2"
+                className="bg-white px-4 py-2.5 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-border text-sm font-semibold text-muted-foreground flex items-center gap-2 will-change-transform"
               >
                 <div className={`w-2 h-2 rounded-full ${i % 2 === 0 ? 'bg-primary/40' : 'bg-secondary-accent/40'}`}></div>
                 {src.name}

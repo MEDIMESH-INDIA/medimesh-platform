@@ -13,16 +13,16 @@ export default function ParticleMesh() {
 
   const options = useMemo(() => {
     // 60-110 for desktop, 25-40 for mobile
-    const particleCount = isMobile ? 35 : 90;
+    const particleCount = isMobile ? 25 : 70;
     
     // Connection distance 120-180
-    const linkDistance = isMobile ? 100 : 150;
+    const linkDistance = isMobile ? 80 : 120;
 
     return {
       fullScreen: { enable: false },
       background: { color: { value: "transparent" } },
       fpsLimit: 60,
-      detectRetina: true,
+      detectRetina: !isMobile, // Save CPU on mobile by skipping high DPI scaling
       
       // Allow window-level mouse detection so it works even when pointer-events-none
       interactivity: {

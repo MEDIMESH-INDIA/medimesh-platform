@@ -11,8 +11,8 @@ export default function DiscoverSection() {
   return (
     <Section id="discover" background="white" className="border-t border-border relative overflow-hidden">
       
-      {/* Subtle Sky Blue gradient wash for discovery */}
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-light/10 to-transparent blur-3xl -z-10 mix-blend-multiply pointer-events-none"></div>
+      {/* Sky Blue subtle wash for discovery */}
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/3 h-2/3 bg-gradient-to-l from-blue-light/10 to-transparent blur-3xl -z-10 pointer-events-none"></div>
 
       <Container className="relative z-10">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center py-8">
