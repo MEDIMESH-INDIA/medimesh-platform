@@ -747,3 +747,16 @@ Built by the **MEDIMESH INDIA Team**
 **Smart India Hackathon 2026**
 
 </div>
+
+## 📚 MEDIMESH Documentation
+
+| Resource | Repository |
+|---|---|
+| 🚀 Application | `medimesh-platform` |
+| 📚 Product & Technical Documentation | `medimesh-docs` |
+
+> **Source of Truth:** Product requirements, architecture decisions,
+> API specifications, database design, user flows, and engineering
+> documentation are maintained in `medimesh-docs`.
+
+👉 **[Open MEDIMESH Documentation →](https://github.com/MEDIMESH/medimesh-docs)**
