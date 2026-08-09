@@ -12,9 +12,9 @@ const Section = forwardRef(({
 }, ref) => {
   const backgrounds = {
     transparent: "bg-transparent",
-    muted: "bg-surface-elevated",
+    muted: "bg-surface-elevated/40 backdrop-blur-sm",
     primary: "bg-primary text-white",
-    white: "bg-surface"
+    white: "bg-surface/30 backdrop-blur-sm"
   };
 
   const content = withContainer ? (

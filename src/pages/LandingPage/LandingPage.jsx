@@ -8,40 +8,41 @@ import DiscoverSection from "../../components/landing/DiscoverSection";
 import FilterSection from "../../components/landing/FilterSection";
 import CompareSection from "../../components/landing/CompareSection";
 import TrustSection from "../../components/landing/TrustSection";
-import PatientsSection from "../../components/landing/PatientsSection";
-import DoctorsSection from "../../components/landing/DoctorsSection";
-import HospitalsSection from "../../components/landing/HospitalsSection";
+import EcosystemSection from "../../components/landing/EcosystemSection";
 import HowItWorks from "../../components/landing/HowItWorks";
 import PlatformPreview from "../../components/landing/PlatformPreview";
 import WhyMedimesh from "../../components/landing/WhyMedimesh";
 import FutureEcosystem from "../../components/landing/FutureEcosystem";
 import FinalCTA from "../../components/landing/FinalCTA";
+import InteractiveMeshBackground from "../../components/effects/InteractiveMeshBackground";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      
-      <main>
-        <Hero />
-        <TrustStrip />
-        <ProblemSection />
-        <SolutionSection />
-        <DiscoverSection />
-        <FilterSection />
-        <CompareSection />
-        <TrustSection />
-        <PatientsSection />
-        <DoctorsSection />
-        <HospitalsSection />
-        <HowItWorks />
-        <PlatformPreview />
-        <WhyMedimesh />
-        <FutureEcosystem />
-        <FinalCTA />
-      </main>
+    <div className="min-h-screen bg-transparent relative">
+      <InteractiveMeshBackground />
 
-      <Footer />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Navbar />
+        
+        <main className="flex-grow">
+          <Hero />
+          <TrustStrip />
+          <ProblemSection />
+          <SolutionSection />
+          <DiscoverSection />
+          <FilterSection />
+          <CompareSection />
+          <TrustSection />
+          <EcosystemSection />
+          <HowItWorks />
+          <PlatformPreview />
+          <WhyMedimesh />
+          <FutureEcosystem />
+          <FinalCTA />
+        </main>
+
+        <Footer />
+      </div>
     </div>
   );
 }

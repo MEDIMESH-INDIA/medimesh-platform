@@ -37,10 +37,10 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         isScrolled
-          ? "bg-surface/90 backdrop-blur-md border-b border-border shadow-sm py-3"
-          : "bg-transparent py-5"
+          ? "bg-white/80 backdrop-blur-xl border-b border-border shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] py-3"
+          : "bg-transparent py-6"
       )}
     >
       <Container>
@@ -62,9 +62,10 @@ export default function Navbar() {
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring rounded-sm px-1"
+                    className="relative text-sm font-semibold text-muted-foreground hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring rounded-sm px-1 py-1 group"
                   >
                     {link.name}
+                    <span className="absolute left-1/2 bottom-0 w-0 h-0.5 bg-primary/50 transition-all duration-300 group-hover:w-full group-hover:left-0 rounded-full"></span>
                   </a>
                 </li>
               ))}

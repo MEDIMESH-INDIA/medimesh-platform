@@ -1,4 +1,5 @@
 import Container from "../common/Container";
+import InteractiveBackground from "../effects/InteractiveBackground";
 
 export default function Footer() {
   const footerLinks = [
@@ -17,8 +18,9 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-surface py-16 md:py-24 border-t border-border">
-      <Container>
+    <footer className="relative bg-transparent py-16 md:py-24 border-t border-border overflow-hidden">
+      <InteractiveBackground variant="cta" />
+      <Container className="relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Logo & Info */}
           <div className="col-span-2 lg:col-span-2">
@@ -26,9 +28,9 @@ export default function Footer() {
               MEDI<span className="text-primary">MESH</span>
             </div>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Built for a more informed healthcare journey. Discover, understand, and compare your healthcare options.
+              Making healthcare information easier to discover, understand, and compare.
             </p>
-            <div className="text-sm text-muted-foreground/60 font-medium">
+            <div className="text-sm text-muted-foreground/60 font-medium tracking-wide uppercase">
               Smart India Hackathon 2026
             </div>
           </div>

@@ -2,13 +2,14 @@ import Section from "../common/Section";
 import Container from "../common/Container";
 import Button from "../common/Button";
 import ScrollReveal from "../react-bits/ScrollReveal";
+import InteractiveBackground from "../effects/InteractiveBackground";
 import Aurora from "../react-bits/Aurora";
 
 export default function FinalCTA() {
   return (
     <Section className="relative min-h-[70vh] flex items-center overflow-hidden border-y border-border" background="transparent">
-      {/* Background Effect */}
-      <Aurora className="opacity-60" />
+      <InteractiveBackground variant="cta" />
+      <Aurora className="opacity-40" />
       
       <Container className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
         <ScrollReveal>
