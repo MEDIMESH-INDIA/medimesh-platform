@@ -20,6 +20,7 @@ import HospitalDashboard from "./pages/App/HospitalDashboard";
 import AdminDashboard from "./pages/App/AdminDashboard";
 import Profile from "./pages/App/Profile";
 import Settings from "./pages/App/Settings";
+import Onboarding from "./pages/App/Onboarding";
 
 // Placeholder components for new routes
 const PlaceholderPage = ({ title }) => (
@@ -51,6 +52,9 @@ function App() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+
+      {/* Onboarding Route (No AppShell) */}
+      <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
       {/* Protected App Routes */}
       <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>

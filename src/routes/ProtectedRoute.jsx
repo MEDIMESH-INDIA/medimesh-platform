@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -15,6 +15,18 @@ export const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  // Allow access to /onboarding if not completed, otherwise redirect to onboarding
+  const isOnboardingRoute = location.pathname === '/onboarding';
+  
+  // profile might be null temporarily while fetchProfile runs
+  if (user && profile && !profile.onboarding_completed && !isOnboardingRoute) {
+    return <Navigate to="/onboarding" replace />;
+  }
+  
+  if (user && profile && profile.onboarding_completed && isOnboardingRoute) {
+    return <Navigate to="/app" replace />;
   }
 
   return children;

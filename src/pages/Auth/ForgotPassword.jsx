@@ -22,7 +22,12 @@ export default function ForgotPassword() {
       if (resetError) throw resetError;
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'An error occurred. Please try again.');
+      if (err.status === 429) {
+        setError('Too many requests. Please try again later.');
+      } else {
+        // Prevent email enumeration
+        setSuccess(true);
+      }
     } finally {
       setLoading(false);
     }

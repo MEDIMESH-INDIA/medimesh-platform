@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
+        fetchProfile(session.user.id);
       } else {
         setLoading(false);
       }
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
+          fetchProfile(session.user.id);
         } else {
           setProfile(null);
           setRole(null);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const fetchProfile = async (userId, userEmail, userMetadata) => {
+  const fetchProfile = async (userId) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -51,32 +51,6 @@ export const AuthProvider = ({ children }) => {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // Profile not found. This happens on first OAuth login.
-          // Create a default patient profile securely.
-          const newProfile = {
-            id: userId,
-            email: userEmail,
-            role: 'patient',
-            first_name: userMetadata?.full_name?.split(' ')[0] || '',
-            last_name: userMetadata?.full_name?.split(' ').slice(1).join(' ') || '',
-            display_name: userMetadata?.full_name || userEmail?.split('@')[0] || 'User',
-            avatar_url: userMetadata?.avatar_url || '',
-            verification_status: 'pending'
-          };
-          
-          const { data: createdProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert([newProfile])
-            .select()
-            .single();
-            
-          if (createError) throw createError;
-          
-          setProfile(createdProfile);
-          setRole(createdProfile.role);
-          return;
-        }
         throw error;
       }
       
@@ -107,29 +81,11 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
       options: {
-        data: {
-          role: profileData.role,
-        }
+        data: profileData
       }
     });
 
     if (error) throw error;
-
-    if (data.user) {
-      // Create profile record
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: data.user.id,
-            email,
-            ...profileData
-          }
-        ]);
-        
-      if (profileError) throw profileError;
-    }
-
     return { data, error };
   };
 
@@ -167,7 +123,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updatePassword,
     resendVerification,
-    refreshProfile: () => user && fetchProfile(user.id, user.email, user.user_metadata),
+    refreshProfile: () => user && fetchProfile(user.id),
   };
 
   return (

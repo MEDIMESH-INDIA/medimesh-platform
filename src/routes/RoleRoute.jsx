@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export const RoleRoute = ({ children, allowedRoles }) => {
-  const { user, role, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -15,6 +15,16 @@ export const RoleRoute = ({ children, allowedRoles }) => {
 
   if (!user) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  // Accessing RoleRoute means the user is trying to access a dashboard.
+  // Must be fully onboarded to access dashboards.
+  // Assume useAuth returns profile as well
+  // We need to import profile from useAuth
+
+
+  if (user && profile && !profile.onboarding_completed) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   if (role && !allowedRoles.includes(role)) {
