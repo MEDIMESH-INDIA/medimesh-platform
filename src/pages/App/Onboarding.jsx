@@ -3,6 +3,7 @@ import PatientOnboarding from '../../components/onboarding/PatientOnboarding';
 import DoctorOnboarding from '../../components/onboarding/DoctorOnboarding';
 import HospitalOnboarding from '../../components/onboarding/HospitalOnboarding';
 import { Navigate } from 'react-router-dom';
+import PageTransition from '../../components/effects/PageTransition';
 
 export default function Onboarding() {
   const { role, profile, loading } = useAuth();
@@ -21,9 +22,11 @@ export default function Onboarding() {
 
   return (
     <div className="min-h-screen bg-background">
-      {role === 'patient' && <PatientOnboarding />}
-      {role === 'doctor' && <DoctorOnboarding />}
-      {role === 'hospital' && <HospitalOnboarding />}
+      <PageTransition>
+        {role === 'patient' && <PatientOnboarding />}
+        {role === 'doctor' && <DoctorOnboarding />}
+        {role === 'hospital' && <HospitalOnboarding />}
+      </PageTransition>
     </div>
   );
 }

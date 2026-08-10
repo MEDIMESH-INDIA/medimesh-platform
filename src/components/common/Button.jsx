@@ -9,13 +9,13 @@ const Button = forwardRef(({
   children, 
   ...props 
 }, ref) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-50 disabled:pointer-events-none";
+  const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium transition-all duration-200 ease-out focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 focus:ring-offset-background disabled:opacity-60 disabled:pointer-events-none active:scale-[0.98]";
   
   const variants = {
-    primary: "bg-primary text-white hover:bg-primary-hover",
-    secondary: "bg-secondary-accent text-white hover:opacity-90",
-    outline: "border border-border bg-transparent hover:bg-surface-elevated text-foreground",
-    ghost: "bg-transparent hover:bg-surface-elevated text-foreground",
+    primary: "bg-primary text-white hover:bg-primary-hover shadow-sm hover:shadow hover:-translate-y-0.5",
+    secondary: "bg-secondary-accent text-white hover:bg-[#c2655d] shadow-sm hover:shadow hover:-translate-y-0.5",
+    outline: "border border-border bg-transparent hover:bg-surface-elevated text-foreground hover:-translate-y-0.5",
+    ghost: "bg-transparent hover:bg-surface-elevated text-foreground active:bg-border",
   };
   
   const sizes = {

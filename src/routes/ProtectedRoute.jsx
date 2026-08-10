@@ -17,10 +17,9 @@ export const ProtectedRoute = ({ children }) => {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // Allow access to /onboarding if not completed, otherwise redirect to onboarding
+  // Then check onboarding
   const isOnboardingRoute = location.pathname === '/onboarding';
   
-  // profile might be null temporarily while fetchProfile runs
   if (user && profile && !profile.onboarding_completed && !isOnboardingRoute) {
     return <Navigate to="/onboarding" replace />;
   }
