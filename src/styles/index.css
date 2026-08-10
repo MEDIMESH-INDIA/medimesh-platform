@@ -18,6 +18,16 @@
   h1, h2, h3, h4, h5, h6 {
     @apply text-foreground font-semibold;
   }
+
+  /* Override Chrome autofill styles for premium feel */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active{
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #1A1C1B !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 @layer utilities {

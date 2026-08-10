@@ -3,26 +3,28 @@ import InteractiveMeshBackground from '../../components/effects/InteractiveMeshB
 
 export default function AuthLayout({ children, title, subtitle }) {
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex">
+      {/* Global Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <InteractiveMeshBackground />
+      </div>
+
       {/* Left side - Visual branding */}
-      <div className="hidden lg:flex w-1/2 relative bg-foreground overflow-hidden flex-col justify-between p-12">
-        <div className="absolute inset-0 z-0">
-          <InteractiveMeshBackground />
-        </div>
+      <div className="hidden lg:flex w-1/2 relative overflow-hidden flex-col justify-between p-12 z-10">
         
         <div className="relative z-10">
-          <Link to="/" className="text-2xl font-bold tracking-tight text-white mb-8 block">
-            MEDI<span className="text-primary-light">MESH</span>
+          <Link to="/" className="text-2xl font-bold tracking-tight text-foreground mb-8 block">
+            MEDI<span className="text-primary">MESH</span>
           </Link>
-          <h1 className="text-4xl font-serif font-bold text-white mb-4">
+          <h1 className="text-4xl font-serif font-bold text-foreground mb-4">
             Healthcare discovery,<br/>connected.
           </h1>
-          <p className="text-white/70 max-w-md text-lg leading-relaxed">
+          <p className="text-muted-foreground max-w-md text-lg leading-relaxed">
             Discover hospitals, doctors and healthcare services through a structured healthcare ecosystem.
           </p>
         </div>
 
-        <div className="relative z-10 text-white/40 text-sm">
+        <div className="relative z-10 text-muted-foreground/60 text-sm">
           &copy; {new Date().getFullYear()} MEDIMESH INDIA. All rights reserved.
         </div>
       </div>

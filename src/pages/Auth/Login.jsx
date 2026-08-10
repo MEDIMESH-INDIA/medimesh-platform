@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
@@ -12,9 +12,22 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle, user, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Redirect if already authenticated (useful for OAuth return)
+  useEffect(() => {
+    if (user && role) {
+      const redirectPath = new URLSearchParams(location.search).get('redirect');
+      if (redirectPath) {
+        navigate(redirectPath);
+      } else {
+        // AppRoute / AppShell manages the role-based redirection from /app
+        navigate('/app');
+      }
+    }
+  }, [user, role, navigate, location]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -43,9 +56,17 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // This will be connected to Supabase OAuth when configured
-    setError('Google authentication is not yet configured.');
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { error: signInError } = await signInWithGoogle();
+      if (signInError) throw signInError;
+      // Redirect happens naturally via AuthContext + useEffect above
+    } catch (err) {
+      setError(err.message || 'Failed to authenticate with Google.');
+      setLoading(false);
+    }
   };
 
   return (

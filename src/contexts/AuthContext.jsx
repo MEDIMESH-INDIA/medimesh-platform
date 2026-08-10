@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
       } else {
         setLoading(false);
       }
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          fetchProfile(session.user.id);
+          fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
         } else {
           setProfile(null);
           setRole(null);
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = async (userId, userEmail, userMetadata) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -50,7 +50,36 @@ export const AuthProvider = ({ children }) => {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Profile not found. This happens on first OAuth login.
+          // Create a default patient profile securely.
+          const newProfile = {
+            id: userId,
+            email: userEmail,
+            role: 'patient',
+            first_name: userMetadata?.full_name?.split(' ')[0] || '',
+            last_name: userMetadata?.full_name?.split(' ').slice(1).join(' ') || '',
+            display_name: userMetadata?.full_name || userEmail?.split('@')[0] || 'User',
+            avatar_url: userMetadata?.avatar_url || '',
+            verification_status: 'pending'
+          };
+          
+          const { data: createdProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert([newProfile])
+            .select()
+            .single();
+            
+          if (createError) throw createError;
+          
+          setProfile(createdProfile);
+          setRole(createdProfile.role);
+          return;
+        }
+        throw error;
+      }
+      
       setProfile(data);
       setRole(data.role);
     } catch (error) {
@@ -62,6 +91,15 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     return supabase.auth.signInWithPassword({ email, password });
+  };
+
+  const signInWithGoogle = async () => {
+    return supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/login`
+      }
+    });
   };
 
   const signUp = async (email, password, profileData) => {
@@ -123,12 +161,13 @@ export const AuthProvider = ({ children }) => {
     role,
     loading,
     signIn,
+    signInWithGoogle,
     signUp,
     signOut,
     resetPassword,
     updatePassword,
     resendVerification,
-    refreshProfile: () => user && fetchProfile(user.id),
+    refreshProfile: () => user && fetchProfile(user.id, user.email, user.user_metadata),
   };
 
   return (

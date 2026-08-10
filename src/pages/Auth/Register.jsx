@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
@@ -29,8 +29,28 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle, user, role: sessionRole } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (user && sessionRole) {
+      navigate('/app');
+    }
+  }, [user, sessionRole, navigate]);
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { error: signInError } = await signInWithGoogle();
+      if (signInError) throw signInError;
+      // AuthContext handles redirect
+    } catch (err) {
+      setError(err.message || 'Failed to authenticate with Google.');
+      setLoading(false);
+    }
+  };
 
   const handleRoleSelect = (selectedRole) => {
     setRole(selectedRole);
@@ -177,7 +197,7 @@ export default function Register() {
 
           <button 
             type="button"
-            onClick={() => setError('Google authentication is not yet configured.')}
+            onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-xl border border-border bg-white text-foreground hover:bg-surface-elevated transition-colors font-medium shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
