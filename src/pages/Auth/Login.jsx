@@ -51,7 +51,7 @@ export default function Login() {
   return (
     <AuthLayout 
       title="Welcome back." 
-      subtitle="Continue your healthcare journey with MEDIMESH."
+      subtitle="Sign in to continue to MEDIMESH."
     >
       <form onSubmit={handleLogin} className="space-y-6">
         {error && (

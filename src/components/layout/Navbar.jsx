@@ -78,12 +78,12 @@ export default function Navbar() {
               ))}
             </ul>
             <div className="flex items-center gap-4 border-l border-border pl-6">
-              <Link to="/sign-in" className="focus:outline-none rounded-md">
+              <Link to="/login" className="focus:outline-none rounded-md">
                 <Button variant="ghost" size="sm" className="w-full">
                   Sign In
                 </Button>
               </Link>
-              <Link to="/get-started" className="focus:outline-none rounded-md">
+              <Link to="/register" className="focus:outline-none rounded-md">
                 <Button variant="primary" size="sm" className="w-full">
                   Get Started
                 </Button>
@@ -131,12 +131,12 @@ export default function Navbar() {
           </ul>
           
           <div className="mt-auto flex flex-col gap-4">
-            <Link to="/sign-in" className="w-full focus:outline-none rounded-md">
+            <Link to="/login" className="w-full focus:outline-none rounded-md">
               <Button variant="outline" size="lg" className="w-full">
                 Sign In
               </Button>
             </Link>
-            <Link to="/get-started" className="w-full focus:outline-none rounded-md">
+            <Link to="/register" className="w-full focus:outline-none rounded-md">
               <Button variant="primary" size="lg" className="w-full">
                 Get Started
               </Button>

@@ -11,11 +11,14 @@ export default function AuthLayout({ children, title, subtitle }) {
         </div>
         
         <div className="relative z-10">
-          <Link to="/" className="text-2xl font-bold tracking-tight text-white mb-4 block">
+          <Link to="/" className="text-2xl font-bold tracking-tight text-white mb-8 block">
             MEDI<span className="text-primary-light">MESH</span>
           </Link>
-          <p className="text-white/60 max-w-sm mt-4 text-lg">
-            A unified healthcare discovery, comparison, and navigation platform for India.
+          <h1 className="text-4xl font-serif font-bold text-white mb-4">
+            Healthcare discovery,<br/>connected.
+          </h1>
+          <p className="text-white/70 max-w-md text-lg leading-relaxed">
+            Discover hospitals, doctors and healthcare services through a structured healthcare ecosystem.
           </p>
         </div>
 
