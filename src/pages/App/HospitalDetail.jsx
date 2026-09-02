@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare } from 'lucide-react';
+import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, ActivitySquare, PlusSquare } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 
@@ -174,3 +174,4 @@ export default function HospitalDetail() {
     </div>
   );
 }
+
