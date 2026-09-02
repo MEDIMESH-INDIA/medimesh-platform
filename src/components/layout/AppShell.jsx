@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { LogOut, User, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare } from 'lucide-react';
 import { useState } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
+import CompareTray from '../hospital/CompareTray';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -140,6 +141,7 @@ export default function AppShell() {
           <Outlet />
         </div>
       </main>
+      <CompareTray />
     </div>
   );
 }

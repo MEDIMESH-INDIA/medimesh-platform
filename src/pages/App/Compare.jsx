@@ -7,9 +7,10 @@ export default function Compare() {
    
   
   const addSlugs = searchParams.getAll('add');
+  const storedSlugs = JSON.parse(localStorage.getItem('compareList') || '[]');
   
-  // For demo, just use addSlugs if present, otherwise default to first two
-  const hospitalsToCompareSlugs = addSlugs.length > 0 ? addSlugs : ['city-general-hospital', 'apollo-care-center'];
+  // For demo, just use addSlugs if present, then storedSlugs, otherwise default to first two
+  const hospitalsToCompareSlugs = addSlugs.length > 0 ? addSlugs : storedSlugs.length > 0 ? storedSlugs : ['city-general-hospital', 'apollo-care-center'];
   
   const hospitals = hospitalsToCompareSlugs
     .map(slug => demoHospitals.find(h => h.slug === slug))
@@ -18,6 +19,8 @@ export default function Compare() {
 
   const removeHospital = (slug) => {
     const newSlugs = hospitalsToCompareSlugs.filter(s => s !== slug);
+    localStorage.setItem('compareList', JSON.stringify(newSlugs));
+    window.dispatchEvent(new Event('compare-updated'));
     setSearchParams(newSlugs.map(s => ['add', s]));
   };
 

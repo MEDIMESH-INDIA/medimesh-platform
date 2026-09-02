@@ -66,7 +66,18 @@ export default function HospitalCard({ hospital, onCompare, onSave, isSaved = fa
               <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
             </button>
             <button 
-              onClick={() => onCompare?.(hospital)}
+              onClick={() => {
+                if (onCompare) {
+                  onCompare(hospital);
+                } else {
+                  const list = JSON.parse(localStorage.getItem('compareList') || '[]');
+                  if (list.length < 3 && !list.includes(slug)) {
+                    list.push(slug);
+                    localStorage.setItem('compareList', JSON.stringify(list));
+                    window.dispatchEvent(new Event('compare-updated'));
+                  }
+                }
+              }}
               className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-surface hover:text-foreground transition-colors"
               title="Add to compare"
             >
