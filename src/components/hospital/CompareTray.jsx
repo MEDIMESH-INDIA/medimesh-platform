@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, GitCompare } from 'lucide-react';
+import { GitCompare, X } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CompareTray() {
   const [compareList, setCompareList] = useState([]);
@@ -9,65 +10,100 @@ export default function CompareTray() {
   const location = useLocation();
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      const stored = JSON.parse(localStorage.getItem('compareList') || '[]');
-      setCompareList(stored);
+    const updateList = () => {
+      const list = JSON.parse(localStorage.getItem('compareList') || '[]');
+      setCompareList(list);
     };
-    handleStorageChange();
-    window.addEventListener('compare-updated', handleStorageChange);
-    return () => window.removeEventListener('compare-updated', handleStorageChange);
+    updateList();
+    window.addEventListener('compare-updated', updateList);
+    return () => window.removeEventListener('compare-updated', updateList);
   }, []);
 
   const removeHospital = (slug) => {
-    const updated = compareList.filter(s => s !== slug);
-    localStorage.setItem('compareList', JSON.stringify(updated));
+    const list = compareList.filter(s => s !== slug);
+    localStorage.setItem('compareList', JSON.stringify(list));
+    setCompareList(list);
     window.dispatchEvent(new Event('compare-updated'));
   };
 
-  if (compareList.length === 0 || location.pathname === '/app/compare') {
-    return null;
-  }
-
-  const hospitals = compareList.map(slug => demoHospitals.find(h => h.slug === slug)).filter(Boolean);
+  if (compareList.length === 0 || location.pathname === '/app/compare') return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pointer-events-none">
-      <div className="max-w-4xl mx-auto pointer-events-auto bg-white border border-border shadow-2xl rounded-t-2xl md:rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-bottom-10 duration-300">
-        <div className="flex items-center gap-4 flex-1 w-full overflow-x-auto">
-          <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">Compare:</span>
-          {hospitals.map(h => (
-            <div key={h.id} className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-lg border border-border shrink-0">
-              <span className="text-sm font-medium text-foreground truncate max-w-[120px]">{h.name}</span>
-              <button onClick={() => removeHospital(h.slug)} className="text-muted-foreground hover:text-red-600 transition-colors">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-          {hospitals.length < 3 && (
-            <div className="text-sm text-muted-foreground italic shrink-0 px-2">
-              Add {3 - hospitals.length} more
-            </div>
-          )}
+    <AnimatePresence>
+      <motion.div 
+        initial={{ y: '100%', opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="fixed bottom-0 left-0 right-0 z-50 p-4 pointer-events-none flex justify-center"
+      >
+        <div className="bg-white/95 backdrop-blur-md shadow-2xl border border-border rounded-2xl p-4 w-full max-w-4xl pointer-events-auto flex flex-col md:flex-row items-center gap-4">
+          <div className="flex items-center justify-between w-full md:w-auto md:shrink-0 pr-4 md:border-r border-border">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <GitCompare className="w-5 h-5 text-primary" />
+              Compare
+            </h3>
+            <span className="text-sm font-medium text-muted-foreground bg-surface px-2 py-0.5 rounded-full">
+              {compareList.length} / 3
+            </span>
+          </div>
+          
+          <div className="flex-1 flex items-center gap-3 w-full overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+            <AnimatePresence>
+              {compareList.map(slug => {
+                const hospital = demoHospitals.find(h => h.slug === slug);
+                return (
+                  <motion.div 
+                    key={slug}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0, width: 0, marginRight: 0 }}
+                    className="flex items-center gap-2 bg-surface border border-border px-3 py-2 rounded-xl shrink-0"
+                  >
+                    <span className="text-sm font-medium truncate max-w-[140px]">
+                      {hospital?.name || slug}
+                    </span>
+                    <button 
+                      onClick={() => removeHospital(slug)}
+                      className="text-muted-foreground hover:text-foreground bg-white/50 rounded-full p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+            {compareList.length < 3 && (
+              <div className="text-sm text-muted-foreground/60 border border-dashed border-border/60 px-3 py-2 rounded-xl shrink-0 hidden md:block">
+                Add up to {3 - compareList.length} more
+              </div>
+            )}
+          </div>
+
+          <div className="w-full md:w-auto shrink-0 flex items-center gap-2 justify-end">
+            <button 
+              onClick={() => {
+                localStorage.removeItem('compareList');
+                setCompareList([]);
+                window.dispatchEvent(new Event('compare-updated'));
+              }}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+            <button 
+              onClick={() => navigate('/app/compare')}
+              className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm ${
+                compareList.length >= 2 
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:-translate-y-0.5'
+                  : 'bg-foreground text-background hover:bg-foreground/90'
+              }`}
+            >
+              Compare now
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0 w-full md:w-auto mt-2 md:mt-0">
-          <button 
-            onClick={() => {
-              localStorage.setItem('compareList', '[]');
-              window.dispatchEvent(new Event('compare-updated'));
-            }}
-            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Clear
-          </button>
-          <button 
-            onClick={() => navigate('/app/compare')}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <GitCompare className="w-4 h-4" /> Compare now
-          </button>
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
-
