@@ -10,7 +10,7 @@ export default function Compare() {
   const storedSlugs = JSON.parse(localStorage.getItem('compareList') || '[]');
   
   // For demo, just use addSlugs if present, then storedSlugs, otherwise default to first two
-  const hospitalsToCompareSlugs = addSlugs.length > 0 ? addSlugs : storedSlugs.length > 0 ? storedSlugs : ['medi-demo-general', 'illustrative-care-center'];
+  const hospitalsToCompareSlugs = addSlugs.length > 0 ? addSlugs : storedSlugs.length > 0 ? storedSlugs : ['harbourview-medical-centre', 'navicare-multispeciality'];
   
   const hospitals = hospitalsToCompareSlugs
     .map(slug => demoHospitals.find(h => h.slug === slug))

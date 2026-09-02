@@ -14,10 +14,13 @@ const specialtyPills = [
   { label: 'Emergency Care', icon: Stethoscope, query: 'emergency' },
 ];
 
+import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+
 export default function PatientDashboard() {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const { savedSlugs, toggleSave } = useSavedHospitals();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -30,11 +33,6 @@ export default function PatientDashboard() {
     <div className="max-w-5xl mx-auto space-y-12">
       {/* Header & Search */}
       <section className="space-y-6 text-center md:text-left pt-4">
-        {/* Subtle Prototype Banner */}
-        <div className="bg-amber-50/50 border border-amber-200/50 rounded-lg p-3 text-xs text-amber-700/80 font-medium inline-block mx-auto md:mx-0">
-          SIH prototype — hospital records shown in this demo are illustrative unless a source is explicitly provided.
-        </div>
-
         <div>
           <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
             Good evening, {profile?.display_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest'}.
@@ -58,17 +56,6 @@ export default function PatientDashboard() {
             />
             <button type="submit" className="hidden">Search</button>
           </form>
-        </div>
-
-        {/* Dashboard Story */}
-        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/80 pt-1 flex-wrap justify-center md:justify-start">
-          <span>Search</span>
-          <ChevronRight className="w-3 h-3" />
-          <span>Filter</span>
-          <ChevronRight className="w-3 h-3" />
-          <span>Compare</span>
-          <ChevronRight className="w-3 h-3" />
-          <span>Understand source</span>
         </div>
 
         <div className="pt-2">
@@ -128,7 +115,16 @@ export default function PatientDashboard() {
             <HospitalCard 
               key={hospital.id} 
               hospital={hospital}
-              onCompare={() => navigate(`/app/compare?add=${hospital.slug}`)}
+              isSaved={savedSlugs.has(hospital.slug)}
+              onSave={() => toggleSave(hospital.slug)}
+              onCompare={() => {
+                const list = JSON.parse(localStorage.getItem('compareList') || '[]');
+                if (list.length < 3 && !list.includes(hospital.slug)) {
+                  list.push(hospital.slug);
+                  localStorage.setItem('compareList', JSON.stringify(list));
+                  window.dispatchEvent(new Event('compare-updated'));
+                }
+              }}
             />
           ))}
         </div>

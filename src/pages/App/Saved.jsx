@@ -1,19 +1,35 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Heart, Search, Loader2 } from 'lucide-react';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import { demoHospitals } from '../../data/sihDemoHospitals';
+import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 
 export default function Saved() {
-  const navigate = useNavigate();
-  // Mock saved hospitals state for MVP
-  const [savedHospitals, setSavedHospitals] = useState([demoHospitals[0]]);
+  
+  const { savedSlugs, loading, error, toggleSave } = useSavedHospitals();
 
-  const handleRemove = (hospital) => {
-    setSavedHospitals(prev => prev.filter(h => h.id !== hospital.id));
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-  if (savedHospitals.length === 0) {
+  if (error) {
+    return (
+      <div className="text-center py-20 px-4 max-w-2xl mx-auto">
+        <h3 className="text-xl font-semibold text-red-600 mb-2">Error loading saved hospitals</h3>
+        <p className="text-muted-foreground mb-6">Please try refreshing the page.</p>
+      </div>
+    );
+  }
+
+  const savedHospitalsList = Array.from(savedSlugs)
+    .map(slug => demoHospitals.find(h => h.slug === slug))
+    .filter(Boolean);
+
+  if (savedHospitalsList.length === 0) {
     return (
       <div className="text-center py-20 px-4 max-w-2xl mx-auto">
         <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-6">
@@ -32,21 +48,27 @@ export default function Saved() {
     <div className="max-w-5xl mx-auto pb-12">
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-foreground">Saved Hospitals</h1>
-        <p className="text-muted-foreground mt-2">You have {savedHospitals.length} saved hospital{savedHospitals.length !== 1 ? 's' : ''}</p>
+        <p className="text-muted-foreground mt-2">You have {savedHospitalsList.length} saved hospital{savedHospitalsList.length !== 1 ? 's' : ''}</p>
       </div>
 
       <div className="grid gap-6">
-        {savedHospitals.map(hospital => (
+        {savedHospitalsList.map(hospital => (
           <HospitalCard 
             key={hospital.id} 
             hospital={hospital}
             isSaved={true}
-            onSave={handleRemove}
-            onCompare={() => navigate(`/app/compare?add=${hospital.slug}`)}
+            onSave={() => toggleSave(hospital.slug)}
+            onCompare={() => {
+              const list = JSON.parse(localStorage.getItem('compareList') || '[]');
+              if (list.length < 3 && !list.includes(hospital.slug)) {
+                list.push(hospital.slug);
+                localStorage.setItem('compareList', JSON.stringify(list));
+                window.dispatchEvent(new Event('compare-updated'));
+              }
+            }}
           />
         ))}
       </div>
     </div>
   );
 }
-

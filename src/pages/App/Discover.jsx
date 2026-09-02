@@ -1,14 +1,17 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, SlidersHorizontal, X } from 'lucide-react';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 
+import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+
 export default function Discover() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
+  
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const { savedSlugs, toggleSave } = useSavedHospitals();
 
   // Filters State
   const activeSpecialty = searchParams.get('specialty') || '';
@@ -64,11 +67,6 @@ export default function Discover() {
 
   return (
     <div className="flex flex-col h-full max-w-7xl mx-auto">
-      {/* Subtle Prototype Banner */}
-      <div className="bg-amber-50/50 border border-amber-200/50 rounded-lg p-3 text-xs text-amber-700/80 font-medium w-full mb-6">
-        SIH prototype — hospital records shown in this demo are illustrative unless a source is explicitly provided.
-      </div>
-
       {/* Top Search Bar */}
       <div className="mb-6">
         <form onSubmit={handleSearch} className="relative flex gap-3">
@@ -197,7 +195,16 @@ export default function Discover() {
                 <HospitalCard 
                   key={hospital.id} 
                   hospital={hospital} 
-                  onCompare={() => navigate(`/app/compare?add=${hospital.slug}`)}
+                  isSaved={savedSlugs.has(hospital.slug)}
+                  onSave={() => toggleSave(hospital.slug)}
+                  onCompare={() => {
+                    const list = JSON.parse(localStorage.getItem('compareList') || '[]');
+                    if (list.length < 3 && !list.includes(hospital.slug)) {
+                      list.push(hospital.slug);
+                      localStorage.setItem('compareList', JSON.stringify(list));
+                      window.dispatchEvent(new Event('compare-updated'));
+                    }
+                  }}
                 />
               ))}
             </div>
