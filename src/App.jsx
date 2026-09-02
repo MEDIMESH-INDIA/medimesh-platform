@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage/LandingPage";
 
 // Auth Components
@@ -15,6 +15,10 @@ import { RoleRoute } from "./routes/RoleRoute";
 // App Layout & Pages
 import AppShell from "./components/layout/AppShell";
 import PatientDashboard from "./pages/App/PatientDashboard";
+import Discover from "./pages/App/Discover";
+import HospitalDetail from "./pages/App/HospitalDetail";
+import Compare from "./pages/App/Compare";
+import Saved from "./pages/App/Saved";
 import DoctorDashboard from "./pages/App/DoctorDashboard";
 import HospitalDashboard from "./pages/App/HospitalDashboard";
 import AdminDashboard from "./pages/App/AdminDashboard";
@@ -40,8 +44,8 @@ function App() {
     <Routes>
       {/* Public/Landing Routes */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/discover" element={<PlaceholderPage title="Discover Healthcare" />} />
-      <Route path="/compare" element={<PlaceholderPage title="Compare Hospitals" />} />
+      <Route path="/discover" element={<Navigate to="/app/discover" replace />} />
+      <Route path="/compare" element={<Navigate to="/app/compare" replace />} />
       <Route path="/doctors" element={<PlaceholderPage title="For Doctors" />} />
       <Route path="/hospitals" element={<PlaceholderPage title="For Hospitals" />} />
       <Route path="/about" element={<PlaceholderPage title="About MEDIMESH" />} />
@@ -62,6 +66,26 @@ function App() {
         <Route path="/app" element={
           <RoleRoute allowedRoles={['patient']}>
             <PatientDashboard />
+          </RoleRoute>
+        } />
+        <Route path="/app/discover" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <Discover />
+          </RoleRoute>
+        } />
+        <Route path="/app/hospitals/:slug" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <HospitalDetail />
+          </RoleRoute>
+        } />
+        <Route path="/app/compare" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <Compare />
+          </RoleRoute>
+        } />
+        <Route path="/app/saved" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <Saved />
           </RoleRoute>
         } />
         
