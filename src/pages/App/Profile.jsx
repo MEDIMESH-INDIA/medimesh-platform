@@ -39,7 +39,8 @@ export default function Profile() {
       await refreshProfile();
       setMessage('Profile updated successfully.');
     } catch (err) {
-      setError(err.message || 'An error occurred while updating profile.');
+      console.error(err);
+      setError('An error occurred while updating profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,8 +50,9 @@ export default function Profile() {
     <AppPageContainer>
       <div className="max-w-[900px] space-y-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-foreground">Your Profile</h1>
-          <p className="text-muted-foreground mt-1">Manage your personal information.</p>
+          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">YOUR ACCOUNT</p>
+          <h1 className="text-3xl font-serif font-bold text-foreground">Profile</h1>
+          <p className="text-muted-foreground mt-2">Manage your personal information.</p>
         </div>
 
         <div className="bg-white p-8 rounded-2xl border border-border shadow-sm">

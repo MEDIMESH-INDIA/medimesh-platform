@@ -35,7 +35,7 @@ export default function CompareTray() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: '100%', opacity: 0 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed bottom-3 left-3 right-3 md:bottom-5 md:left-[280px] md:right-8 z-40 pointer-events-none flex justify-center"
+        className="fixed bottom-3 left-3 right-3 md:bottom-5 md:left-[256px] md:right-0 z-40 pointer-events-none flex justify-center px-4 md:px-8"
       >
         <div className="bg-white/95 backdrop-blur-md shadow-2xl border border-border rounded-2xl p-3 md:p-3.5 w-full max-w-[960px] pointer-events-auto flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4">
           <div className="flex items-center justify-between w-full sm:w-auto sm:shrink-0 sm:pr-4 sm:border-r border-border">

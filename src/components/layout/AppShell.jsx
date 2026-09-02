@@ -64,7 +64,7 @@ export default function AppShell() {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col md:flex-row relative z-0">
+    <div className="min-h-screen bg-graph-paper flex flex-col md:flex-row relative z-0">
       <AppMeshBackground />
       <header className="md:hidden bg-white/80 backdrop-blur-sm border-b border-border sticky top-0 z-30">
         <div className="px-4 h-16 flex items-center justify-between">

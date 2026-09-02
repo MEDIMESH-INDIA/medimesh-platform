@@ -50,8 +50,9 @@ export default function Compare() {
             <GitCompare className="w-8 h-8 text-muted-foreground/50" />
           </div>
           <div>
-            <h3 className="text-3xl font-serif font-bold text-foreground">No hospitals selected</h3>
-            <p className="text-muted-foreground mt-3 text-lg">Select up to 3 hospitals to compare their facilities, capacity, and data provenance side-by-side.</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">SIDE-BY-SIDE VIEW</p>
+            <h1 className="text-3xl font-serif font-bold text-foreground">Compare hospitals</h1>
+            <p className="text-muted-foreground mt-2">Evaluate capacity, facilities, and data sources.</p>
           </div>
           <Link to="/app/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm">
             <Plus className="w-5 h-5" /> Discover hospitals
@@ -68,14 +69,12 @@ export default function Compare() {
     <AppPageContainer>
       {/* Header */}
       <header className="mb-10 space-y-4">
-        <h2 className="text-xs font-bold text-primary tracking-[0.2em] uppercase">
-          Side-By-Side Comparison
-        </h2>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground leading-tight">Compare hospitals</h1>
-            <p className="text-lg text-muted-foreground mt-2 max-w-2xl">
-              Understand differences in facilities, capacity and source information without rankings.
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">SIDE-BY-SIDE VIEW</p>
+            <h1 className="text-3xl font-serif font-bold text-foreground">Compare hospitals</h1>
+            <p className="text-muted-foreground mt-2 max-w-2xl">
+              Evaluate differences in facilities, capacity and source information.
             </p>
           </div>
           {hospitals.length < 3 && (

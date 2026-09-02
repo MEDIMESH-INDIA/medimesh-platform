@@ -240,17 +240,21 @@ export default function PatientDashboard() {
             </motion.div>
           </Link>
 
-          <div className="cursor-not-allowed">
-            <motion.div variants={item} className="h-full p-8 rounded-2xl border border-border bg-surface/30 opacity-70 relative overflow-hidden">
-              <div className="w-12 h-12 rounded-xl bg-surface border border-border flex items-center justify-center mb-6 shadow-sm">
-                <Database className="w-6 h-6 text-muted-foreground" />
+          <Link to="/app/discover">
+            <motion.div variants={item} whileHover={{ y: -4 }} className="group h-full p-8 rounded-2xl border border-border bg-surface/50 hover:bg-white hover:shadow-lg transition-all relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-slate-500/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+              <div className="w-12 h-12 rounded-xl bg-white border border-border flex items-center justify-center mb-6 shadow-sm">
+                <Database className="w-6 h-6 text-slate-600" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+              <h3 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2 group-hover:text-slate-700 transition-colors">
                 Understand Sources
               </h3>
-              <p className="text-sm text-muted-foreground mb-6 line-clamp-2">See where healthcare information comes from. (Coming soon)</p>
+              <p className="text-sm text-muted-foreground mb-6 line-clamp-2">Learn where hospital data comes from and how it is verified.</p>
+              <div className="flex items-center text-sm font-semibold text-slate-600 group-hover:translate-x-1 transition-transform">
+                Explore data <ChevronRight className="w-4 h-4 ml-1" />
+              </div>
             </motion.div>
-          </div>
+          </Link>
         </motion.div>
       </section>
 

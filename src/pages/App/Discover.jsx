@@ -74,9 +74,9 @@ export default function Discover() {
     const searchRegex = new RegExp(searchParams.get('q') || '', 'i');
     const matchesSearch = searchRegex.test(h.name) || searchRegex.test(h.location) || h.specialties.some(s => searchRegex.test(s));
     
-    const matchesSpecialty = activeSpecialty ? h.specialties.includes(activeSpecialty) : true;
-    const matchesLocation = activeLocation ? h.location === activeLocation : true;
-    const matchesType = activeType ? h.type === activeType : true;
+    const matchesSpecialty = activeSpecialty ? h.specialties.some(s => s.toLowerCase() === activeSpecialty.toLowerCase()) : true;
+    const matchesLocation = activeLocation ? h.location.toLowerCase() === activeLocation.toLowerCase() : true;
+    const matchesType = activeType ? h.type.toLowerCase() === activeType.toLowerCase() : true;
 
     return matchesSearch && matchesSpecialty && matchesLocation && matchesType;
   });
@@ -91,8 +91,9 @@ export default function Discover() {
       <header className="mb-6 space-y-4">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Discover Hospitals</h1>
-            <p className="text-muted-foreground mt-1">Search the MEDIMESH prototype database.</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">HEALTHCARE DISCOVERY</p>
+            <h1 className="text-3xl font-serif font-bold text-foreground">Discover hospitals</h1>
+            <p className="text-muted-foreground mt-2">Search the MEDIMESH database.</p>
           </div>
           
           <div className="flex bg-surface p-1 rounded-xl border border-border">

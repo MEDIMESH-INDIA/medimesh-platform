@@ -17,13 +17,11 @@ export default function Saved() {
     <AppPageContainer>
       {/* Header - Always visible */}
       <header className="mb-10 space-y-4">
-        <h2 className="text-xs font-bold text-primary tracking-[0.2em] uppercase">
-          Your Shortlist
-        </h2>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground leading-tight">Saved hospitals</h1>
-            <p className="text-lg text-muted-foreground mt-2 max-w-2xl">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">YOUR SHORTLIST</p>
+            <h1 className="text-3xl font-serif font-bold text-foreground">Saved hospitals</h1>
+            <p className="text-muted-foreground mt-2 max-w-2xl">
               Keep healthcare options together and compare them when you&apos;re ready.
             </p>
           </div>
