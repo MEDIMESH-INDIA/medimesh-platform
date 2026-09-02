@@ -33,3 +33,4 @@ USING (auth.uid() = patient_id);
 
 GRANT SELECT, INSERT, DELETE ON public.saved_hospitals TO authenticated;
 GRANT ALL ON public.saved_hospitals TO service_role;
+

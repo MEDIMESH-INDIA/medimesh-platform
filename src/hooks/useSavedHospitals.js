@@ -15,7 +15,7 @@ export function useSavedHospitals() {
       const { data, error } = await supabase
         .from('saved_hospitals')
         .select('hospital_slug');
-      
+
       if (error) throw error;
       setSavedSlugs(new Set(data.map(d => d.hospital_slug)));
     } catch (err) {
@@ -33,7 +33,7 @@ export function useSavedHospitals() {
   const toggleSave = async (slug) => {
     if (!user) return;
     const isCurrentlySaved = savedSlugs.has(slug);
-    
+
     // Optimistic UI update
     setSavedSlugs(prev => {
       const next = new Set(prev);
