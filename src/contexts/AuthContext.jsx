@@ -1,67 +1,147 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase/client';
+import { getAuthIdentityTransition } from '../routes/authGuardState';
 
 const AuthContext = createContext({});
 
+// eslint-disable-next-line react/prop-types
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [authError, setAuthError] = useState(null);
+  const [profileError, setProfileError] = useState(null);
+  const mountedRef = useRef(false);
+  const activeUserIdRef = useRef(null);
+  const profileRequestRef = useRef(0);
 
-  useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setRole(null);
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
+  const clearProfileState = useCallback(() => {
+    profileRequestRef.current += 1;
+    setProfile(null);
+    setRole(null);
+    setProfileError(null);
+    setProfileLoading(false);
   }, []);
 
-  const fetchProfile = async (userId) => {
+  const fetchProfile = useCallback(async (userId) => {
+    const requestId = ++profileRequestRef.current;
+
+    setProfile(null);
+    setRole(null);
+    setProfileError(null);
+    setProfileLoading(true);
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+      if (!data) throw new Error('No profile is associated with this account.');
+
+      if (
+        !mountedRef.current
+        || requestId !== profileRequestRef.current
+        || activeUserIdRef.current !== userId
+      ) {
+        return null;
       }
-      
+
       setProfile(data);
-      setRole(data.role);
+      setRole(data.role ?? null);
+      return data;
     } catch (error) {
-      console.error('Error loading user profile:', error.message);
+      if (
+        mountedRef.current
+        && requestId === profileRequestRef.current
+        && activeUserIdRef.current === userId
+      ) {
+        console.error('Error loading user profile:', error.message);
+        setProfile(null);
+        setRole(null);
+        setProfileError(error);
+      }
+
+      return null;
     } finally {
-      setLoading(false);
+      if (
+        mountedRef.current
+        && requestId === profileRequestRef.current
+        && activeUserIdRef.current === userId
+      ) {
+        setProfileLoading(false);
+      }
     }
-  };
+  }, []);
+
+  const applySession = useCallback((nextSession) => {
+    const transition = getAuthIdentityTransition(activeUserIdRef.current, nextSession);
+
+    setSession(nextSession);
+    setUser(transition.nextUser);
+    setAuthError(null);
+    setAuthLoading(false);
+
+    if (transition.shouldClearProfile) {
+      activeUserIdRef.current = transition.nextUserId;
+      clearProfileState();
+    }
+
+    if (!transition.nextUser) {
+      activeUserIdRef.current = null;
+      return;
+    }
+
+    if (transition.shouldLoadProfile) {
+      void fetchProfile(transition.nextUserId);
+    }
+  }, [clearProfileState, fetchProfile]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    let cancelled = false;
+    let authEventSeen = false;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        if (cancelled) return;
+        authEventSeen = true;
+        applySession(nextSession);
+      }
+    );
+
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (cancelled || authEventSeen) return;
+        if (error) throw error;
+        applySession(data.session);
+      })
+      .catch((error) => {
+        if (cancelled || authEventSeen) return;
+
+        console.error('Error restoring authentication session:', error.message);
+        activeUserIdRef.current = null;
+        setSession(null);
+        setUser(null);
+        setAuthError(error);
+        setAuthLoading(false);
+        clearProfileState();
+      });
+
+    return () => {
+      cancelled = true;
+      mountedRef.current = false;
+      activeUserIdRef.current = null;
+      profileRequestRef.current += 1;
+      subscription.unsubscribe();
+    };
+  }, [applySession, clearProfileState]);
 
   const signIn = async (email, password) => {
     return supabase.auth.signInWithPassword({ email, password });
@@ -110,12 +190,23 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const refreshProfile = useCallback(() => {
+    const userId = activeUserIdRef.current;
+    return userId ? fetchProfile(userId) : Promise.resolve(null);
+  }, [fetchProfile]);
+
+  const loading = authLoading || (Boolean(user) && profileLoading);
+
   const value = {
     user,
     session,
     profile,
     role,
     loading,
+    authLoading,
+    profileLoading,
+    authError,
+    profileError,
     signIn,
     signInWithGoogle,
     signUp,
@@ -123,12 +214,12 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     updatePassword,
     resendVerification,
-    refreshProfile: () => user && fetchProfile(user.id),
+    refreshProfile,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

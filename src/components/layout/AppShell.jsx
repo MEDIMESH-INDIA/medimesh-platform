@@ -2,11 +2,13 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, User, Settings, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const dashboardPath = getRoleDashboardPath(role);
 
   const handleSignOut = async () => {
     await signOut();
@@ -14,7 +16,9 @@ export default function AppShell() {
   };
 
   const navLinks = [
-    { name: 'Dashboard', href: role === 'patient' ? '/app' : `/${role}`, icon: LayoutDashboard },
+    ...(dashboardPath
+      ? [{ name: 'Dashboard', href: dashboardPath, icon: LayoutDashboard }]
+      : []),
     { name: 'Profile', href: '/app/profile', icon: User },
     { name: 'Settings', href: '/app/settings', icon: Settings },
   ];
@@ -47,7 +51,7 @@ export default function AppShell() {
             <div className="hidden md:flex items-center gap-3">
               <div className="text-right">
                 <p className="text-sm font-semibold text-foreground">{profile?.display_name || user?.email}</p>
-                <p className="text-xs text-muted-foreground capitalize">{role}</p>
+                <p className="text-xs text-muted-foreground capitalize">{role || 'Account'}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold border border-primary/20">
                 {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : 'U'}
@@ -82,7 +86,7 @@ export default function AppShell() {
             </div>
             <div>
               <p className="font-semibold text-foreground">{profile?.display_name || user?.email}</p>
-              <p className="text-xs text-muted-foreground capitalize">{role}</p>
+              <p className="text-xs text-muted-foreground capitalize">{role || 'Account'}</p>
             </div>
           </div>
           <nav className="flex flex-col gap-2">
