@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, ActivitySquare, PlusSquare } from 'lucide-react';
+import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 
@@ -14,7 +14,7 @@ export default function HospitalDetail() {
     return (
       <div className="text-center py-20 px-4">
         <h3 className="text-xl font-semibold text-foreground mb-2">Hospital not found</h3>
-        <p className="text-muted-foreground mb-6">The hospital information couldn't be loaded.</p>
+        <p className="text-muted-foreground mb-6">The hospital information couldn&apos;t be loaded.</p>
         <Link to="/app/discover" className="px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors">
           Back to discovery
         </Link>

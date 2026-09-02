@@ -19,7 +19,7 @@ export default function Saved() {
         <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-6">
           <Heart className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="text-2xl font-serif font-bold text-foreground mb-4">You haven't saved any hospitals yet.</h3>
+        <h3 className="text-2xl font-serif font-bold text-foreground mb-4">You haven&apos;t saved any hospitals yet.</h3>
         <p className="text-muted-foreground mb-8 text-lg">Save hospitals to easily find them later and compare them.</p>
         <Link to="/app/discover" className="px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors inline-flex items-center gap-2">
           <Search className="w-5 h-5" /> Discover hospitals

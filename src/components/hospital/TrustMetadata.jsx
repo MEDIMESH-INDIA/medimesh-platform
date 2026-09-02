@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { Database, ShieldCheck, Clock, ExternalLink } from 'lucide-react';
 
 export default function TrustMetadata({ trustMetadata }) {

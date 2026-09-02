@@ -64,6 +64,11 @@ export default function Discover() {
 
   return (
     <div className="flex flex-col h-full max-w-7xl mx-auto">
+      {/* Subtle Prototype Banner */}
+      <div className="bg-amber-50/50 border border-amber-200/50 rounded-lg p-3 text-xs text-amber-700/80 font-medium w-full mb-6">
+        SIH prototype — hospital records shown in this demo are illustrative unless a source is explicitly provided.
+      </div>
+
       {/* Top Search Bar */}
       <div className="mb-6">
         <form onSubmit={handleSearch} className="relative flex gap-3">
