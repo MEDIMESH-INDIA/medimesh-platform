@@ -35,3 +35,9 @@
     text-wrap: balance;
   }
 }
+
+#app-mesh-tsparticles,
+#app-mesh-tsparticles canvas {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}

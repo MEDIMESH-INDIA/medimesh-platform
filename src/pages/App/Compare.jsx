@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Plus, X, Check, Minus, GitCompare, Info } from 'lucide-react';
+import { Plus, X, Check, Minus, GitCompare, Info, Database } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import AppPageContainer from '../../components/layout/AppPageContainer';
-import { motion } from 'framer-motion';
 
 export default function Compare() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [compareList, setCompareList] = useState([]);
+  const [compareList, setCompareList] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('compareList') || '[]');
+    } catch {
+      return [];
+    }
+  });
   
   useEffect(() => {
     const list = JSON.parse(localStorage.getItem('compareList') || '[]');
@@ -82,8 +87,8 @@ export default function Compare() {
       </header>
 
       {/* Comparison Table */}
-      <div className="overflow-x-auto pb-8">
-        <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden min-w-[800px] mb-8">
+      <div className="w-full overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden min-w-[720px] md:min-w-[800px] mb-8">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>

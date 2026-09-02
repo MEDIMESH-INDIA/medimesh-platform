@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import { MapPin, Building2, ChevronRight, Heart, GitCompare, Check } from 'lucide-react';
+import { MapPin, Building2, Heart, GitCompare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TrustMetadata from './TrustMetadata';
 

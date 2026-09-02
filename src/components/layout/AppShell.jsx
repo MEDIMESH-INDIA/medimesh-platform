@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, User, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
 import AppMeshBackground from './AppMeshBackground';
@@ -11,7 +11,33 @@ export default function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [compareCount, setCompareCount] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('compareList') || '[]').length;
+    } catch {
+      return 0;
+    }
+  });
+
   const dashboardPath = getRoleDashboardPath(role);
+
+  useEffect(() => {
+    const update = () => {
+      try {
+        setCompareCount(JSON.parse(localStorage.getItem('compareList') || '[]').length);
+      } catch {
+        setCompareCount(0);
+      }
+    };
+    window.addEventListener('compare-updated', update);
+    window.addEventListener('storage', update);
+    return () => {
+      window.removeEventListener('compare-updated', update);
+      window.removeEventListener('storage', update);
+    };
+  }, []);
+
+  const hasCompareTray = compareCount > 0 && location.pathname !== '/app/compare';
 
   const handleSignOut = async () => {
     await signOut();
@@ -56,7 +82,7 @@ export default function AppShell() {
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-[#FCFBF8]/95 backdrop-blur-xl border-r border-border/80 shadow-[1px_0_10px_rgba(0,0,0,0.02)] transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col
+        fixed inset-y-0 left-0 z-40 w-64 bg-[#FCFBF8]/95 backdrop-blur-xl border-r border-border/80 shadow-[1px_0_10px_rgba(0,0,0,0.02)] transform transition-transform duration-300 ease-in-out md:sticky md:top-0 md:h-screen md:translate-x-0 md:z-30 shrink-0 flex flex-col
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-16 flex items-center px-6 md:h-20 mt-2">
@@ -134,7 +160,7 @@ export default function AppShell() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto bg-transparent relative z-10">
+      <main className={`flex-1 min-w-0 min-h-screen flex flex-col bg-transparent relative z-10 ${hasCompareTray ? 'pb-28 md:pb-36' : 'pb-8'}`}>
         {/* Overlay for mobile menu */}
         {mobileMenuOpen && (
           <div 
@@ -142,11 +168,10 @@ export default function AppShell() {
             onClick={() => setMobileMenuOpen(false)}
           ></div>
         )}
-        <div className="flex-1 w-full w-full px-6 md:px-10 lg:px-12 py-8 md:py-12 mx-auto max-w-[1360px]">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
       <CompareTray />
     </div>
   );
 }
+

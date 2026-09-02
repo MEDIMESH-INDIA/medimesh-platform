@@ -1,4 +1,4 @@
-import { Database, ShieldCheck, Clock, CheckCircle2, ChevronRight, Activity, AlertCircle } from 'lucide-react';
+import { Database, ShieldCheck, Clock, CheckCircle2, Activity, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TrustMetadata({ trustMetadata, compact = false }) {

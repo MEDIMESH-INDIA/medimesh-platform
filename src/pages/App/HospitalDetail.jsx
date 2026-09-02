@@ -15,13 +15,25 @@ export default function HospitalDetail() {
 
   if (!hospital) {
     return (
-      <div className="text-center py-20 px-4">
-        <h3 className="text-xl font-semibold text-foreground mb-2">Hospital not found</h3>
-        <p className="text-muted-foreground mb-6">The hospital information couldn&apos;t be loaded.</p>
-        <Link to="/app/discover" className="px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors">
-          Back to discovery
-        </Link>
-      </div>
+      <AppPageContainer>
+        <div className="text-center py-16 px-4 max-w-lg mx-auto bg-white rounded-2xl border border-border shadow-sm space-y-4 my-8">
+          <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mx-auto text-muted-foreground border border-border">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-serif font-bold text-foreground">Hospital not found</h1>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            The facility record for &ldquo;{slug}&rdquo; could not be found. It may be an external search result or no longer in the demo database.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/app/discover"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to discovery
+            </Link>
+          </div>
+        </div>
+      </AppPageContainer>
     );
   }
 

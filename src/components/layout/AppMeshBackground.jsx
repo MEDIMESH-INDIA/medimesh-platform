@@ -22,7 +22,7 @@ export default function AppMeshBackground() {
   const routeConfig = getRouteConfig();
 
   const options = useMemo(() => ({
-    fullScreen: { enable: true, zIndex: -1 },
+    fullScreen: { enable: true, zIndex: 0 },
     background: { color: { value: "transparent" } },
     fpsLimit: 60,
     interactivity: {
@@ -66,7 +66,7 @@ export default function AppMeshBackground() {
 
   return (
     <ParticlesProvider init={initParticles}>
-      <Particles id="app-mesh-tsparticles" options={options} className="fixed inset-0 pointer-events-none -z-10" />
+      <Particles id="app-mesh-tsparticles" options={options} className="fixed inset-0 pointer-events-none z-0" />
     </ParticlesProvider>
   );
 }

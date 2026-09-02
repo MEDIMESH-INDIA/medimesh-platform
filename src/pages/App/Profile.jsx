@@ -46,13 +46,14 @@ export default function Profile() {
   };
 
   return (
-    <AppPageContainer className="max-w-3xl mx-0">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-foreground">Your Profile</h1>
-        <p className="text-muted-foreground mt-1">Manage your personal information.</p>
-      </div>
+    <AppPageContainer>
+      <div className="max-w-[900px] space-y-8">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-foreground">Your Profile</h1>
+          <p className="text-muted-foreground mt-1">Manage your personal information.</p>
+        </div>
 
-      <div className="bg-white p-8 rounded-2xl border border-border shadow-sm">
+        <div className="bg-white p-8 rounded-2xl border border-border shadow-sm">
         <form onSubmit={handleUpdate} className="space-y-6">
           {message && <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm">{message}</div>}
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm">{error}</div>}
@@ -94,6 +95,7 @@ export default function Profile() {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </AppPageContainer>
   );

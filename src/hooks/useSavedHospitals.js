@@ -9,7 +9,10 @@ export function useSavedHospitals() {
   const [error, setError] = useState(null);
 
   const fetchSaved = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const { data, error } = await supabase

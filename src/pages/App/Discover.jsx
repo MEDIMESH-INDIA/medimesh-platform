@@ -152,7 +152,7 @@ export default function Discover() {
 
       <div className="flex gap-8 flex-1 relative pb-12">
         {/* Desktop Sidebar Filters */}
-        <aside className={`fixed inset-y-0 right-0 z-40 w-[280px] bg-white border-l border-border transform transition-transform duration-300 ease-in-out lg:static lg:transform-none lg:w-64 lg:bg-transparent lg:border-none lg:z-0 ${
+        <aside className={`fixed inset-y-0 right-0 z-40 w-[280px] bg-white border-l border-border transform transition-transform duration-300 ease-in-out lg:sticky lg:top-8 lg:self-start lg:transform-none lg:w-64 lg:bg-transparent lg:border-none lg:z-0 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto ${
           isMobileFiltersOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'
         }`}>
           <div className="h-full flex flex-col p-6 lg:p-0">
@@ -284,7 +284,7 @@ export default function Discover() {
                 <span className="text-sm text-muted-foreground mr-1">Active filters:</span>
                 {searchParams.get('q') && (
                   <span className="flex items-center gap-1.5 px-3 py-1 bg-surface border border-border rounded-full text-sm font-medium text-foreground">
-                    Search: &quot;{searchParams.get('q')}"
+                    Search: &quot;{searchParams.get('q')}&quot;
                     <button onClick={() => { setQuery(''); updateFilter('q', ''); }}><X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
                   </span>
                 )}

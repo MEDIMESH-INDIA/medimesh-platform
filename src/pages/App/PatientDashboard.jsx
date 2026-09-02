@@ -44,7 +44,7 @@ export default function PatientDashboard() {
   };
 
   return (
-    <AppPageContainer className="overflow-x-hidden">
+    <AppPageContainer className="space-y-12">
       
       {/* Disclaimer */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 bg-amber-50/80 border border-amber-200/60 px-3 py-1.5 rounded-full">
@@ -111,7 +111,7 @@ export default function PatientDashboard() {
         </div>
 
         {/* RIGHT: Visual Composition */}
-        <div className="hidden lg:block flex-1 relative w-full h-[400px]">
+        <div className="hidden lg:block flex-1 relative w-full h-[400px] overflow-hidden rounded-3xl">
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Connection Lines */}
             <svg className="absolute w-full h-full text-primary/20" style={{ zIndex: 0 }}>
