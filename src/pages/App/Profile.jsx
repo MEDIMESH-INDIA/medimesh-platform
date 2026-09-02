@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import Button from '../../components/common/Button';
 import { supabase } from '../../lib/supabase/client';
+import PageTransition from '../../components/layout/PageTransition';
 
 export default function Profile() {
   const { profile, user, refreshProfile } = useAuth();
@@ -46,7 +46,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <PageTransition className="max-w-3xl mx-auto space-y-8 pb-12">
       <div>
         <h1 className="text-3xl font-serif font-bold text-foreground">Your Profile</h1>
         <p className="text-muted-foreground mt-1">Manage your personal information.</p>
@@ -58,37 +58,43 @@ export default function Profile() {
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm">{error}</div>}
           
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">First Name</label>
-              <input type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary outline-none" value={firstName} onChange={e => setFirstName(e.target.value)} disabled={profile?.role === 'hospital'} />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-foreground uppercase tracking-wider">First Name</label>
+              <input type="text" className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all bg-surface/50 focus:bg-white" value={firstName} onChange={e => setFirstName(e.target.value)} disabled={profile?.role === 'hospital'} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Last Name</label>
-              <input type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary outline-none" value={lastName} onChange={e => setLastName(e.target.value)} disabled={profile?.role === 'hospital'} />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-foreground uppercase tracking-wider">Last Name</label>
+              <input type="text" className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all bg-surface/50 focus:bg-white" value={lastName} onChange={e => setLastName(e.target.value)} disabled={profile?.role === 'hospital'} />
             </div>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Display Name / Organization Name</label>
-            <input type="text" required className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary outline-none" value={displayName} onChange={e => setDisplayName(e.target.value)} />
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-foreground uppercase tracking-wider">Display Name / Organization Name</label>
+            <input type="text" required className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all bg-surface/50 focus:bg-white" value={displayName} onChange={e => setDisplayName(e.target.value)} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Phone</label>
-              <input type="tel" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary outline-none" value={phone} onChange={e => setPhone(e.target.value)} />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-foreground uppercase tracking-wider">Phone</label>
+              <input type="tel" className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all bg-surface/50 focus:bg-white" value={phone} onChange={e => setPhone(e.target.value)} />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">City</label>
-              <input type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary outline-none" value={city} onChange={e => setCity(e.target.value)} />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-foreground uppercase tracking-wider">City</label>
+              <input type="text" className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all bg-surface/50 focus:bg-white" value={city} onChange={e => setCity(e.target.value)} />
             </div>
           </div>
           
-          <div className="pt-4 border-t border-border flex justify-end">
-            <Button type="submit" disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</Button>
+          <div className="pt-8 border-t border-border flex justify-end">
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
           </div>
         </form>
       </div>
-    </div>
+    </PageTransition>
   );
 }

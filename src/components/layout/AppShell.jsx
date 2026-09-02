@@ -4,6 +4,7 @@ import { LogOut, User, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCom
 import { useState } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
+import AppMeshBackground from './AppMeshBackground';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -37,11 +38,11 @@ export default function AppShell() {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row">
-      {/* Mobile Top Navigation */}
-      <header className="md:hidden bg-white border-b border-border sticky top-0 z-30">
+    <div className="min-h-screen bg-transparent flex flex-col md:flex-row relative z-0">
+      <AppMeshBackground />
+      <header className="md:hidden bg-white/80 backdrop-blur-sm border-b border-border sticky top-0 z-30">
         <div className="px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold tracking-tight text-foreground">
+          <Link to="/" className="text-xl font-bold tracking-tight text-foreground font-serif">
             MEDI<span className="text-primary">MESH</span>
           </Link>
           <button 
@@ -55,16 +56,16 @@ export default function AppShell() {
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-border transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col
+        fixed inset-y-0 left-0 z-40 w-64 bg-[#FCFBF8]/95 backdrop-blur-xl border-r border-border/80 shadow-[1px_0_10px_rgba(0,0,0,0.02)] transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="h-16 flex items-center px-6 md:h-20">
+        <div className="h-16 flex items-center px-6 md:h-20 mt-2">
           <Link to="/" className="text-2xl font-bold tracking-tight text-foreground font-serif">
             MEDI<span className="text-primary">MESH</span>
           </Link>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto py-4 px-4 flex flex-col gap-6">
           <nav className="space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.href;
@@ -74,18 +75,20 @@ export default function AppShell() {
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                    ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-surface hover:text-foreground'}
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group
+                    ${isActive 
+                      ? 'bg-primary/10 text-primary border border-primary/10 shadow-sm' 
+                      : 'text-muted-foreground hover:bg-white hover:text-foreground border border-transparent hover:border-border/50 hover:shadow-sm'}
                   `}
                 >
-                  <link.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <link.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   {link.name}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="h-px bg-border my-2"></div>
+          <div className="h-px bg-border/60 my-2 mx-2"></div>
 
           <nav className="space-y-1">
             {secondaryLinks.map((link) => {
@@ -96,11 +99,13 @@ export default function AppShell() {
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                    ${isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-surface hover:text-foreground'}
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group
+                    ${isActive 
+                      ? 'bg-primary/10 text-primary border border-primary/10 shadow-sm' 
+                      : 'text-muted-foreground hover:bg-white hover:text-foreground border border-transparent hover:border-border/50 hover:shadow-sm'}
                   `}
                 >
-                  <link.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <link.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   {link.name}
                 </Link>
               );
@@ -108,9 +113,9 @@ export default function AppShell() {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-border mt-auto">
+        <div className="p-4 border-t border-border/80 mt-auto bg-white/50">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold border border-primary/20 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 text-primary flex items-center justify-center font-bold border border-primary/20 shrink-0 shadow-sm">
               {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div className="min-w-0">
@@ -120,24 +125,24 @@ export default function AppShell() {
           </div>
           <button 
             onClick={handleSignOut}
-            className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:text-red-600 hover:bg-red-50/80 hover:border-red-100 border border-transparent rounded-xl transition-all"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-4 h-4" />
             Sign Out
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto">
+      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-y-auto bg-transparent relative z-10">
         {/* Overlay for mobile menu */}
         {mobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-black/20 z-30 md:hidden"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden"
             onClick={() => setMobileMenuOpen(false)}
           ></div>
         )}
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 md:py-12">
           <Outlet />
         </div>
       </main>
