@@ -4,7 +4,7 @@ import { LogOut, User, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCom
 import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
-import AppMeshBackground from './AppMeshBackground';
+import MEDIMESHBackground from './MEDIMESHBackground';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -64,8 +64,8 @@ export default function AppShell() {
   ];
 
   return (
-    <div className="min-h-screen bg-graph-paper flex flex-col md:flex-row relative z-0">
-      <AppMeshBackground />
+    <div className="min-h-screen bg-transparent flex flex-col md:flex-row relative z-0">
+      <MEDIMESHBackground />
       <header className="md:hidden bg-white/80 backdrop-blur-sm border-b border-border sticky top-0 z-30">
         <div className="px-4 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-bold tracking-tight text-foreground font-serif">

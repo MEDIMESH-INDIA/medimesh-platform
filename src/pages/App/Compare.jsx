@@ -3,40 +3,23 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Plus, X, Check, Minus, GitCompare, Info, Database } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import AppPageContainer from '../../components/layout/AppPageContainer';
+import { useCompare } from '../../hooks/useCompare';
+import HospitalChooserModal from '../../components/hospital/HospitalChooserModal';
 
 export default function Compare() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [compareList, setCompareList] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('compareList') || '[]');
-    } catch {
-      return [];
-    }
-  });
+  const { compareList, removeHospital, canAdd, addHospital } = useCompare();
+  const [isChooserOpen, setIsChooserOpen] = useState(false);
   
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-    
     const addSlug = searchParams.get('add');
-    if (addSlug && !list.includes(addSlug) && list.length < 3) {
-      list.push(addSlug);
-      localStorage.setItem('compareList', JSON.stringify(list));
-      window.dispatchEvent(new Event('compare-updated'));
-      
+    if (addSlug && canAdd) {
+      addHospital(addSlug);
       // Remove add parameter from URL quietly
       searchParams.delete('add');
       setSearchParams(searchParams, { replace: true });
     }
-    
-    setCompareList(list);
-  }, [searchParams, setSearchParams]);
-
-  const removeHospital = (slug) => {
-    const updated = compareList.filter(s => s !== slug);
-    localStorage.setItem('compareList', JSON.stringify(updated));
-    setCompareList(updated);
-    window.dispatchEvent(new Event('compare-updated'));
-  };
+  }, [searchParams, setSearchParams, canAdd, addHospital]);
 
   const hospitals = compareList
     .map(slug => demoHospitals.find(h => h.slug === slug))
@@ -54,10 +37,19 @@ export default function Compare() {
             <h1 className="text-3xl font-serif font-bold text-foreground">Compare hospitals</h1>
             <p className="text-muted-foreground mt-2">Evaluate capacity, facilities, and data sources.</p>
           </div>
-          <Link to="/app/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm">
-            <Plus className="w-5 h-5" /> Discover hospitals
-          </Link>
+          <div className="flex items-center justify-center gap-4">
+            <button 
+              onClick={() => setIsChooserOpen(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              <Plus className="w-5 h-5" /> Add hospital
+            </button>
+            <Link to="/app/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-surface text-foreground font-semibold rounded-xl hover:bg-surface/80 border border-border transition-colors">
+              Discover hospitals
+            </Link>
+          </div>
         </div>
+        <HospitalChooserModal isOpen={isChooserOpen} onClose={() => setIsChooserOpen(false)} />
       </AppPageContainer>
     );
   }
@@ -93,7 +85,7 @@ export default function Compare() {
               <tr>
                 <th className="w-56 p-6 border-b border-r border-border bg-surface/30"></th>
                 {hospitals.map(h => (
-                  <th key={h.id} className="p-6 border-b border-border relative align-top w-1/3 bg-white">
+                  <th key={h.id} className="p-6 border-b border-border relative align-top w-[30%] bg-white">
                     <button 
                       onClick={() => removeHospital(h.slug)}
                       className="absolute top-4 right-4 p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors group"
@@ -113,13 +105,31 @@ export default function Compare() {
                     </div>
                   </th>
                 ))}
+                {hospitals.length < 3 && (
+                  <th className="p-6 border-b border-border relative align-top w-[30%] bg-surface/10">
+                    <div className="flex flex-col items-center justify-center h-full min-h-[160px] border-2 border-dashed border-border rounded-xl">
+                      <button 
+                        onClick={() => setIsChooserOpen(true)}
+                        className="flex flex-col items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Plus className="w-6 h-6" />
+                        </div>
+                        <span className="font-semibold">Add hospital</span>
+                      </button>
+                    </div>
+                  </th>
+                )}
+                {hospitals.length === 1 && (
+                  <th className="p-6 border-b border-border relative align-top w-[30%] bg-surface/5"></th>
+                )}
               </tr>
             </thead>
             <tbody>
               
               {/* Data Provenance */}
               <tr className="bg-surface/50 border-y border-border">
-                <td colSpan={hospitals.length + 1} className="px-6 py-4">
+                <td colSpan={4} className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-bold uppercase tracking-wider text-foreground">Data Provenance</span>
@@ -135,6 +145,8 @@ export default function Compare() {
                     {h.trustMetadata?.source || 'Unknown Source'}
                   </td>
                 ))}
+                {hospitals.length < 3 && <td className="border-b border-border bg-surface/5"></td>}
+                {hospitals.length === 1 && <td className="border-b border-border bg-surface/5"></td>}
               </tr>
               <tr className="group">
                 <td className="px-6 py-4 border-b border-r border-border text-sm font-medium text-muted-foreground bg-surface/30">
@@ -154,11 +166,13 @@ export default function Compare() {
                     </td>
                   )
                 })}
+                {hospitals.length < 3 && <td className="border-b border-border bg-surface/5"></td>}
+                {hospitals.length === 1 && <td className="border-b border-border bg-surface/5"></td>}
               </tr>
 
               {/* Capacity */}
               <tr className="bg-surface/50 border-y border-border">
-                <td colSpan={hospitals.length + 1} className="px-6 py-4">
+                <td colSpan={4} className="px-6 py-4">
                   <span className="text-sm font-bold uppercase tracking-wider text-foreground">Capacity</span>
                 </td>
               </tr>
@@ -192,13 +206,15 @@ export default function Compare() {
                         </td>
                       )
                     })}
+                    {hospitals.length < 3 && <td className="border-b border-border bg-surface/5"></td>}
+                    {hospitals.length === 1 && <td className="border-b border-border bg-surface/5"></td>}
                   </tr>
                 )
               })}
 
               {/* Facilities */}
               <tr className="bg-surface/50 border-y border-border">
-                <td colSpan={hospitals.length + 1} className="px-6 py-4">
+                <td colSpan={4} className="px-6 py-4">
                   <span className="text-sm font-bold uppercase tracking-wider text-foreground">Key Facilities</span>
                 </td>
               </tr>
@@ -233,6 +249,8 @@ export default function Compare() {
                         </td>
                       );
                     })}
+                    {hospitals.length < 3 && <td className="border-b border-border bg-surface/5"></td>}
+                    {hospitals.length === 1 && <td className="border-b border-border bg-surface/5"></td>}
                   </tr>
                 );
               })}

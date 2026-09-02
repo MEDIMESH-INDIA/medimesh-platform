@@ -2,29 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GitCompare, X } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
+import { useCompare } from '../../hooks/useCompare';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CompareTray() {
-  const [compareList, setCompareList] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const updateList = () => {
-      const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-      setCompareList(list);
-    };
-    updateList();
-    window.addEventListener('compare-updated', updateList);
-    return () => window.removeEventListener('compare-updated', updateList);
-  }, []);
-
-  const removeHospital = (slug) => {
-    const list = compareList.filter(s => s !== slug);
-    localStorage.setItem('compareList', JSON.stringify(list));
-    setCompareList(list);
-    window.dispatchEvent(new Event('compare-updated'));
-  };
+  const { compareList, removeHospital, clearComparison } = useCompare();
 
   if (compareList.length === 0 || location.pathname === '/app/compare') return null;
 
@@ -83,11 +67,7 @@ export default function CompareTray() {
 
           <div className="w-full sm:w-auto shrink-0 flex items-center gap-2 justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-border/50">
             <button 
-              onClick={() => {
-                localStorage.removeItem('compareList');
-                setCompareList([]);
-                window.dispatchEvent(new Event('compare-updated'));
-              }}
+              onClick={clearComparison}
               className="px-3 py-1.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground rounded-lg transition-colors"
             >
               Clear

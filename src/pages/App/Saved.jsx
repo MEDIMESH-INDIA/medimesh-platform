@@ -90,14 +90,6 @@ export default function Saved() {
                     hospital={hospital}
                     isSaved={true}
                     onSave={() => toggleSave(hospital.slug)}
-                    onCompare={() => {
-                      const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-                      if (list.length < 3 && !list.includes(hospital.slug)) {
-                        list.push(hospital.slug);
-                        localStorage.setItem('compareList', JSON.stringify(list));
-                        window.dispatchEvent(new Event('compare-updated'));
-                      }
-                    }}
                   />
                 </motion.div>
               ))}

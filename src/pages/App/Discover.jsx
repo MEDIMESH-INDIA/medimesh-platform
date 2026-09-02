@@ -88,19 +88,21 @@ export default function Discover() {
   return (
     <AppPageContainer>
       {/* Header & Search */}
-      <header className="mb-6 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <header className="mb-12 space-y-8 relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">HEALTHCARE DISCOVERY</p>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Discover hospitals</h1>
-            <p className="text-muted-foreground mt-2">Search the MEDIMESH database.</p>
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">EXPLORE HEALTHCARE</p>
+            <h1 className="text-4xl font-serif font-bold text-foreground">Discover hospitals</h1>
+            <p className="text-lg text-muted-foreground mt-3 max-w-2xl">
+              Search healthcare providers, refine options and understand the source behind each record.
+            </p>
           </div>
           
-          <div className="flex bg-surface p-1 rounded-xl border border-border">
+          <div className="flex bg-surface p-1 rounded-xl border border-border shadow-sm">
             <button
               onClick={() => { setDataSource('demo'); setLiveHospitals([]); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dataSource === 'demo' ? 'bg-white shadow-sm border border-border/50 text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                dataSource === 'demo' ? 'bg-white shadow-sm border border-border/50 text-primary ring-1 ring-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
               }`}
             >
               <Database className="w-4 h-4" />
@@ -108,8 +110,8 @@ export default function Discover() {
             </button>
             <button
               onClick={() => { setDataSource('live'); handleSearch(); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dataSource === 'live' ? 'bg-white shadow-sm border border-border/50 text-foreground' : 'text-muted-foreground hover:text-foreground'
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                dataSource === 'live' ? 'bg-white shadow-sm border border-border/50 text-primary ring-1 ring-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
               }`}
             >
               <Globe className="w-4 h-4" />
@@ -118,45 +120,50 @@ export default function Discover() {
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <form onSubmit={handleSearch} className="relative flex-1 group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-11 pr-4 py-3 rounded-xl border border-border bg-white text-foreground shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-muted-foreground/70"
-              placeholder="Search by name, specialty, or location..."
+        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="relative max-w-3xl">
+          <div className="relative flex items-center bg-white rounded-2xl border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all shadow-sm h-[60px]">
+            <Search className="w-5 h-5 text-muted-foreground ml-5 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search hospitals, specialties or locations..." 
+              className="w-full h-full bg-transparent border-none focus:ring-0 px-4 text-foreground text-lg placeholder:text-muted-foreground/60 outline-none"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
             {query && (
               <button 
-                type="button" 
+                type="button"
                 onClick={() => { setQuery(''); updateFilter('q', ''); }}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-foreground"
+                className="p-2 text-muted-foreground hover:text-foreground mr-2"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             )}
-            <button type="submit" className="hidden">Search</button>
-          </form>
-          
+            <button 
+              type="submit"
+              className="h-[44px] px-6 mr-2 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shrink-0"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+        
+        <div className="lg:hidden mt-4">
           <button 
-            className="lg:hidden flex items-center justify-center gap-2 px-4 py-3 border border-border rounded-xl bg-white text-foreground font-medium shadow-sm active:scale-95 transition-transform"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-border rounded-xl bg-white text-foreground font-medium shadow-sm active:scale-95 transition-transform"
             onClick={() => setIsMobileFiltersOpen(true)}
           >
-            <SlidersHorizontal className="w-5 h-5" />
+            <SlidersHorizontal className="w-5 h-5" /> Filters
           </button>
         </div>
       </header>
 
       <div className="flex gap-8 flex-1 relative pb-12">
         {/* Desktop Sidebar Filters */}
-        <aside className={`fixed inset-y-0 right-0 z-40 w-[280px] bg-white border-l border-border transform transition-transform duration-300 ease-in-out lg:sticky lg:top-8 lg:self-start lg:transform-none lg:w-64 lg:bg-transparent lg:border-none lg:z-0 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto ${
+        <aside className={`fixed inset-y-0 right-0 z-40 w-[280px] bg-white border-l border-border transform transition-transform duration-300 ease-in-out lg:sticky lg:top-8 lg:self-start lg:transform-none lg:w-72 lg:bg-white lg:border lg:border-border lg:rounded-2xl lg:shadow-sm lg:z-0 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto ${
           isMobileFiltersOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'
         }`}>
-          <div className="h-full flex flex-col p-6 lg:p-0">
+          <div className="h-full flex flex-col p-6 lg:p-6">
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <h2 className="font-bold text-lg flex items-center gap-2">
                 <Filter className="w-5 h-5" /> Filters
@@ -351,14 +358,6 @@ export default function Discover() {
                   hospital={hospital}
                   isSaved={savedSlugs.has(hospital.slug)}
                   onSave={() => toggleSave(hospital.slug)}
-                  onCompare={() => {
-                    const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-                    if (list.length < 3 && !list.includes(hospital.slug)) {
-                      list.push(hospital.slug);
-                      localStorage.setItem('compareList', JSON.stringify(list));
-                      window.dispatchEvent(new Event('compare-updated'));
-                    }
-                  }}
                 />
               ))
             ) : (

@@ -1,14 +1,17 @@
-import { MapPin, Building2, Heart, GitCompare } from 'lucide-react';
+import { MapPin, Building2, Heart, GitCompare, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TrustMetadata from './TrustMetadata';
+import { useCompare } from '../../hooks/useCompare';
 
 // eslint-disable-next-line react/prop-types
-export default function HospitalCard({ hospital, isSaved, onSave, onCompare }) {
+export default function HospitalCard({ hospital, isSaved, onSave }) {
+  const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
+  
   // eslint-disable-next-line react/prop-types
   const { slug, name, location, type, specialties, facilities, trustMetadata } = hospital;
 
   return (
-    <div className="bg-white rounded-2xl border border-border p-6 shadow-sm hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 relative group flex flex-col h-full z-10">
+    <div className={`bg-white rounded-2xl border p-6 shadow-sm hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 relative group flex flex-col h-full z-10 ${isCompared(slug) ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
       
       {/* Top right actions */}
       <div className="absolute top-6 right-6 flex items-center gap-2">
@@ -77,26 +80,26 @@ export default function HospitalCard({ hospital, isSaved, onSave, onCompare }) {
         <TrustMetadata trustMetadata={trustMetadata} compact />
         
         <div className="flex items-center gap-3 w-full md:w-auto">
-          {onCompare && (
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-                const isCompared = list.includes(slug);
-                if (isCompared) {
-                  const newList = list.filter(i => i !== slug);
-                  localStorage.setItem('compareList', JSON.stringify(newList));
-                  window.dispatchEvent(new Event('compare-updated'));
-                } else if (list.length < 3) {
-                  onCompare(hospital);
-                }
-              }}
-              className="p-2 rounded-lg border border-border text-muted-foreground hover:bg-surface hover:text-foreground transition-colors"
-              title="Add to compare"
-            >
-              <GitCompare className="w-4 h-4" />
-            </button>
-          )}
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              if (isCompared(slug)) {
+                removeHospital(slug);
+              } else if (canAdd) {
+                addHospital(slug);
+              } else {
+                alert("You can compare up to 3 hospitals.");
+              }
+            }}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors border ${
+              isCompared(slug) 
+                ? 'bg-primary/10 text-primary border-primary/20' 
+                : 'border-border text-muted-foreground hover:bg-surface hover:text-foreground'
+            }`}
+          >
+            {isCompared(slug) ? <Check className="w-4 h-4" /> : <GitCompare className="w-4 h-4" />}
+            {isCompared(slug) ? 'Added' : '+ Compare'}
+          </button>
           <Link 
               to={`/app/hospital/${slug}`}
               className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"

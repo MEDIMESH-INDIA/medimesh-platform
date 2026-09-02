@@ -1,14 +1,16 @@
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare } from 'lucide-react';
+import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare, Check } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+import { useCompare } from '../../hooks/useCompare';
 
 export default function HospitalDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { savedSlugs, toggleSave } = useSavedHospitals();
+  const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
   
   // Use demo data for now
   const hospital = demoHospitals.find(h => h.slug === slug);
@@ -78,11 +80,24 @@ export default function HospitalDetail() {
                 {savedSlugs.has(slug) ? 'Saved' : 'Save'}
               </button>
               <button 
-                onClick={() => navigate(`/app/compare?add=${slug}`)}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-primary bg-primary text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                onClick={() => {
+                  if (isCompared(slug)) {
+                    removeHospital(slug);
+                  } else if (canAdd) {
+                    addHospital(slug);
+                  } else {
+                    alert("You can compare up to 3 hospitals.");
+                  }
+                }}
+                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${
+                  isCompared(slug)
+                    ? 'border-primary/20 bg-primary/10 text-primary'
+                    : 'border-border bg-white text-foreground hover:bg-surface'
+                }`}
                 title="Compare hospital"
               >
-                <GitCompare className="w-4 h-4" /> Compare
+                {isCompared(slug) ? <Check className="w-4 h-4" /> : <GitCompare className="w-4 h-4" />}
+                {isCompared(slug) ? 'Added to compare' : '+ Add to compare'}
               </button>
             </div>
           </div>
