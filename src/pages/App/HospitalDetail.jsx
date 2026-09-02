@@ -3,7 +3,6 @@ import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Act
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
-import PageTransition from '../../components/layout/PageTransition';
 
 export default function HospitalDetail() {
   const { slug } = useParams();
@@ -28,7 +27,7 @@ export default function HospitalDetail() {
   const { name, location, type, specialties, facilities, capacity, contact, trustMetadata } = hospital;
 
   return (
-    <PageTransition className="max-w-5xl mx-auto pb-12">
+    <div className="max-w-5xl mx-auto pb-12">
       <Link to="/app/discover" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to search
@@ -180,7 +179,7 @@ export default function HospitalDetail() {
           </div>
         </div>
       </div>
-    </PageTransition>
+    </div>
   );
 }
 

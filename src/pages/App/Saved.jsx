@@ -3,7 +3,6 @@ import { Heart, Search, Loader2 } from 'lucide-react';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
-import PageTransition from '../../components/layout/PageTransition';
 
 export default function Saved() {
   
@@ -11,9 +10,8 @@ export default function Saved() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <p className="text-muted-foreground text-sm font-medium">Loading saved hospitals...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -47,7 +45,7 @@ export default function Saved() {
   }
 
   return (
-    <PageTransition className="max-w-5xl mx-auto pb-12">
+    <div className="max-w-5xl mx-auto pb-12">
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-foreground">Saved Hospitals</h1>
         <p className="text-muted-foreground mt-2">You have {savedHospitalsList.length} saved hospital{savedHospitalsList.length !== 1 ? 's' : ''}</p>
@@ -71,6 +69,6 @@ export default function Saved() {
           />
         ))}
       </div>
-    </PageTransition>
+    </div>
   );
 }
