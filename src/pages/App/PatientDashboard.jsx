@@ -5,7 +5,7 @@ import HospitalCard from '../../components/hospital/HospitalCard';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import { useState } from 'react';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
-import PageTransition from '../../components/layout/PageTransition';
+import AppPageContainer from '../../components/layout/AppPageContainer';
 import { motion } from 'framer-motion';
 
 const specialtyPills = [
@@ -44,7 +44,7 @@ export default function PatientDashboard() {
   };
 
   return (
-    <PageTransition className="max-w-[1360px] mx-auto space-y-16 pb-16 overflow-x-hidden">
+    <AppPageContainer className="overflow-x-hidden">
       
       {/* Disclaimer */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="inline-flex items-center gap-2 bg-amber-50/80 border border-amber-200/60 px-3 py-1.5 rounded-full">
@@ -282,6 +282,6 @@ export default function PatientDashboard() {
           ))}
         </motion.div>
       </section>
-    </PageTransition>
+    </AppPageContainer>
   );
 }

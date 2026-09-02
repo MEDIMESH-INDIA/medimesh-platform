@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase/client';
-import PageTransition from '../../components/layout/PageTransition';
+import AppPageContainer from '../../components/layout/AppPageContainer';
 
 export default function Profile() {
   const { profile, user, refreshProfile } = useAuth();
@@ -46,7 +46,7 @@ export default function Profile() {
   };
 
   return (
-    <PageTransition className="max-w-3xl mx-auto space-y-8 pb-12">
+    <AppPageContainer className="max-w-3xl mx-0">
       <div>
         <h1 className="text-3xl font-serif font-bold text-foreground">Your Profile</h1>
         <p className="text-muted-foreground mt-1">Manage your personal information.</p>
@@ -95,6 +95,6 @@ export default function Profile() {
           </div>
         </form>
       </div>
-    </PageTransition>
+    </AppPageContainer>
   );
 }

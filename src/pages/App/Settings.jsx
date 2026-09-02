@@ -1,11 +1,11 @@
 import { useAuth } from '../../hooks/useAuth';
-import PageTransition from '../../components/layout/PageTransition';
+import AppPageContainer from '../../components/layout/AppPageContainer';
 
 export default function Settings() {
   const { user } = useAuth();
   
   return (
-    <PageTransition className="max-w-3xl mx-auto space-y-8 pb-12">
+    <AppPageContainer className="max-w-3xl mx-0">
       <div>
         <h1 className="text-3xl font-serif font-bold text-foreground">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account preferences and security.</p>
@@ -41,6 +41,6 @@ export default function Settings() {
           </div>
         </div>
       </div>
-    </PageTransition>
+    </AppPageContainer>
   );
 }

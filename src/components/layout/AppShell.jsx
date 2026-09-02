@@ -142,7 +142,7 @@ export default function AppShell() {
             onClick={() => setMobileMenuOpen(false)}
           ></div>
         )}
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 md:py-12">
+        <div className="flex-1 w-full w-full px-6 md:px-10 lg:px-12 py-8 md:py-12 mx-auto max-w-[1360px]">
           <Outlet />
         </div>
       </main>

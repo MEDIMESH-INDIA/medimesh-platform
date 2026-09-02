@@ -1,3 +1,4 @@
+import AppPageContainer from '../../components/layout/AppPageContainer';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
@@ -27,7 +28,7 @@ export default function HospitalDetail() {
   const { name, location, type, specialties, facilities, capacity, contact, trustMetadata } = hospital;
 
   return (
-    <div className="max-w-5xl mx-auto pb-12">
+    <AppPageContainer>
       <Link to="/app/discover" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to search
@@ -179,7 +180,7 @@ export default function HospitalDetail() {
           </div>
         </div>
       </div>
-    </div>
+    </AppPageContainer>
   );
 }
 

@@ -4,7 +4,7 @@ import { Search, Filter, SlidersHorizontal, X, Globe, Database } from 'lucide-re
 import HospitalCard from '../../components/hospital/HospitalCard';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
-import PageTransition from '../../components/layout/PageTransition';
+import AppPageContainer from '../../components/layout/AppPageContainer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase/client';
 
@@ -86,7 +86,7 @@ export default function Discover() {
   const hasActiveFilters = activeSpecialty || activeLocation || activeType || searchParams.get('q');
 
   return (
-    <PageTransition className="flex flex-col h-full max-w-7xl mx-auto">
+    <AppPageContainer>
       {/* Header & Search */}
       <header className="mb-6 space-y-4">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -175,9 +175,8 @@ export default function Discover() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input 
-                      type="radio" 
-                      name="location" 
-                      className="w-4 h-4 text-primary focus:ring-primary border-border"
+                      type="radio"
+                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
                       checked={activeLocation === ''}
                       onChange={() => updateFilter('location', '')}
                     />
@@ -186,9 +185,8 @@ export default function Discover() {
                   {locations.map(loc => (
                     <label key={loc} className="flex items-center gap-3 cursor-pointer group">
                       <input 
-                        type="radio" 
-                        name="location"
-                        className="w-4 h-4 text-primary focus:ring-primary border-border"
+                        type="radio"
+                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
                         checked={activeLocation === loc}
                         onChange={() => updateFilter('location', loc)}
                       />
@@ -204,9 +202,8 @@ export default function Discover() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input 
-                      type="radio" 
-                      name="specialty" 
-                      className="w-4 h-4 text-primary focus:ring-primary border-border"
+                      type="radio"
+                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
                       checked={activeSpecialty === ''}
                       onChange={() => updateFilter('specialty', '')}
                     />
@@ -215,9 +212,8 @@ export default function Discover() {
                   {specialties.map(spec => (
                     <label key={spec} className="flex items-center gap-3 cursor-pointer group">
                       <input 
-                        type="radio" 
-                        name="specialty"
-                        className="w-4 h-4 text-primary focus:ring-primary border-border"
+                        type="radio"
+                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
                         checked={activeSpecialty === spec}
                         onChange={() => updateFilter('specialty', spec)}
                       />
@@ -233,9 +229,8 @@ export default function Discover() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 cursor-pointer group">
                     <input 
-                      type="radio" 
-                      name="type" 
-                      className="w-4 h-4 text-primary focus:ring-primary border-border"
+                      type="radio"
+                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
                       checked={activeType === ''}
                       onChange={() => updateFilter('type', '')}
                     />
@@ -244,9 +239,8 @@ export default function Discover() {
                   {types.map(t => (
                     <label key={t} className="flex items-center gap-3 cursor-pointer group">
                       <input 
-                        type="radio" 
-                        name="type"
-                        className="w-4 h-4 text-primary focus:ring-primary border-border"
+                        type="radio"
+                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
                         checked={activeType === t}
                         onChange={() => updateFilter('type', t)}
                       />
@@ -384,6 +378,6 @@ export default function Discover() {
           </div>
         </main>
       </div>
-    </PageTransition>
+    </AppPageContainer>
   );
 }
