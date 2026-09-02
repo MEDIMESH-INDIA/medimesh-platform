@@ -13,17 +13,6 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
   return (
     <div className={`bg-white rounded-2xl border p-6 shadow-sm hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-300 relative group flex flex-col h-full z-10 ${isCompared(slug) ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
       
-      {/* Top right actions */}
-      <div className="absolute top-6 right-6 flex items-center gap-2">
-        <button 
-          onClick={onSave}
-          className="w-9 h-9 rounded-full flex items-center justify-center bg-surface hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors active:scale-95"
-          title={isSaved ? "Unsave hospital" : "Save hospital"}
-        >
-          <Heart className={`w-4 h-4 transition-all ${isSaved ? 'fill-primary text-primary' : ''}`} />
-        </button>
-      </div>
-
       <div className="mb-4 pr-12">
         <Link to={`/app/hospital/${slug}`} className="hover:underline decoration-primary/30 underline-offset-4">
           <h3 className="text-xl font-serif font-bold text-foreground mb-2 leading-tight">
@@ -79,7 +68,20 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
       <div className="mt-6 pt-5 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
         <TrustMetadata trustMetadata={trustMetadata} compact />
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
+          <button 
+            onClick={onSave}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors border ${
+              isSaved 
+                ? 'bg-primary/10 text-primary border-primary/20' 
+                : 'border-border text-muted-foreground hover:bg-surface hover:text-foreground'
+            }`}
+            title={isSaved ? "Unsave hospital" : "Save hospital"}
+          >
+            <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+            {isSaved ? 'Saved' : 'Save'}
+          </button>
+          
           <button 
             onClick={(e) => {
               e.preventDefault();
@@ -100,12 +102,13 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
             {isCompared(slug) ? <Check className="w-4 h-4" /> : <GitCompare className="w-4 h-4" />}
             {isCompared(slug) ? 'Added' : '+ Compare'}
           </button>
+          
           <Link 
-              to={`/app/hospital/${slug}`}
-              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              View details
-            </Link>
+            to={`/app/hospital/${slug}`}
+            className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+          >
+            View details
+          </Link>
         </div>
       </div>
     </div>
