@@ -3,13 +3,13 @@ import Container from "../common/Container";
 import Section from "../common/Section";
 import BlurText from "../react-bits/BlurText";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import { Search, MapPin, Building2, ShieldCheck, Activity, Star } from "lucide-react";
+import { Search, MapPin, Building2, ShieldCheck, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 export default function Hero() {
   return (
-    <Section className="relative min-h-[95vh] flex items-center pt-32 pb-16 overflow-hidden" background="transparent">
+    <Section withContainer={false} className="relative flex items-center overflow-hidden pt-28 pb-14 md:pt-32 md:pb-16 lg:min-h-[720px]" background="transparent">
       
       {/* Subtle Teal -> Blue gradient wash in background */}
       <div className="absolute top-0 right-0 w-3/4 h-[80vh] bg-gradient-to-bl from-blue-light/10 via-primary/5 to-transparent rounded-bl-full blur-3xl -z-10"></div>
@@ -52,7 +52,7 @@ export default function Hero() {
         </div>
 
         {/* Right Column: Visual Composition with Image + Floating UI */}
-        <ScrollReveal delay={0.5} direction="left" className="relative hidden lg:block h-[560px] w-full">
+        <ScrollReveal delay={0.5} direction="left" className="relative hidden lg:block h-[500px] w-full">
           <div className="relative w-full h-full flex items-center justify-end">
             
             {/* Main Editorial Image */}

@@ -6,7 +6,7 @@ import SpotlightCard from "../react-bits/SpotlightCard";
 
 export default function PlatformPreview() {
   return (
-    <Section background="white">
+    <Section withContainer={false} background="white">
       <Container>
         <ScrollReveal>
           <SectionHeading 
@@ -17,7 +17,7 @@ export default function PlatformPreview() {
           />
         </ScrollReveal>
 
-        <ScrollReveal delay={0.2} className="mt-12">
+        <ScrollReveal delay={0.2} className="mt-10">
           <SpotlightCard className="w-full aspect-[4/3] md:aspect-[16/9] bg-surface-elevated rounded-[2rem] border border-border p-2 md:p-3 overflow-hidden shadow-2xl">
             <div className="w-full h-full relative rounded-2xl overflow-hidden group">
               <img 

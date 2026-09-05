@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { DEMO_CATEGORIES } from "../../data/landingData";
 import Section from "../common/Section";
-import Container from "../common/Container";
 
 export default function TrustStrip() {
   return (

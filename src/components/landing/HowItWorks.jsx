@@ -13,7 +13,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <Section background="muted" className="border-y border-border">
+    <Section withContainer={false} background="muted" className="border-y border-border">
       <Container>
         <ScrollReveal>
           <SectionHeading 

@@ -10,7 +10,7 @@ export default function FutureEcosystem() {
   ];
 
   return (
-    <Section background="white">
+    <Section withContainer={false} background="white">
       <Container className="grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <ScrollReveal>

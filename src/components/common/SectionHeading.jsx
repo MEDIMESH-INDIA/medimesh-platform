@@ -14,7 +14,7 @@ export default function SectionHeading({
   };
 
   return (
-    <div className={cn("max-w-3xl mb-12 md:mb-16", alignments[alignment], className)}>
+    <div className={cn("max-w-3xl mb-8 md:mb-10", alignments[alignment], className)}>
       {eyebrow && (
         <span className="inline-block mb-3 text-sm font-semibold tracking-wider uppercase text-primary">
           {eyebrow}

@@ -18,8 +18,8 @@ export default function SolutionSection() {
   ];
 
   return (
-    <Section className="relative overflow-hidden border-t border-border" background="transparent">
-      <Container className="flex flex-col items-center py-12">
+    <Section withContainer={false} className="relative overflow-hidden border-t border-border" background="transparent">
+      <Container className="flex flex-col items-center">
         <ScrollReveal>
           <SectionHeading 
             eyebrow="02 / The Medimesh Approach"
@@ -29,7 +29,7 @@ export default function SolutionSection() {
           />
         </ScrollReveal>
 
-        <div className="relative w-full max-w-3xl aspect-[4/3] md:aspect-video mt-16 md:mt-24 flex items-center justify-center">
+        <div className="relative w-full max-w-3xl aspect-[4/3] md:aspect-video mt-10 md:mt-14 flex items-center justify-center">
           
           {/* Subtle background glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>

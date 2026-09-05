@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 export default function FinalCTA() {
   return (
-    <Section className="relative min-h-[70vh] flex items-center overflow-hidden border-y border-border" background="transparent">
+    <Section withContainer={false} className="relative flex items-center overflow-hidden border-y border-border py-20 md:py-24" background="transparent">
       <Aurora className="opacity-40" />
       
       <Container className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto">
