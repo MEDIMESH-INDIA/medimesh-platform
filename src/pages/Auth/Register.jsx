@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import FormField from '../../components/common/FormField';
 import FrostedPanel from '../../components/common/FrostedPanel';
 import { useAuth } from '../../hooks/useAuth';
+import { useGuestGuard } from '../../hooks/useGuestGuard';
 
 const roles = [
   { id: 'patient', label: 'Patient', description: 'Discover and compare healthcare options.', icon: UserCircle, tone: 'text-primary bg-primary/10' },
@@ -16,6 +17,7 @@ const roles = [
 const progressLabels = ['Account', 'Profile', 'Details', 'Review'];
 
 export default function Register() {
+  useGuestGuard();
   const [step, setStep] = useState(1);
   const [role, setRole] = useState(null);
   const [firstName, setFirstName] = useState('');
