@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import { Plus, X, Check, Minus, GitCompare, Info, Database } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import AppPageContainer from '../../components/layout/AppPageContainer';
@@ -28,10 +28,13 @@ export default function Compare() {
     .map(slug => demoHospitals.find(h => h.slug === slug))
     .filter(Boolean);
 
+  const locationPath = useLocation().pathname;
+  const basePath = locationPath.startsWith('/app') ? '/app' : '';
+
   if (hospitals.length === 0) {
     return (
       <AppPageContainer className="flex items-center justify-center min-h-[60vh]">
-        <EmptyState icon={GitCompare} eyebrow="Side-by-side view" title="Compare hospitals" description="Evaluate capacity, facilities, and data sources without scores or promoted winners." action={<div className="flex flex-wrap justify-center gap-3"><Button onClick={() => setIsChooserOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Add hospital</Button><Button as={Link} to="/app/discover" variant="outline">Discover hospitals</Button></div>} />
+        <EmptyState icon={GitCompare} eyebrow="Side-by-side view" title="Compare hospitals" description="Evaluate capacity, facilities, and data sources without scores or promoted winners." action={<div className="flex flex-wrap justify-center gap-3"><Button onClick={() => setIsChooserOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Add hospital</Button><Button as={Link} to={`${basePath}/discover`} variant="outline">Discover hospitals</Button></div>} />
         <HospitalChooserModal isOpen={isChooserOpen} onClose={() => setIsChooserOpen(false)} />
       </AppPageContainer>
     );
@@ -43,7 +46,7 @@ export default function Compare() {
   return (
     <AppPageContainer>
       {/* Header */}
-      <PageHeader eyebrow="Side-by-side view" title="Compare hospitals" description="Evaluate differences in facilities, capacity and source information." actions={hospitals.length < 3 ? <Button as={Link} to="/app/discover" variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Add another</Button> : null} />
+      <PageHeader eyebrow="Side-by-side view" title="Compare hospitals" description="Evaluate differences in facilities, capacity and source information." actions={hospitals.length < 3 ? <Button as={Link} to={`${basePath}/discover`} variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Add another</Button> : null} />
 
       {/* Comparison Table */}
       <div className="w-full overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0">

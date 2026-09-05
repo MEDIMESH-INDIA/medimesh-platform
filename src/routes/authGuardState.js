@@ -1,4 +1,4 @@
-import { getRoleDashboardPath } from './roleDashboardPaths.js';
+import { getRoleDashboardPath, getPostAuthDestination } from './roleDashboardPaths.js';
 
 export const getAuthIdentityTransition = (currentUserId, nextSession) => {
   const nextUser = nextSession?.user ?? null;
@@ -87,4 +87,29 @@ export const getRoleRouteState = ({
   }
 
   return { status: 'allow' };
+};
+
+export const getGuestRouteState = ({
+  authLoading,
+  user,
+  profileLoading,
+  profileError,
+  profile,
+  role,
+  requestedPath,
+}) => {
+  if (authLoading || (user && profileLoading)) return { status: 'loading' };
+
+  if (!user) {
+    return { status: 'allow' };
+  }
+
+  if (profileError || !profile || profile.id !== user.id || !role) {
+    return { status: 'profile-error' };
+  }
+
+  return {
+    status: 'redirect',
+    to: getPostAuthDestination({ profile, role, requestedPath }),
+  };
 };

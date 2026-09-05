@@ -1,5 +1,5 @@
 import AppPageContainer from '../../components/layout/AppPageContainer';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare, Check } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
@@ -11,6 +11,8 @@ export default function HospitalDetail() {
   const { slug } = useParams();
   const { savedSlugs, toggleSave } = useSavedHospitals();
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
+  const locationPath = useLocation().pathname;
+  const basePath = locationPath.startsWith('/app') ? '/app' : '';
   
   // Use demo data for now
   const hospital = demoHospitals.find(h => h.slug === slug);
@@ -28,7 +30,7 @@ export default function HospitalDetail() {
           </p>
           <div className="pt-2">
             <Link
-              to="/app/discover"
+              to={`${basePath}/discover`}
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
             >
               <ArrowLeft className="w-4 h-4" /> Back to discovery
@@ -43,7 +45,7 @@ export default function HospitalDetail() {
 
   return (
     <AppPageContainer>
-      <Link to="/app/discover" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors">
+      <Link to={`${basePath}/discover`} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         Back to search
       </Link>

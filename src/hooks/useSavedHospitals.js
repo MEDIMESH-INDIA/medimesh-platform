@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from './useAuth';
 
 export function useSavedHospitals() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [savedSlugs, setSavedSlugs] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +38,12 @@ export function useSavedHospitals() {
   }, [fetchSaved]);
 
   const toggleSave = async (slug) => {
-    if (!user) return;
+    if (!user) {
+      if (confirm('Sign in to save this hospital.')) {
+        navigate('/login?redirect=' + encodeURIComponent(location.pathname));
+      }
+      return;
+    }
     const isCurrentlySaved = savedSlugs.has(slug);
 
     // Optimistic UI update

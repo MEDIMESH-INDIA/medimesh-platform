@@ -1,21 +1,22 @@
 import { MapPin, Building2, Heart, GitCompare, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import TrustMetadata from './TrustMetadata';
+import { Link, useLocation } from 'react-router-dom';
 import { useCompare } from '../../hooks/useCompare';
 import FrostedPanel from '../common/FrostedPanel';
+import TrustMetadata from './TrustMetadata';
 
 export default function HospitalCard({ hospital, isSaved, onSave }) {
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
-  
+  const locationPath = useLocation().pathname;
+  const basePath = locationPath.startsWith('/app') ? '/app' : '';
   const { slug, name, location, type, specialties, facilities, trustMetadata } = hospital;
 
   return (
     <FrostedPanel variant="elevated" className={`rounded-[22px] p-6 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 relative group flex flex-col h-full z-10 ${isCompared(slug) ? '!border-primary ring-1 ring-primary/20' : ''}`}>
       
       <div className="mb-4 pr-12">
-        <Link to={`/app/hospitals/${slug}`} className="hover:underline decoration-primary/30 underline-offset-4">
+        <Link to={`${basePath}/hospitals/${slug}`} className="hover:underline decoration-primary/30 underline-offset-4">
           <h3 className="text-xl font-serif font-bold text-foreground mb-2 leading-tight">
-            {name || 'Not provided'}
+            {name}
           </h3>
         </Link>
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -99,10 +100,9 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
           </button>
           
           <Link 
-            to={`/app/hospitals/${slug}`}
+            to={`${basePath}/hospitals/${slug}`}
             className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
           >
-            View details
           </Link>
         </div>
       </div>

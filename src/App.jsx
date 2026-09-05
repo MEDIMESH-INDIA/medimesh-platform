@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage/LandingPage";
 
 // Auth Components
@@ -11,8 +11,10 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 // Route Guards
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RoleRoute } from "./routes/RoleRoute";
+import { GuestRoute } from "./routes/GuestRoute";
 
 // App Layout & Pages
+import PublicLayout from "./components/layout/PublicLayout";
 import AppShell from "./components/layout/AppShell";
 import PatientDashboard from "./pages/App/PatientDashboard";
 import Discover from "./pages/App/Discover";
@@ -43,19 +45,24 @@ function App() {
   return (
     <Routes>
       {/* Public/Landing Routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/discover" element={<Navigate to="/app/discover" replace />} />
-      <Route path="/compare" element={<Navigate to="/app/compare" replace />} />
-      <Route path="/doctors" element={<PlaceholderPage title="For Doctors" />} />
-      <Route path="/hospitals" element={<PlaceholderPage title="For Hospitals" />} />
-      <Route path="/about" element={<PlaceholderPage title="About MEDIMESH" />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/discover" element={<Discover />} />
+        <Route path="/compare" element={<Compare />} />
+        <Route path="/doctors" element={<PlaceholderPage title="For Doctors" />} />
+        <Route path="/hospitals" element={<PlaceholderPage title="For Hospitals" />} />
+        <Route path="/hospitals/:slug" element={<HospitalDetail />} />
+        <Route path="/about" element={<PlaceholderPage title="About MEDIMESH" />} />
+      </Route>
       
       {/* Auth Routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Route>
 
       {/* Onboarding Route (No AppShell) */}
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />

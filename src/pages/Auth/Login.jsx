@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
 import FormField from '../../components/common/FormField';
@@ -22,10 +22,6 @@ export default function Login() {
   const [loadingAction, setLoadingAction] = useState(null);
   const [error, setError] = useState('');
   const { signIn, signInWithGoogle } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const destination = new URLSearchParams(location.search).get('redirect') || '/app';
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -34,7 +30,7 @@ export default function Login() {
     try {
       const { error: signInError } = await signIn(email, password);
       if (signInError) throw signInError;
-      navigate(destination);
+      // GuestRoute will handle the post-login redirect automatically.
     } catch {
       setError('Unable to sign in. Check your email and password, then try again.');
     } finally {

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X, UserCircle } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "../common/Button";
 import Container from "../common/Container";
 import MedimeshLogo from "../brand/MedimeshLogo";
+import { useAuth } from "../../hooks/useAuth";
+import { getRoleDashboardPath } from "../../routes/roleDashboardPaths";
 
 const navLinks = [
   { name: "Discover", href: "/discover" },
@@ -17,6 +19,7 @@ const navLinks = [
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, profile, role } = useAuth();
 
   useEffect(() => {
     let ticking = false;
@@ -44,6 +47,8 @@ export default function Navbar() {
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [isMobileMenuOpen]);
+
+  const dashboardLink = role ? (getRoleDashboardPath(role) ?? '/app') : '/login';
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-3 sm:pt-4">
@@ -77,10 +82,27 @@ export default function Navbar() {
             </ul>
 
             <div className="hidden items-center gap-2 lg:flex">
-              <Button as={Link} to="/login" variant="ghost" size="sm" className="min-h-11">Sign In</Button>
-              <Button as={Link} to="/register" size="sm" className="min-h-11 gap-1.5 px-4">
-                Get Started <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </Button>
+              {user ? (
+                <>
+                  <Button as={Link} to={dashboardLink} size="sm" className="min-h-11 gap-1.5 px-4">
+                    Open MEDIMESH <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                  <Link to={`${dashboardLink}/profile`} className="ml-1 rounded-full p-1 hover:bg-surface transition">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full" />
+                    ) : (
+                      <UserCircle className="w-8 h-8 text-muted-foreground" />
+                    )}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Button as={Link} to="/login" variant="ghost" size="sm" className="min-h-11">Sign In</Button>
+                  <Button as={Link} to="/register" size="sm" className="min-h-11 gap-1.5 px-4">
+                    Get Started <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                </>
+              )}
             </div>
 
             <button
@@ -116,8 +138,14 @@ export default function Navbar() {
               ))}
             </ul>
             <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4">
-              <Button as={Link} to="/login" variant="outline" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Button>
-              <Button as={Link} to="/register" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Button>
+              {user ? (
+                <Button className="col-span-2" as={Link} to={dashboardLink} onClick={() => setIsMobileMenuOpen(false)}>Open MEDIMESH</Button>
+              ) : (
+                <>
+                  <Button as={Link} to="/login" variant="outline" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Button>
+                  <Button as={Link} to="/register" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Button>
+                </>
+              )}
             </div>
           </div>
         </div>
