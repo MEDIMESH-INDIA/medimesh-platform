@@ -1,7 +1,6 @@
 import Section from "../common/Section";
 import Container from "../common/Container";
 import SectionHeading from "../common/SectionHeading";
-import ScrollReveal from "../react-bits/ScrollReveal";
 import AnimatedContent from "../react-bits/AnimatedContent";
 import { motion } from "framer-motion";
 
@@ -16,12 +15,12 @@ export default function ProblemSection() {
   ];
 
   return (
-    <Section className="relative overflow-hidden border-t border-border" background="muted">
+    <Section withContainer={false} className="relative overflow-hidden border-t border-border" background="muted">
       
       {/* Subtle Peach -> Coral gradient wash for patient confusion/human side */}
       <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1/2 h-[60vh] bg-gradient-to-tr from-peach/10 to-coral/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
 
-      <Container className="grid lg:grid-cols-2 gap-16 items-center py-8 relative z-10">
+      <Container className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center relative z-10">
         <div className="z-10">
           <AnimatedContent distance={50} direction="vertical" reverse={false} config={{ tension: 80, friction: 20 }}>
             <SectionHeading 
@@ -33,7 +32,7 @@ export default function ProblemSection() {
           </AnimatedContent>
         </div>
 
-        <div className="relative h-[450px] w-full rounded-[2rem] bg-surface-elevated/50 border border-border overflow-hidden">
+        <div className="relative h-[400px] w-full rounded-[2rem] bg-surface-elevated/50 border border-border overflow-hidden">
           {/* Decorative background grid for the visualization */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_24px]"></div>
           

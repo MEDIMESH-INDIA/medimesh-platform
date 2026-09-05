@@ -5,17 +5,16 @@ import SpotlightCard from "../react-bits/SpotlightCard";
 import ScrollReveal from "../react-bits/ScrollReveal";
 import { DEMO_HOSPITALS } from "../../data/landingData";
 import { Building2, MapPin, Star, ChevronRight, Search } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function DiscoverSection() {
   return (
-    <Section id="discover" background="white" className="border-t border-border relative overflow-hidden">
+    <Section withContainer={false} id="discover" background="white" className="border-t border-border relative overflow-hidden">
       
       {/* Sky Blue subtle wash for discovery */}
       <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/3 h-2/3 bg-gradient-to-l from-blue-light/10 to-transparent blur-3xl -z-10 pointer-events-none"></div>
 
       <Container className="relative z-10">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-20 items-center py-8">
+        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           <div className="lg:col-span-5">
             <ScrollReveal>
               <SectionHeading 

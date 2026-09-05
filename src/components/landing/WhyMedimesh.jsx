@@ -12,7 +12,7 @@ export default function WhyMedimesh() {
   ];
 
   return (
-    <Section background="muted" className="py-24 md:py-32 lg:py-40">
+    <Section withContainer={false} background="muted" className="py-16 md:py-20 lg:py-24">
       <Container className="max-w-4xl mx-auto flex flex-col items-center text-center">
         {points.map((point, index) => (
           <div key={index} className="flex flex-col items-center">
@@ -25,7 +25,7 @@ export default function WhyMedimesh() {
             </ScrollReveal>
             
             {index < points.length - 1 && (
-              <ScrollReveal delay={0.2} className="my-8 md:my-12">
+              <ScrollReveal delay={0.2} className="my-6 md:my-8">
                 <div className="w-12 h-12 rounded-full border border-border flex items-center justify-center bg-white shadow-sm text-muted-foreground">
                   <ArrowDown className="w-5 h-5" />
                 </div>

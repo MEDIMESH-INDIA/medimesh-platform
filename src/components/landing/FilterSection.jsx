@@ -11,7 +11,7 @@ export default function FilterSection() {
   ];
 
   return (
-    <Section background="muted" className="border-y border-border">
+    <Section withContainer={false} background="muted" className="border-y border-border">
       <Container>
         <div className="grid lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 order-2 lg:order-1 relative">

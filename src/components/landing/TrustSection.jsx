@@ -9,7 +9,7 @@ export default function TrustSection() {
   const words = ["Verified", "Structured", "Comparable", "Transparent"];
 
   return (
-    <Section background="muted" className="border-t border-border relative overflow-hidden">
+    <Section withContainer={false} background="muted" className="border-t border-border relative overflow-hidden">
       
       {/* Sage + Amber subtle wash for trust and verification */}
       <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-sage/5 via-transparent to-amber/5 blur-3xl -z-10 pointer-events-none"></div>

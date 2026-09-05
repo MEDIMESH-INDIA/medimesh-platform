@@ -38,10 +38,10 @@ export default function EcosystemSection() {
   ];
 
   return (
-    <Section className="relative overflow-hidden border-t border-border" background="transparent">
+    <Section withContainer={false} className="relative overflow-hidden border-t border-border" background="transparent">
       <InteractiveBackground variant="default" />
       
-      <Container className="py-16 relative z-10">
+      <Container className="relative z-10">
         <ScrollReveal>
           <SectionHeading 
             eyebrow="05 / The Ecosystem"
@@ -50,7 +50,7 @@ export default function EcosystemSection() {
           />
         </ScrollReveal>
 
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 mt-12 items-center">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-14 mt-10 items-center">
           
           {/* Left Column: Cards */}
           <div className="lg:col-span-6 flex flex-col gap-6">
@@ -75,7 +75,7 @@ export default function EcosystemSection() {
           </div>
 
           {/* Right Column: Imagery */}
-          <div className="lg:col-span-6 relative h-[600px] hidden lg:block rounded-[2rem] overflow-hidden shadow-2xl border border-border/50">
+          <div className="lg:col-span-6 relative h-[520px] hidden lg:block rounded-[2rem] overflow-hidden shadow-2xl border border-border/50">
             <div className="absolute inset-0 bg-gradient-to-tr from-blue-muted/30 to-lavender/30 z-10"></div>
             <img 
               src="/images/doctor_consultation.png" 

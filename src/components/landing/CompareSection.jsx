@@ -16,12 +16,12 @@ export default function CompareSection() {
   ];
 
   return (
-    <Section background="muted" className="border-t border-border relative overflow-hidden z-0">
+    <Section withContainer={false} background="muted" className="border-t border-border relative overflow-hidden z-0">
       
       {/* Soft Lavender gradient wash for data intelligence */}
       <div className="absolute top-0 right-1/4 w-1/2 h-full bg-gradient-to-b from-lavender/10 to-transparent blur-3xl -z-10 pointer-events-none"></div>
 
-      <Container className="py-12 relative z-10">
+      <Container className="relative z-10">
         <ScrollReveal>
           <SectionHeading 
             eyebrow="05 / Compare"
@@ -31,7 +31,7 @@ export default function CompareSection() {
           />
         </ScrollReveal>
 
-        <ScrollReveal delay={0.2} className="mt-16 max-w-5xl mx-auto">
+        <ScrollReveal delay={0.2} className="mt-10 md:mt-12 max-w-5xl mx-auto">
           
           <div className="flex items-center justify-end mb-4">
             <span className="text-[10px] font-bold bg-surface-elevated px-2.5 py-1 rounded-md text-muted-foreground uppercase tracking-wider border border-border">Illustrative Comparison</span>

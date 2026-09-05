@@ -27,7 +27,7 @@ const Section = forwardRef(({
     <section
       ref={ref}
       className={cn(
-        "py-16 md:py-24 lg:py-32",
+        "py-12 md:py-16 lg:py-20",
         backgrounds[background],
         className
       )}
