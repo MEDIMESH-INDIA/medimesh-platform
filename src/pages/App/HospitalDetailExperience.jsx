@@ -17,7 +17,7 @@ import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 import { useHospitalDetail } from '../../hooks/useHospitalDetail';
 
-export default function HospitalDetail() {
+export default function HospitalDetailExperience() {
   const { slug } = useParams();
   // TODO: Add toggle for demo/canonical based on a context or leave it hardcoded canonical for now
   const { hospital, loading, error } = useHospitalDetail(slug, { mode: 'canonical' });
