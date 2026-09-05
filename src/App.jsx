@@ -17,7 +17,8 @@ import { GuestRoute } from "./routes/GuestRoute";
 import PublicLayout from "./components/layout/PublicLayout";
 import AppShell from "./components/layout/AppShell";
 import PatientDashboard from "./pages/App/PatientDashboard";
-import Discover from "./pages/App/Discover";
+import PublicDiscover from "./pages/PublicDiscover";
+import PatientDiscover from "./pages/App/PatientDiscover";
 import HospitalDetail from "./pages/App/HospitalDetail";
 import Compare from "./pages/App/Compare";
 import Saved from "./pages/App/Saved";
@@ -47,7 +48,7 @@ function App() {
       {/* Public/Landing Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/discover" element={<Discover />} />
+        <Route path="/discover" element={<PublicDiscover />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/doctors" element={<PlaceholderPage title="For Doctors" />} />
         <Route path="/hospitals" element={<PlaceholderPage title="For Hospitals" />} />
@@ -77,7 +78,7 @@ function App() {
         } />
         <Route path="/app/discover" element={
           <RoleRoute allowedRoles={['patient']}>
-            <Discover />
+            <PatientDiscover />
           </RoleRoute>
         } />
         <Route path="/app/hospitals/:slug" element={
