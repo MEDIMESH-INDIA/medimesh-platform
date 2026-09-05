@@ -1,116 +1,98 @@
-import Section from "../common/Section";
+import { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Building2, Database, HeartPulse, Hospital, Layers3, Stethoscope, UserRound, Waypoints } from "lucide-react";
 import Container from "../common/Container";
+import FrostedPanel from "../common/FrostedPanel";
+import Section from "../common/Section";
 import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import { motion } from "framer-motion";
-import { Hospital, UserCircle, Stethoscope, Activity, Building, BriefcaseMedical, Star, Database } from "lucide-react";
+import { cn } from "../../utils/cn";
+
+const nodes = [
+  { label: "Hospitals", icon: Hospital },
+  { label: "Doctors", icon: Stethoscope },
+  { label: "Specialties", icon: HeartPulse },
+  { label: "Facilities", icon: Building2 },
+  { label: "Services", icon: Layers3 },
+  { label: "Sources", icon: Database },
+  { label: "Patients", icon: UserRound },
+  { label: "Future schemes", icon: Waypoints, future: true },
+];
 
 export default function SolutionSection() {
-  const nodes = [
-    { icon: <UserCircle className="w-5 h-5" />, label: "Patients", angle: 0 },
-    { icon: <Stethoscope className="w-5 h-5" />, label: "Doctors", angle: 45 },
-    { icon: <Hospital className="w-5 h-5" />, label: "Hospitals", angle: 90 },
-    { icon: <Activity className="w-5 h-5" />, label: "Services", angle: 135 },
-    { icon: <Building className="w-5 h-5" />, label: "Facilities", angle: 180 },
-    { icon: <BriefcaseMedical className="w-5 h-5" />, label: "Specialities", angle: 225 },
-    { icon: <Star className="w-5 h-5" />, label: "Reviews", angle: 270 },
-    { icon: <Database className="w-5 h-5" />, label: "Data", angle: 315 },
-  ];
+  const [activeNode, setActiveNode] = useState(null);
+  const reduceMotion = useReducedMotion();
 
   return (
-    <Section withContainer={false} className="relative overflow-hidden border-t border-border" background="transparent">
-      <Container className="flex flex-col items-center">
+    <Section className="relative overflow-hidden py-24 md:py-36" background="transparent">
+      <Container>
         <ScrollReveal>
-          <SectionHeading 
-            eyebrow="02 / The Medimesh Approach"
+          <SectionHeading
+            eyebrow="02 / The MEDIMESH approach"
             title="One place to understand your options."
-            description="MEDIMESH acts as a central healthcare discovery layer, organizing fragmented information into a structured, comparable format."
+            description="MEDIMESH organizes healthcare entities, capabilities, and source context into an information mesh built for discovery and comparison."
             alignment="center"
+            className="mx-auto mb-14 max-w-3xl"
           />
         </ScrollReveal>
 
-        <div className="relative w-full max-w-3xl aspect-[4/3] md:aspect-video mt-10 md:mt-14 flex items-center justify-center">
-          
-          {/* Subtle background glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-
-          {/* Connective Lines (SVG) */}
-          <svg className="absolute inset-0 w-full h-full z-0 overflow-visible pointer-events-none">
-            <g style={{ transform: 'translate(50%, 50%)', transformOrigin: 'center' }}>
-              {nodes.map((node, i) => {
-                const radius = 200; // base distance
-                const rad = (node.angle * Math.PI) / 180;
+        <ScrollReveal delay={0.1}>
+          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[36px] border border-white/80 bg-white/45 px-4 py-12 shadow-[0_25px_80px_rgba(15,40,35,0.07)] backdrop-blur-sm sm:px-10 lg:py-16">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(10,122,106,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(10,122,106,0.04)_1px,transparent_1px)] bg-[size:24px_24px]" />
+            <svg aria-hidden="true" className="absolute inset-0 hidden h-full w-full lg:block" viewBox="0 0 1000 520" preserveAspectRatio="none">
+              {nodes.map((node, index) => {
+                const starts = [[155,118],[390,84],[650,84],[845,118],[155,402],[390,438],[650,438],[845,402]];
+                const [x, y] = starts[index];
+                const active = activeNode === null || activeNode === index;
                 return (
-                  <motion.line
-                    key={`line-${i}`}
-                    x1="0" y1="0"
-                    x2={Math.cos(rad) * radius}
-                    y2={Math.sin(rad) * radius}
-                    stroke="currentColor"
-                    className="text-primary/20"
-                    strokeWidth="1.5"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    whileInView={{ pathLength: 1, opacity: 1 }}
+                  <motion.path
+                    key={node.label}
+                    d={`M${x} ${y} Q ${500 + (x < 500 ? -50 : 50)} 260 500 260`}
+                    fill="none"
+                    stroke="#0A7A6A"
+                    strokeWidth={activeNode === index ? 2.2 : 1.2}
+                    strokeOpacity={active ? 0.42 : 0.08}
+                    initial={reduceMotion ? false : { pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
+                    transition={{ duration: reduceMotion ? 0 : 0.9, delay: reduceMotion ? 0 : index * 0.06 }}
                   />
                 );
               })}
-            </g>
-          </svg>
+            </svg>
 
-          {/* Surrounding Nodes */}
-          {nodes.map((node, i) => {
-            const radius = 200; 
-            const rad = (node.angle * Math.PI) / 180;
-            const x = Math.cos(rad) * radius;
-            const y = Math.sin(rad) * radius;
+            <div className="relative grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-x-16 lg:gap-y-36">
+              {nodes.map((node, index) => {
+                const Icon = node.icon;
+                return (
+                  <button
+                    key={node.label}
+                    type="button"
+                    className={cn(
+                      "group relative z-10 min-h-[92px] rounded-[18px] border border-border bg-[#fdfbf7]/85 p-3 text-left shadow-[0_8px_24px_rgba(15,40,35,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/40 sm:p-4",
+                      activeNode !== null && activeNode !== index && "opacity-45",
+                    )}
+                    onMouseEnter={() => setActiveNode(index)}
+                    onMouseLeave={() => setActiveNode(null)}
+                    onFocus={() => setActiveNode(index)}
+                    onBlur={() => setActiveNode(null)}
+                    aria-label={`Highlight ${node.label} connection`}
+                  >
+                    <Icon className="h-4 w-4 text-primary" />
+                    <span className="mt-3 block text-xs font-bold sm:text-sm">{node.label}</span>
+                    {node.future && <span className="mt-1 block text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground">Potential</span>}
+                  </button>
+                );
+              })}
+            </div>
 
-            return (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.8 + (i * 0.1), type: "spring" }}
-                style={{ x, y }}
-                className="absolute z-10 flex flex-col items-center gap-2 group cursor-default"
-              >
-                <motion.div 
-                  className="w-12 h-12 rounded-full bg-white border border-border shadow-sm flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/50 group-hover:shadow-md transition-all duration-300"
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
-                >
-                  {node.icon}
-                </motion.div>
-                <span className="text-xs font-semibold text-muted-foreground bg-surface/80 backdrop-blur-sm px-2.5 py-1 rounded-md border border-border/50 group-hover:text-foreground group-hover:border-border transition-colors">
-                  {node.label}
-                </span>
-              </motion.div>
-            );
-          })}
-
-          {/* Center MEDIMESH Node */}
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2, type: "spring", bounce: 0.3 }}
-            className="absolute z-20"
-          >
-            <motion.div 
-              animate={{ scale: [1, 1.05, 1], boxShadow: ["0px 0px 0px 0px rgba(10,122,106,0.1)", "0px 0px 30px 10px rgba(10,122,106,0.2)", "0px 0px 0px 0px rgba(10,122,106,0.1)"] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-surface border border-border shadow-lg flex items-center justify-center"
-            >
-              <div className="absolute inset-1 rounded-full border border-primary/20 bg-primary/5"></div>
-              <span className="relative text-foreground font-bold text-lg md:text-xl tracking-tight">
-                MEDI<span className="text-primary">MESH</span>
-              </span>
-            </motion.div>
-          </motion.div>
-
-        </div>
+            <FrostedPanel variant="floating" className="relative z-20 mx-auto mt-6 flex h-32 w-32 flex-col items-center justify-center rounded-full border-primary/20 text-center lg:absolute lg:left-1/2 lg:top-1/2 lg:mt-0 lg:-translate-x-1/2 lg:-translate-y-1/2">
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Information</span>
+              <strong className="mt-1 text-lg tracking-[-0.04em]">MEDIMESH</strong>
+              <span className="mt-1 text-[10px] font-semibold text-muted-foreground">structured layer</span>
+            </FrostedPanel>
+          </div>
+        </ScrollReveal>
       </Container>
     </Section>
   );

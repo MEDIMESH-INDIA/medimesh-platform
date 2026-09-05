@@ -1,99 +1,74 @@
-import Section from "../common/Section";
+import { Database, GitCompareArrows, Info, MapPin } from "lucide-react";
+import { COMPARISON_ROWS } from "../../data/landingData";
 import Container from "../common/Container";
+import Section from "../common/Section";
 import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import { Check, Minus, Building2, MapPin, Activity } from "lucide-react";
+
+const valueStyle = (value) => value === "Not provided"
+  ? "text-muted-foreground italic"
+  : value === "Listed" || value === "Listed in demo"
+    ? "text-primary"
+    : "text-foreground";
 
 export default function CompareSection() {
-  const comparisonData = [
-    { feature: "24/7 Emergency Response", h1: true, h2: true },
-    { feature: "Level 1 Trauma Center", h1: false, h2: true },
-    { feature: "Robotic Surgery Suite", h1: true, h2: false },
-    { feature: "NABH Accredited", h1: true, h2: true },
-    { feature: "Public Scheme Coverage", h1: false, h2: false },
-    { feature: "Dedicated Cardiology Wing", h1: true, h2: false },
-    { feature: "Maternity & NICU", h1: true, h2: true },
-  ];
-
   return (
-    <Section withContainer={false} background="muted" className="border-t border-border relative overflow-hidden z-0">
-      
-      {/* Soft Lavender gradient wash for data intelligence */}
-      <div className="absolute top-0 right-1/4 w-1/2 h-full bg-gradient-to-b from-lavender/10 to-transparent blur-3xl -z-10 pointer-events-none"></div>
-
-      <Container className="relative z-10">
+    <Section id="compare" className="relative overflow-hidden border-y border-border/70 py-24 md:py-36" background="muted">
+      <Container>
         <ScrollReveal>
-          <SectionHeading 
+          <SectionHeading
             eyebrow="05 / Compare"
-            title="Don't just find a hospital. Understand the difference."
-            description="View side-by-side comparisons of facilities, services, and infrastructure to make the best choice based on structured information."
+            title="See the difference—without a winner."
+            description="Put the same fields side by side. MEDIMESH keeps facts, gaps, and source context visible so the decision remains yours."
             alignment="center"
+            className="mx-auto max-w-3xl"
           />
         </ScrollReveal>
 
-        <ScrollReveal delay={0.2} className="mt-10 md:mt-12 max-w-5xl mx-auto">
-          
-          <div className="flex items-center justify-end mb-4">
-            <span className="text-[10px] font-bold bg-surface-elevated px-2.5 py-1 rounded-md text-muted-foreground uppercase tracking-wider border border-border">Illustrative Comparison</span>
-          </div>
-
-          <div className="border border-border rounded-2xl bg-white shadow-xl shadow-border/20 overflow-hidden">
-            {/* Header Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 bg-surface border-b border-border">
-              <div className="p-6 md:p-8 flex items-center">
-                <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Compare Features</span>
-              </div>
-              
-              {/* Hospital A */}
-              <div className="p-6 md:p-8 border-t md:border-t-0 md:border-l border-border bg-surface-elevated/30">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 border border-primary/10">
-                  <Building2 className="w-5 h-5 text-primary" />
-                </div>
-                <div className="font-bold text-lg mb-1">Apollo Hospitals</div>
-                <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" /> Navi Mumbai
+        <ScrollReveal delay={0.1} className="mt-12">
+          <div className="mx-auto max-w-6xl overflow-hidden rounded-[30px] border border-border bg-white shadow-[0_24px_80px_rgba(15,40,35,0.08)]">
+            <div className="flex flex-col gap-3 border-b border-border bg-white/75 px-5 py-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-primary/10 text-primary"><GitCompareArrows className="h-4 w-4" /></span>
+                <div>
+                  <p className="text-xs font-bold">Side-by-side record view</p>
+                  <p className="text-[10px] text-muted-foreground">The same comparison fields for each option</p>
                 </div>
               </div>
-              
-              {/* Hospital B */}
-              <div className="p-6 md:p-8 border-t md:border-t-0 md:border-l border-border">
-                <div className="w-10 h-10 rounded-lg bg-secondary-accent/10 flex items-center justify-center mb-4 border border-secondary-accent/10">
-                  <Activity className="w-5 h-5 text-secondary-accent" />
-                </div>
-                <div className="font-bold text-lg mb-1">Fortis Hiranandani</div>
-                <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" /> Vashi
-                </div>
-              </div>
+              <span className="w-fit rounded-[9px] border border-primary/15 bg-primary/[0.07] px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-primary">Illustrative comparison</span>
             </div>
-            
-            {/* Data Rows */}
-            <div className="divide-y divide-border">
-              {comparisonData.map((row, i) => (
-                <ScrollReveal key={i} delay={0.3 + (i * 0.1)}>
-                  <div className="grid grid-cols-1 md:grid-cols-3 group hover:bg-surface-elevated/50 transition-colors duration-300">
-                    <div className="p-4 md:p-6 text-sm font-semibold text-foreground flex items-center bg-surface group-hover:bg-transparent transition-colors">
-                      {row.feature}
-                    </div>
-                    <div className="px-6 py-3 md:p-6 border-t md:border-t-0 md:border-l border-border flex items-center justify-end md:justify-center bg-surface-elevated/30 group-hover:bg-transparent transition-colors">
-                      <span className="md:hidden text-xs text-muted-foreground mr-auto font-medium uppercase tracking-wider">Apollo</span>
-                      {row.h1 ? (
-                        <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center text-success"><Check className="w-3.5 h-3.5" /></div>
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-surface-elevated flex items-center justify-center text-muted-foreground"><Minus className="w-3.5 h-3.5" /></div>
-                      )}
-                    </div>
-                    <div className="px-6 py-3 md:p-6 border-t md:border-t-0 md:border-l border-border flex items-center justify-end md:justify-center group-hover:bg-transparent transition-colors">
-                      <span className="md:hidden text-xs text-muted-foreground mr-auto font-medium uppercase tracking-wider">Fortis</span>
-                      {row.h2 ? (
-                        <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center text-success"><Check className="w-3.5 h-3.5" /></div>
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-surface-elevated flex items-center justify-center text-muted-foreground"><Minus className="w-3.5 h-3.5" /></div>
-                      )}
-                    </div>
-                  </div>
-                </ScrollReveal>
-              ))}
+
+            <div className="overflow-x-auto" tabIndex="0" aria-label="Scrollable illustrative hospital comparison">
+              <table className="w-full min-w-[720px] border-collapse text-left">
+                <caption className="sr-only">Illustrative comparison of two fictional demonstration hospitals</caption>
+                <thead>
+                  <tr className="border-b border-border bg-[#fdfbf7]">
+                    <th scope="col" className="w-[28%] px-6 py-6 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">Compare field</th>
+                    <th scope="col" className="w-[36%] border-l border-border px-6 py-6">
+                      <p className="text-base font-bold tracking-[-0.02em]">Harbourview Medical Centre</p>
+                      <span className="mt-1.5 flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground"><MapPin className="h-3 w-3" />Vashi · fictional record</span>
+                    </th>
+                    <th scope="col" className="w-[36%] border-l border-border px-6 py-6">
+                      <p className="text-base font-bold tracking-[-0.02em]">NaviCare Multispeciality</p>
+                      <span className="mt-1.5 flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground"><MapPin className="h-3 w-3" />Nerul · fictional record</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON_ROWS.map((row) => (
+                    <tr key={row.label} className="border-b border-border/80 transition-colors last:border-b-0 hover:bg-surface-elevated/35">
+                      <th scope="row" className="px-6 py-4 text-xs font-bold text-foreground">{row.label}</th>
+                      <td className={`border-l border-border px-6 py-4 text-xs font-semibold ${valueStyle(row.first)}`}>{row.first}</td>
+                      <td className={`border-l border-border px-6 py-4 text-xs font-semibold ${valueStyle(row.second)}`}>{row.second}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-border bg-surface-elevated/45 px-5 py-4 text-[10px] font-semibold text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <span className="flex items-center gap-1.5"><Info className="h-3.5 w-3.5 text-primary" />Listed means present only in this fictional demonstration record.</span>
+              <span className="flex items-center gap-1.5"><Database className="h-3.5 w-3.5 text-primary" />Demonstration dataset · not live healthcare information</span>
             </div>
           </div>
         </ScrollReveal>

@@ -1,37 +1,30 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { cn } from "../../utils/cn";
 
 export default function SpotlightCard({ children, className }) {
   const divRef = useRef(null);
-  const [isFocused, setIsFocused] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
 
   const handleMouseMove = (e) => {
-    if (!divRef.current || isFocused) return;
-
-    const div = divRef.current;
-    const rect = div.getBoundingClientRect();
-
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    if (!divRef.current) return;
+    const rect = divRef.current.getBoundingClientRect();
+    divRef.current.style.setProperty("--spotlight-x", `${e.clientX - rect.left}px`);
+    divRef.current.style.setProperty("--spotlight-y", `${e.clientY - rect.top}px`);
   };
 
   const handleFocus = () => {
-    setIsFocused(true);
-    setOpacity(1);
+    divRef.current?.style.setProperty("--spotlight-opacity", "1");
   };
 
   const handleBlur = () => {
-    setIsFocused(false);
-    setOpacity(0);
+    divRef.current?.style.setProperty("--spotlight-opacity", "0");
   };
 
   const handleMouseEnter = () => {
-    setOpacity(1);
+    divRef.current?.style.setProperty("--spotlight-opacity", "1");
   };
 
   const handleMouseLeave = () => {
-    setOpacity(0);
+    divRef.current?.style.setProperty("--spotlight-opacity", "0");
   };
 
   return (
@@ -49,9 +42,9 @@ export default function SpotlightCard({ children, className }) {
     >
       <div
         className="pointer-events-none absolute -inset-px opacity-0 transition duration-300"
-        style={{
-          opacity,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(10, 122, 106, 0.05), transparent 40%)`,
+      style={{
+          opacity: "var(--spotlight-opacity, 0)",
+          background: "radial-gradient(600px circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%), rgba(10, 122, 106, 0.06), transparent 40%)",
         }}
       />
       {children}

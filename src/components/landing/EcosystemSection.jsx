@@ -1,105 +1,80 @@
-import Section from "../common/Section";
+import { ArrowUpRight, Building2, ClipboardCheck, Stethoscope, UserRound } from "lucide-react";
 import Container from "../common/Container";
+import FrostedPanel from "../common/FrostedPanel";
+import Section from "../common/Section";
 import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import InteractiveBackground from "../effects/InteractiveBackground";
-import { UserCircle, Stethoscope, Building2 } from "lucide-react";
-import { motion } from "framer-motion";
+
+const stakeholders = [
+  {
+    label: "Patients & caregivers",
+    title: "Discover and compare",
+    description: "Move from a care need to a shortlist, with the same facts visible across options.",
+    icon: UserRound,
+    preview: ["Search intent", "Saved shortlist", "Comparison"],
+    className: "lg:col-span-7 lg:row-span-2",
+  },
+  {
+    label: "Doctors",
+    title: "Professional context",
+    description: "Represent specialties, qualifications, and affiliations in a structured profile.",
+    icon: Stethoscope,
+    preview: ["Profile", "Affiliations"],
+    className: "lg:col-span-5",
+  },
+  {
+    label: "Hospitals",
+    title: "Organizational records",
+    description: "Present services and facilities through consistent fields.",
+    icon: Building2,
+    preview: ["Services", "Facilities"],
+    className: "lg:col-span-5",
+  },
+  {
+    label: "Platform review",
+    title: "Data context & governance",
+    description: "Keep source, review state, and freshness attached to the information displayed.",
+    icon: ClipboardCheck,
+    preview: ["Source", "Review state", "Last checked"],
+    className: "lg:col-span-12",
+  },
+];
 
 export default function EcosystemSection() {
-  const cards = [
-    {
-      title: "Patients",
-      description: "Discover healthcare with clarity. Find verified hospitals, compare services, and make informed choices for your family.",
-      icon: <UserCircle className="w-8 h-8" />,
-      color: "text-primary",
-      bg: "bg-primary/5",
-      borderHover: "hover:border-primary/50",
-      delay: 0.1
-    },
-    {
-      title: "Doctors",
-      description: "Build a trusted professional presence. Highlight your specialties, experience, and hospital affiliations.",
-      icon: <Stethoscope className="w-8 h-8" />,
-      color: "text-secondary-accent",
-      bg: "bg-secondary-accent/5",
-      borderHover: "hover:border-secondary-accent/50",
-      delay: 0.2
-    },
-    {
-      title: "Hospitals",
-      description: "Present your institution with structured information. Help patients find your facilities and specialized services.",
-      icon: <Building2 className="w-8 h-8" />,
-      color: "text-foreground",
-      bg: "bg-foreground/5",
-      borderHover: "hover:border-foreground/50",
-      delay: 0.3
-    }
-  ];
-
   return (
-    <Section withContainer={false} className="relative overflow-hidden border-t border-border" background="transparent">
-      <InteractiveBackground variant="default" />
-      
-      <Container className="relative z-10">
+    <Section className="border-y border-border/70 py-24 md:py-36" background="white">
+      <Container>
         <ScrollReveal>
-          <SectionHeading 
-            eyebrow="05 / The Ecosystem"
-            title="A platform for everyone in healthcare."
-            description="MEDIMESH connects patients looking for clarity with healthcare professionals and institutions providing care."
+          <SectionHeading
+            eyebrow="07 / The ecosystem"
+            title="Clarity depends on every side of the record."
+            description="MEDIMESH creates distinct surfaces for the people searching, the professionals and institutions represented, and the review context around their information."
+            className="max-w-3xl"
           />
         </ScrollReveal>
 
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-14 mt-10 items-center">
-          
-          {/* Left Column: Cards */}
-          <div className="lg:col-span-6 flex flex-col gap-6">
-            {cards.map((card, index) => (
-              <ScrollReveal key={index} delay={card.delay}>
-                <motion.div 
-                  whileHover={{ x: 5 }}
-                  className={`flex items-start gap-6 bg-white/90 backdrop-blur rounded-2xl border border-border p-6 shadow-sm transition-all duration-300 ${card.borderHover} cursor-default`}
-                >
-                  <div className={`w-14 h-14 shrink-0 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center border border-border/50`}>
-                    {card.icon}
+        <div className="grid gap-4 lg:grid-cols-12">
+          {stakeholders.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <ScrollReveal key={item.label} delay={index * 0.06} className={item.className}>
+                <FrostedPanel variant={index === 0 ? "elevated" : "subtle"} className="group h-full rounded-[24px] p-5 transition duration-300 hover:-translate-y-0.5 hover:border-primary/20 sm:p-7">
+                  <div className="flex h-full flex-col">
+                    <div className="flex items-start justify-between">
+                      <span className="grid h-11 w-11 place-items-center rounded-[13px] border border-primary/10 bg-primary/10 text-primary"><Icon className="h-5 w-5" /></span>
+                      <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-primary" />
+                    </div>
+                    <p className="mt-6 text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary">{item.label}</p>
+                    <h3 className="mt-2 text-xl font-bold tracking-[-0.03em] sm:text-2xl">{item.title}</h3>
+                    <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">{item.description}</p>
+                    <div className="mt-auto flex flex-wrap gap-2 pt-6">
+                      {item.preview.map((value) => <span key={value} className="rounded-[10px] border border-border bg-surface-elevated/60 px-2.5 py-1.5 text-[10px] font-bold">{value}</span>)}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 tracking-tight">{card.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {card.description}
-                    </p>
-                  </div>
-                </motion.div>
+                </FrostedPanel>
               </ScrollReveal>
-            ))}
-          </div>
-
-          {/* Right Column: Imagery */}
-          <div className="lg:col-span-6 relative h-[520px] hidden lg:block rounded-[2rem] overflow-hidden shadow-2xl border border-border/50">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-muted/30 to-lavender/30 z-10"></div>
-            <img 
-              src="/images/doctor_consultation.png" 
-              alt="Doctor Consultation" 
-              className="w-full h-full object-cover object-center"
-            />
-            {/* Floating verification card */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="absolute top-12 -left-6 bg-white p-4 rounded-xl shadow-card border border-border z-20 flex items-center gap-4"
-            >
-              <div className="w-10 h-10 rounded-full bg-blue-light/20 flex items-center justify-center text-blue-muted font-bold">
-                DR
-              </div>
-              <div>
-                <p className="text-sm font-bold">Dr. Anjali Sharma</p>
-                <p className="text-xs text-muted-foreground">Verified Senior Specialist</p>
-              </div>
-            </motion.div>
-          </div>
-
+            );
+          })}
         </div>
       </Container>
     </Section>

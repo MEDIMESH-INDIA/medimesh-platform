@@ -1,30 +1,43 @@
-import { motion } from "framer-motion";
-import { DEMO_CATEGORIES } from "../../data/landingData";
-import Section from "../common/Section";
+import { motion, useReducedMotion } from "framer-motion";
+import { Activity, Baby, Bone, Brain, HeartPulse, Microscope } from "lucide-react";
+import Container from "../common/Container";
+import FrostedPanel from "../common/FrostedPanel";
+import { DISCOVERY_CATEGORIES } from "../../data/landingData";
+
+const icons = [HeartPulse, Brain, Baby, Bone, Microscope, Activity];
 
 export default function TrustStrip() {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <Section className="py-12 md:py-16 border-y border-border overflow-hidden bg-transparent" withContainer={true}>
-      <div className="flex flex-col items-center gap-8">
-        <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-center">
-          Discover structured information across
-        </p>
-        
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 max-w-4xl mx-auto">
-          {DEMO_CATEGORIES.map((category, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05, duration: 0.4 }}
-              className="px-4 py-2 bg-surface border border-border rounded-full text-foreground/70 text-sm md:text-base font-medium shadow-sm hover:border-primary/40 hover:text-primary hover:shadow-md hover:-translate-y-0.5 transition-all cursor-default"
-            >
-              {category}
-            </motion.div>
-          ))}
+    <section aria-labelledby="explore-by-title" className="relative border-y border-border/80 bg-white/25 py-7 backdrop-blur-[2px]">
+      <Container>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
+          <div className="shrink-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Discovery vocabulary</p>
+            <h2 id="explore-by-title" className="mt-1 text-sm font-bold tracking-[-0.02em]">Explore by care need</h2>
+          </div>
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
+            {DISCOVERY_CATEGORIES.map((category, index) => {
+              const Icon = icons[index];
+              return (
+                <motion.div
+                  key={category}
+                  initial={reduceMotion ? false : { opacity: 0, x: 12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: reduceMotion ? 0 : index * 0.045, duration: reduceMotion ? 0 : 0.4 }}
+                >
+                  <FrostedPanel className="flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-[13px] px-3.5 text-xs font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-primary/20">
+                    <Icon className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                    {category}
+                  </FrostedPanel>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </Section>
+      </Container>
+    </section>
   );
 }

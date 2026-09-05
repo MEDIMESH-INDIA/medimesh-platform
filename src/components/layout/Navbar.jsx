@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "../common/Button";
 import Container from "../common/Container";
@@ -20,130 +20,112 @@ export default function Navbar() {
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 10);
-          ticking = false;
-        });
-        ticking = true;
-      }
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 12);
+        ticking = false;
+      });
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Prevent scrolling when mobile menu is open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", closeOnEscape);
+    };
   }, [isMobileMenuOpen]);
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-        isScrolled
-          ? "bg-white/80 backdrop-blur-xl border-b border-border shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] py-3"
-          : "bg-transparent py-6"
-      )}
-    >
+    <header className="fixed inset-x-0 top-0 z-50 pt-3 sm:pt-4">
       <Container>
-        <nav className="flex items-center justify-between">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-focus-ring focus:ring-offset-2 rounded-sm"
-          >
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              MEDI<span className="text-primary">MESH</span>
-            </span>
-          </Link>
+        <div
+          className={cn(
+            "relative rounded-[20px] border border-white/80 bg-[#fdfbf7]/78 px-3 shadow-[0_12px_40px_rgba(18,49,43,0.06)] backdrop-blur-2xl transition-all duration-300 sm:px-4",
+            isScrolled && "bg-white/88 shadow-[0_16px_46px_rgba(18,49,43,0.1)]",
+          )}
+        >
+          <nav className="flex h-16 items-center justify-between" aria-label="Primary navigation">
+            <Link
+              to="/"
+              className="group flex items-center gap-2 rounded-lg px-1 py-2 focus:outline-none focus:ring-2 focus:ring-focus-ring"
+              aria-label="MEDIMESH home"
+            >
+              <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-primary/15 bg-primary text-[10px] font-extrabold tracking-[-0.04em] text-white shadow-sm">
+                MM
+              </span>
+              <span className="text-[17px] font-extrabold tracking-[-0.045em] text-foreground">
+                MEDI<span className="text-primary">MESH</span>
+              </span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
-            <ul className="flex items-center gap-6">
+            <ul className="hidden items-center gap-1 lg:flex">
               {navLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="relative text-sm font-semibold text-muted-foreground hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring rounded-sm px-1 py-1 group"
+                    className="inline-flex min-h-11 items-center rounded-[10px] px-3 py-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-focus-ring"
                   >
                     {link.name}
-                    <span className="absolute left-1/2 bottom-0 w-0 h-0.5 bg-primary/50 transition-all duration-300 group-hover:w-full group-hover:left-0 rounded-full"></span>
                   </Link>
                 </li>
               ))}
             </ul>
-            <div className="flex items-center gap-4 border-l border-border pl-6">
-              <Link to="/login" className="focus:outline-none rounded-md">
-                <Button variant="ghost" size="sm" className="w-full">
-                  Sign In
-                </Button>
-              </Link>
-              <Link to="/register" className="focus:outline-none rounded-md">
-                <Button variant="primary" size="sm" className="w-full">
-                  Get Started
-                </Button>
-              </Link>
+
+            <div className="hidden items-center gap-2 lg:flex">
+              <Button as={Link} to="/login" variant="ghost" size="sm" className="min-h-11">Sign In</Button>
+              <Button as={Link} to="/register" size="sm" className="min-h-11 gap-1.5 px-4">
+                Get Started <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </div>
+
+            <button
+              type="button"
+              className="grid min-h-11 min-w-11 place-items-center rounded-[12px] text-foreground transition-colors hover:bg-white lg:hidden"
+              onClick={() => setIsMobileMenuOpen((open) => !open)}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </nav>
+
+          <div
+            id="mobile-navigation"
+            className={cn(
+              "absolute inset-x-0 top-[72px] origin-top rounded-[20px] border border-white/80 bg-[#fdfbf7]/95 p-4 shadow-[0_22px_60px_rgba(18,49,43,0.12)] backdrop-blur-2xl transition duration-200 lg:hidden",
+              isMobileMenuOpen ? "visible scale-y-100 opacity-100" : "invisible scale-y-95 opacity-0",
+            )}
+          >
+            <ul className="grid gap-1">
+              {navLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.href}
+                    className="flex min-h-11 items-center justify-between rounded-[12px] px-3 text-base font-semibold text-foreground hover:bg-white"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.name} <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4">
+              <Button as={Link} to="/login" variant="outline" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Button>
+              <Button as={Link} to="/register" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Button>
             </div>
           </div>
-
-          {/* Mobile Menu Toggle */}
-          <button
-            type="button"
-            className="lg:hidden p-2 -mr-2 text-foreground hover:bg-surface-elevated rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-expanded={isMobileMenuOpen}
-            aria-label="Toggle navigation menu"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" aria-hidden="true" />
-            ) : (
-              <Menu className="w-6 h-6" aria-hidden="true" />
-            )}
-          </button>
-        </nav>
-      </Container>
-
-      {/* Mobile Navigation Menu */}
-      <div
-        className={cn(
-          "fixed inset-0 top-[60px] bg-surface z-40 lg:hidden transition-transform duration-300 ease-in-out border-t border-border",
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        <div className="flex flex-col h-full p-6 overflow-y-auto">
-          <ul className="flex flex-col gap-6 mb-8">
-            {navLinks.map((link) => (
-              <li key={link.name}>
-                <Link
-                  to={link.href}
-                  className="text-lg font-medium text-foreground block transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring rounded-sm w-fit"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          
-          <div className="mt-auto flex flex-col gap-4">
-            <Link to="/login" className="w-full focus:outline-none rounded-md">
-              <Button variant="outline" size="lg" className="w-full">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/register" className="w-full focus:outline-none rounded-md">
-              <Button variant="primary" size="lg" className="w-full">
-                Get Started
-              </Button>
-            </Link>
-          </div>
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

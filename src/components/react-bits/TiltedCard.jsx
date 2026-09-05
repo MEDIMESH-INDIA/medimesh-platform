@@ -1,7 +1,8 @@
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import { cn } from "../../utils/cn";
 
 export default function TiltedCard({ children, className }) {
+  const reduceMotion = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
 
@@ -12,6 +13,7 @@ export default function TiltedCard({ children, className }) {
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
 
   const handleMouseMove = (e) => {
+    if (reduceMotion) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
@@ -33,8 +35,8 @@ export default function TiltedCard({ children, className }) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateY,
-        rotateX,
+        rotateY: reduceMotion ? 0 : rotateY,
+        rotateX: reduceMotion ? 0 : rotateX,
         transformStyle: "preserve-3d",
       }}
       className={cn("relative rounded-xl border border-border bg-surface shadow-sm", className)}

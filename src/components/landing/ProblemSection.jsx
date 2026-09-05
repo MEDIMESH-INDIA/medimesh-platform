@@ -1,84 +1,74 @@
-import Section from "../common/Section";
+import { ArrowDown, Database, FileQuestion, Search } from "lucide-react";
 import Container from "../common/Container";
+import FrostedPanel from "../common/FrostedPanel";
+import Section from "../common/Section";
 import SectionHeading from "../common/SectionHeading";
-import AnimatedContent from "../react-bits/AnimatedContent";
-import { motion } from "framer-motion";
+import ScrollReveal from "../react-bits/ScrollReveal";
+
+const sources = [
+  { label: "Search results", meta: "Different formats" },
+  { label: "Hospital websites", meta: "Provider-led detail" },
+  { label: "Public portals", meta: "Separate records" },
+  { label: "Directories", meta: "Uneven fields" },
+  { label: "Referrals", meta: "Personal context" },
+  { label: "Scheme lists", meta: "Eligibility context" },
+];
 
 export default function ProblemSection() {
-  const sources = [
-    { name: "Search Engines", top: "15%", left: "10%", delay: 0.1, yAnim: [0, -15, 0] },
-    { name: "Hospital Websites", top: "45%", left: "5%", delay: 0.2, yAnim: [0, 10, 0] },
-    { name: "Directories", top: "75%", left: "20%", delay: 0.3, yAnim: [0, -10, 0] },
-    { name: "Social Media", top: "20%", right: "15%", delay: 0.4, yAnim: [0, 15, 0] },
-    { name: "Public Portals", top: "55%", right: "8%", delay: 0.5, yAnim: [0, -12, 0] },
-    { name: "Reviews", top: "80%", right: "25%", delay: 0.6, yAnim: [0, 8, 0] },
-  ];
-
   return (
-    <Section withContainer={false} className="relative overflow-hidden border-t border-border" background="muted">
-      
-      {/* Subtle Peach -> Coral gradient wash for patient confusion/human side */}
-      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-1/2 h-[60vh] bg-gradient-to-tr from-peach/10 to-coral/5 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+    <Section id="problem" className="relative overflow-hidden border-b border-border/70 py-24 md:py-32" background="muted">
+      <Container className="grid items-center gap-14 lg:grid-cols-[0.86fr_1.14fr] lg:gap-20">
+        <ScrollReveal>
+          <SectionHeading
+            eyebrow="01 / The challenge"
+            title="Finding healthcare is easy. Understanding it isn't."
+            description="Important information sits across disconnected sources, in different formats and with different levels of context. People are left to reconcile it themselves."
+            className="mb-0 max-w-xl"
+          />
+          <div className="mt-8 flex items-start gap-3 border-l-2 border-primary/30 pl-4">
+            <FileQuestion className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">The problem is not a lack of information. It is the work required to make that information comparable.</p>
+          </div>
+        </ScrollReveal>
 
-      <Container className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center relative z-10">
-        <div className="z-10">
-          <AnimatedContent distance={50} direction="vertical" reverse={false} config={{ tension: 80, friction: 20 }}>
-            <SectionHeading 
-              eyebrow="01 / The Challenge"
-              title="Finding healthcare is easy. Understanding it isn't."
-              description="Information is fragmented across hospital websites, directories, search engines, and public portals. Finding the right place means navigating a maze of unverified and disconnected data."
-              className="mb-0 max-w-lg"
-            />
-          </AnimatedContent>
-        </div>
+        <ScrollReveal delay={0.1}>
+          <div className="relative overflow-hidden rounded-[32px] border border-border bg-[#fdfbf7]/75 p-5 shadow-[0_20px_60px_rgba(15,40,35,0.06)] sm:p-8">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(10,122,106,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(10,122,106,0.045)_1px,transparent_1px)] bg-[size:24px_24px]" />
+            <div className="relative grid grid-cols-2 gap-3">
+              {sources.map((source, index) => (
+                <FrostedPanel
+                  key={source.label}
+                  className={`rounded-[18px] p-3.5 sm:p-4 ${index % 3 === 1 ? "sm:translate-y-2" : ""}`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full border-2 border-primary/40 bg-white" />
+                    <div>
+                      <p className="text-xs font-bold sm:text-sm">{source.label}</p>
+                      <p className="mt-1 text-[10px] font-medium text-muted-foreground sm:text-xs">{source.meta}</p>
+                    </div>
+                  </div>
+                </FrostedPanel>
+              ))}
+            </div>
 
-        <div className="relative h-[400px] w-full rounded-[2rem] bg-surface-elevated/50 border border-border overflow-hidden">
-          {/* Decorative background grid for the visualization */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_24px]"></div>
-          
-          {sources.map((src, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: src.delay }}
-              style={{ top: src.top, left: src.left, right: src.right }}
-              className="absolute z-10"
-            >
-              <motion.div
-                animate={{ y: src.yAnim }}
-                transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut" }}
-                className="bg-white px-4 py-2.5 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-border text-sm font-semibold text-muted-foreground flex items-center gap-2 will-change-transform"
-              >
-                <div className={`w-2 h-2 rounded-full ${i % 2 === 0 ? 'bg-primary/40' : 'bg-secondary-accent/40'}`}></div>
-                {src.name}
-              </motion.div>
-            </motion.div>
-          ))}
-          
-          {/* Central Question Mark / Confusion */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.8, type: "spring" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/50 backdrop-blur-md rounded-full border border-border shadow-lg flex items-center justify-center z-0"
-          >
-            <div className="absolute inset-0 rounded-full border border-primary/20 animate-ping opacity-20" style={{ animationDuration: '3s' }}></div>
-            <span className="text-5xl font-serif text-muted-foreground opacity-40 font-bold">?</span>
-          </motion.div>
+            <div className="relative my-5 flex items-center justify-center gap-3">
+              <span className="h-px flex-1 border-t border-dashed border-primary/25" />
+              <span className="grid h-9 w-9 place-items-center rounded-full border border-primary/15 bg-primary/10 text-primary"><ArrowDown className="h-4 w-4" /></span>
+              <span className="h-px flex-1 border-t border-dashed border-primary/25" />
+            </div>
 
-          {/* Connective lines that are broken/faded */}
-          <svg className="absolute inset-0 w-full h-full -z-10 opacity-30">
-            <g stroke="currentColor" className="text-border" strokeWidth="1.5" strokeDasharray="4 4" fill="none">
-              <path d="M 50 100 Q 200 150 250 225" />
-              <path d="M 400 50 Q 300 150 250 225" />
-              <path d="M 50 350 Q 150 250 250 225" />
-              <path d="M 450 350 Q 350 250 250 225" />
-            </g>
-          </svg>
-        </div>
+            <FrostedPanel variant="elevated" className="relative rounded-[22px] border-primary/15 p-4 sm:p-5">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary text-white"><Database className="h-5 w-5" /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary">The missing layer</p>
+                  <p className="mt-1 text-sm font-bold sm:text-base">A consistent, source-aware record</p>
+                </div>
+                <Search className="hidden h-4 w-4 text-muted-foreground sm:block" />
+              </div>
+            </FrostedPanel>
+          </div>
+        </ScrollReveal>
       </Container>
     </Section>
   );

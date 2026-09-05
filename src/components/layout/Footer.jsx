@@ -1,72 +1,43 @@
-import Container from "../common/Container";
+import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import Container from "../common/Container";
+
+const footerLinks = [
+  { name: "Discover", href: "/discover" },
+  { name: "Compare", href: "/compare" },
+  { name: "For Doctors", href: "/doctors" },
+  { name: "For Hospitals", href: "/hospitals" },
+  { name: "About", href: "/about" },
+];
 
 export default function Footer() {
-  const footerLinks = [
-    {
-      title: "Platform",
-      links: [
-        { name: "Discover", href: "/discover" },
-        { name: "Compare", href: "/compare" },
-        { name: "For Doctors", href: "/doctors" },
-        { name: "For Hospitals", href: "/hospitals" }
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { name: "About", href: "/about" },
-        { name: "Documentation", href: "/about" },
-        { name: "How It Works", href: "/about" }
-      ],
-    },
-    {
-      title: "Legal",
-      links: [
-        { name: "Privacy", href: "/about" },
-        { name: "Terms", href: "/about" },
-        { name: "Contact", href: "/about" }
-      ],
-    },
-  ];
-
   return (
-    <footer className="relative bg-foreground py-16 md:py-24 border-t border-border overflow-hidden z-20">
-      <Container className="relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12">
-          {/* Logo & Info */}
-          <div className="col-span-2 lg:col-span-2">
-            <div className="text-2xl font-bold tracking-tight text-white mb-4">
-              MEDI<span className="text-primary-light">MESH</span>
+    <footer className="relative z-20 overflow-hidden border-t border-white/10 bg-[#17211f] py-16 text-white md:py-20">
+      <Container>
+        <div className="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-primary text-[10px] font-extrabold">MM</span>
+              <span className="text-xl font-extrabold tracking-[-0.045em]">MEDI<span className="text-[#8fd0c5]">MESH</span></span>
             </div>
-            <p className="text-white/60 mb-6 max-w-sm">
-              Making healthcare information easier to discover, understand, and compare.
-            </p>
-            <div className="text-sm text-white/40 font-medium tracking-wide uppercase">
-              Smart India Hackathon 2026
-            </div>
+            <p className="mt-5 max-w-lg text-sm leading-6 text-white/60">Healthcare discovery, comparison, and source-aware navigation—designed to make complex information easier to understand.</p>
+            <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">Smart India Hackathon 2026 · MVP demonstration</p>
           </div>
-
-          {/* Link Columns */}
-          {footerLinks.map((column, i) => (
-            <div key={i} className="col-span-1">
-              <h4 className="font-semibold text-white mb-4">{column.title}</h4>
-              <ul className="flex flex-col gap-3">
-                {column.links.map((link, j) => (
-                  <li key={j}>
-                    <Link to={link.href} className="text-sm text-white/60 hover:text-white transition-colors">
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <Link to="/register" className="group flex min-h-12 w-fit items-center gap-3 rounded-[13px] border border-white/15 bg-white/[0.06] px-4 text-sm font-bold transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#8fd0c5]">
+            Get started <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/40">
-          <p>© {new Date().getFullYear()} MEDIMESH INDIA. All rights reserved.</p>
-          <p>Concept design for demonstration.</p>
+        <div className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-center lg:justify-between">
+          <nav aria-label="Footer navigation">
+            <ul className="flex flex-wrap gap-x-6 gap-y-3">
+              {footerLinks.map((link) => <li key={link.name}><Link to={link.href} className="inline-flex min-h-11 items-center text-xs font-semibold text-white/55 transition hover:text-white">{link.name}</Link></li>)}
+            </ul>
+          </nav>
+          <div className="flex flex-col gap-2 text-[10px] font-medium text-white/35 sm:flex-row sm:gap-5">
+            <span>© {new Date().getFullYear()} MEDIMESH INDIA</span>
+            <span>Demonstration product · No medical advice</span>
+          </div>
         </div>
       </Container>
     </footer>

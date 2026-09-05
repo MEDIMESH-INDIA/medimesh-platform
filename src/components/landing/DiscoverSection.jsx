@@ -1,86 +1,90 @@
-import Section from "../common/Section";
+import { Link } from "react-router-dom";
+import { ArrowRight, Building2, Database, MapPin, Search } from "lucide-react";
+import { ILLUSTRATIVE_HOSPITALS } from "../../data/landingData";
+import Button from "../common/Button";
 import Container from "../common/Container";
+import FrostedPanel from "../common/FrostedPanel";
+import Section from "../common/Section";
 import SectionHeading from "../common/SectionHeading";
-import SpotlightCard from "../react-bits/SpotlightCard";
 import ScrollReveal from "../react-bits/ScrollReveal";
-import { DEMO_HOSPITALS } from "../../data/landingData";
-import { Building2, MapPin, Star, ChevronRight, Search } from "lucide-react";
+import SpotlightCard from "../react-bits/SpotlightCard";
 
 export default function DiscoverSection() {
   return (
-    <Section withContainer={false} id="discover" background="white" className="border-t border-border relative overflow-hidden">
-      
-      {/* Sky Blue subtle wash for discovery */}
-      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/3 h-2/3 bg-gradient-to-l from-blue-light/10 to-transparent blur-3xl -z-10 pointer-events-none"></div>
+    <Section id="discover" className="relative overflow-hidden border-y border-border/70 py-24 md:py-32" background="white">
+      <Container className="grid items-start gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+        <div className="lg:sticky lg:top-32">
+          <ScrollReveal>
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">03 / Discover</span>
+            <SectionHeading
+              title="Start with the need, not a ranking."
+              description="Search by specialty and location, then inspect structured records without a score deciding what is “best” for you."
+              className="mt-4 mb-0 max-w-lg"
+            />
+            <Button as={Link} to="/discover" variant="outline" className="group mt-8 gap-2">
+              Open discovery
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Button>
+          </ScrollReveal>
+        </div>
 
-      <Container className="relative z-10">
-        <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-          <div className="lg:col-span-5">
-            <ScrollReveal>
-              <SectionHeading 
-                eyebrow="03 / Discover"
-                title="Start with what matters to you."
-                description="Search for healthcare facilities by location, specialty, or specific services. See verified information structured for clarity."
-                className="mb-8"
-              />
-            </ScrollReveal>
-          </div>
-          
-          <div className="lg:col-span-7 flex flex-col gap-4 relative">
-            
-            {/* Subtle decorative background */}
-            <div className="absolute -inset-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-surface-elevated via-transparent to-transparent -z-10 rounded-full"></div>
-
-            <ScrollReveal delay={0.1}>
-              <div className="flex flex-col sm:flex-row items-center justify-between mb-4 gap-4 px-2">
-                <div className="flex items-center w-full bg-surface border border-border rounded-xl shadow-sm px-4 py-3 group focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                  <Search className="w-4 h-4 text-muted-foreground mr-3" />
-                  <input type="text" placeholder="Search hospitals by name, location, or specialty..." className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/60" disabled />
-                </div>
+        <ScrollReveal delay={0.08}>
+          <div className="overflow-hidden rounded-[32px] border border-border bg-[#f4f1ea]/75 p-3 shadow-[0_22px_70px_rgba(15,40,35,0.07)] sm:p-5">
+            <div className="flex items-center justify-between gap-3 px-2 pb-4 pt-1">
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.14em]">Discovery workspace</span>
               </div>
-            </ScrollReveal>
-            
-            {DEMO_HOSPITALS.map((hospital, index) => (
-              <ScrollReveal key={hospital.id} delay={0.2 + (index * 0.1)}>
-                <SpotlightCard className="p-5 flex flex-col sm:flex-row gap-5 items-start sm:items-center group cursor-pointer border-border hover:border-primary/30 transition-colors">
-                  <div className="w-14 h-14 rounded-xl bg-surface-elevated border border-border flex items-center justify-center shrink-0 group-hover:bg-primary/5 group-hover:border-primary/20 transition-colors">
-                    <Building2 className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">{hospital.name}</h3>
-                        {hospital.verified && (
-                          <span className="bg-success/10 text-success text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider border border-success/20">Verified</span>
-                        )}
+              <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Illustrative interface</span>
+            </div>
+
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-3">
+              <div className="grid gap-2 sm:grid-cols-[1fr_0.6fr_auto]">
+                <label className="flex min-h-12 items-center gap-2 rounded-[12px] border border-border bg-white px-3">
+                  <Search className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="sr-only">Specialty</span>
+                  <input aria-label="Specialty" readOnly value="Cardiology" className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" />
+                </label>
+                <label className="flex min-h-12 items-center gap-2 rounded-[12px] border border-border bg-white px-3">
+                  <MapPin className="h-4 w-4 shrink-0 text-primary" />
+                  <span className="sr-only">Location</span>
+                  <input aria-label="Location" readOnly value="Navi Mumbai" className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" />
+                </label>
+                <button type="button" className="min-h-12 rounded-[12px] bg-primary px-5 text-sm font-bold text-white shadow-sm">Search</button>
+              </div>
+            </FrostedPanel>
+
+            <div className="mt-3 grid gap-3">
+              {ILLUSTRATIVE_HOSPITALS.map((hospital) => (
+                <SpotlightCard key={hospital.id} className="rounded-[22px] border-white/70 bg-white/90 p-4 shadow-[0_8px_25px_rgba(15,40,35,0.04)] sm:p-5">
+                  <div className="relative z-10 flex items-start gap-3 sm:gap-4">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] border border-primary/10 bg-primary/10 text-primary">
+                      <Building2 className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <h3 className="font-bold tracking-[-0.02em] sm:text-lg">{hospital.name}</h3>
+                          <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{hospital.location}</p>
+                        </div>
+                        <span className="w-fit rounded-[9px] border border-primary/10 bg-primary/[0.07] px-2 py-1 text-[8px] font-extrabold uppercase tracking-[0.12em] text-primary">{hospital.sourceState}</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-border group-hover:text-primary transition-colors transform group-hover:translate-x-1" />
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-medium mb-3">
-                      <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {hospital.location}</span>
-                      <span className="w-1 h-1 rounded-full bg-border"></span>
-                      <span className="flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> {hospital.rating}</span>
-                      <span className="w-1 h-1 rounded-full bg-border"></span>
-                      <span>{hospital.type}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      {hospital.facilities.slice(0, 3).map((facility, i) => (
-                        <span key={i} className="text-[10px] uppercase tracking-wider px-2 py-1 bg-surface-elevated/50 text-foreground/70 rounded border border-border/50 font-semibold group-hover:bg-surface transition-colors">
-                          {facility}
-                        </span>
-                      ))}
-                      {hospital.facilities.length > 3 && (
-                        <span className="text-[10px] uppercase tracking-wider px-2 py-1 text-muted-foreground font-semibold">
-                          +{hospital.facilities.length - 3} more
-                        </span>
-                      )}
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {[hospital.type, ...hospital.specialties].map((item) => (
+                          <span key={item} className="rounded-[9px] border border-border bg-surface-elevated/55 px-2 py-1 text-[10px] font-bold text-foreground/70">{item}</span>
+                        ))}
+                      </div>
+                      <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-[10px] font-semibold text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><Database className="h-3.5 w-3.5 text-primary" />Source visible</span>
+                        <span>Checked {hospital.lastChecked}</span>
+                      </div>
                     </div>
                   </div>
                 </SpotlightCard>
-              </ScrollReveal>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </Container>
     </Section>
   );

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">MEDIMESH</title>
+  <rect width="64" height="64" rx="18" fill="#0A7A6A"/>
+  <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3">
+    <path d="M18 22 31 15l15 9-2 17-14 8-13-9Z" opacity=".62"/>
+    <path d="m18 22 12 10 16-8M30 32v17M17 40l13-8 14 9"/>
+  </g>
+  <g fill="#fff">
+    <circle cx="18" cy="22" r="3.5"/>
+    <circle cx="31" cy="15" r="3.5"/>
+    <circle cx="46" cy="24" r="3.5"/>
+    <circle cx="44" cy="41" r="3.5"/>
+    <circle cx="30" cy="49" r="3.5"/>
+    <circle cx="17" cy="40" r="3.5"/>
+    <circle cx="30" cy="32" r="4"/>
+  </g>
+</svg>

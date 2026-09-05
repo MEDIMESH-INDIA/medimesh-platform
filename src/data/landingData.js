@@ -1,43 +1,35 @@
-export const DEMO_HOSPITALS = [
+export const ILLUSTRATIVE_HOSPITALS = [
   {
-    id: 1,
-    name: "Apollo Hospitals",
-    location: "Navi Mumbai, Maharashtra",
-    type: "Multi-Specialty",
-    rating: 4.8,
-    facilities: ["24/7 ICU", "Advanced Oncology", "Cardiology", "Organ Transplant"],
-    distance: "3.2 km",
-    verified: true,
+    id: "harbourview",
+    name: "Harbourview Medical Centre",
+    location: "Vashi, Navi Mumbai",
+    type: "Multi-specialty",
+    specialties: ["Cardiology", "General medicine"],
+    facilities: ["Cardiac care", "Critical care"],
+    sourceState: "Demonstration data",
+    lastChecked: "02 Sep 2026",
   },
   {
-    id: 2,
-    name: "Fortis Hiranandani",
-    location: "Vashi, Navi Mumbai",
-    type: "Multi-Specialty",
-    rating: 4.6,
-    facilities: ["Level 1 Trauma", "Neurology", "Orthopedics", "Emergency Care"],
-    distance: "5.1 km",
-    verified: true,
-  },
-  {
-    id: 3,
-    name: "MGM New Bombay Hospital",
-    location: "Vashi, Navi Mumbai",
-    type: "General/Teaching",
-    rating: 4.3,
-    facilities: ["General Surgery", "Pediatrics", "Maternity", "Blood Bank"],
-    distance: "4.5 km",
-    verified: true,
+    id: "navicare",
+    name: "NaviCare Multispeciality",
+    location: "Nerul, Navi Mumbai",
+    type: "Specialty hospital",
+    specialties: ["Cardiology", "Paediatrics"],
+    facilities: ["Critical care", "Diagnostics"],
+    sourceState: "Demonstration data",
+    lastChecked: "28 Aug 2026",
   },
 ];
 
-export const DEMO_CATEGORIES = [
-  "Cardiology", "Neurology", "Oncology", "Orthopedics", "Pediatrics", "Maternity", "Trauma", "Dermatology"
+export const DISCOVERY_CATEGORIES = [
+  "Cardiology", "Neurology", "Paediatrics", "Orthopaedics", "Diagnostics", "Emergency care"
 ];
 
-export const DEMO_FEATURES = [
-  "Find verified facilities",
-  "Compare options side-by-side",
-  "Filter by what matters to you",
-  "Make informed decisions",
+export const COMPARISON_ROWS = [
+  { label: "Hospital type", first: "Multi-specialty", second: "Specialty hospital" },
+  { label: "Cardiology", first: "Listed", second: "Listed" },
+  { label: "Critical care", first: "Listed", second: "Listed" },
+  { label: "Emergency information", first: "Not provided", second: "Listed in demo" },
+  { label: "Source", first: "Demonstration record", second: "Demonstration record" },
+  { label: "Last checked", first: "02 Sep 2026", second: "28 Aug 2026" },
 ];

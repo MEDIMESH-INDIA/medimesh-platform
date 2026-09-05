@@ -19,12 +19,15 @@ import InteractiveMeshBackground from "../../components/effects/InteractiveMeshB
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-transparent relative">
+      <a href="#main-content" className="fixed left-4 top-3 z-[60] -translate-y-20 rounded-[10px] bg-primary px-4 py-3 text-sm font-bold text-white transition focus:translate-y-0">
+        Skip to content
+      </a>
       <InteractiveMeshBackground />
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
         
-        <main className="flex-grow">
+        <main id="main-content" className="flex-grow">
           <Hero />
           <TrustStrip />
           <ProblemSection />
