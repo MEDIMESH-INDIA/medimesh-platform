@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
 import MEDIMESHBackground from './MEDIMESHBackground';
+import MedimeshLogo from '../brand/MedimeshLogo';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -69,8 +70,8 @@ export default function AppShell() {
       <MEDIMESHBackground />
       <header className="sticky top-0 z-30 border-b border-white/70 bg-background/80 backdrop-blur-xl md:hidden">
         <div className="px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold tracking-tight text-foreground font-serif">
-            MEDI<span className="text-primary">MESH</span>
+          <Link to="/" aria-label="MEDIMESH home" className="flex items-center">
+            <MedimeshLogo variant="mark" size="md" />
           </Link>
           <button 
             className="text-foreground p-2"
@@ -89,8 +90,8 @@ export default function AppShell() {
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="h-16 flex items-center px-6 md:h-20 mt-2">
-          <Link to="/" className="text-2xl font-bold tracking-tight text-foreground font-serif">
-            MEDI<span className="text-primary">MESH</span>
+          <Link to="/" aria-label="MEDIMESH home" className="flex items-center">
+            <MedimeshLogo variant="full" size="md" />
           </Link>
         </div>
 

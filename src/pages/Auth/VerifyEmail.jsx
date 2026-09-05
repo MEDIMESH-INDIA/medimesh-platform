@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
-import { MailCheck } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import MedimeshLogo from '../../components/brand/MedimeshLogo';
 
 export default function VerifyEmail() {
   const location = useLocation();
@@ -51,8 +51,8 @@ export default function VerifyEmail() {
       subtitle="We've sent you a verification link"
     >
       <div className="flex flex-col items-center justify-center py-6">
-        <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6">
-          <MailCheck className="w-8 h-8" />
+        <div className="mb-6 flex justify-center">
+          <MedimeshLogo variant="mark" size="xl" className="h-16" />
         </div>
         
         {email && (

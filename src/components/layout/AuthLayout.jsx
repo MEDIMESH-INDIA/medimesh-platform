@@ -4,6 +4,7 @@ import AuthCard from '../common/AuthCard';
 import FrostedPanel from '../common/FrostedPanel';
 import MedimeshBackground from '../common/MedimeshBackground';
 import PageTransition from './PageTransition';
+import MedimeshLogo from '../brand/MedimeshLogo';
 
 export default function AuthLayout({
   children,
@@ -24,8 +25,8 @@ export default function AuthLayout({
       <div className={`relative z-10 mx-auto grid min-h-screen w-full max-w-[1500px] ${compact ? 'place-items-center px-4 py-10' : 'lg:grid-cols-[1.05fr_0.95fr]'}`}>
         {!compact && (
           <section className="hidden min-h-screen flex-col justify-between px-10 py-9 lg:flex xl:px-16 xl:py-12">
-            <Link to="/" className="w-fit font-serif text-2xl font-semibold tracking-[-0.04em] text-foreground">
-              MEDI<span className="text-primary">MESH</span>
+            <Link to="/" aria-label="MEDIMESH home" className="w-fit block">
+              <MedimeshLogo variant="full" size="lg" className="w-auto h-8 xl:h-10" />
             </Link>
 
             <div className="max-w-[620px] py-12">
@@ -62,7 +63,9 @@ export default function AuthLayout({
         <main id="auth-content" className={`flex w-full items-center justify-center px-4 py-8 sm:px-8 ${compact ? 'max-w-lg' : 'lg:min-h-screen lg:border-l lg:border-white/70 xl:px-16'}`}>
           <PageTransition className="max-w-[510px]">
             <div className="mb-7 flex items-center justify-between lg:hidden">
-              <Link to="/" className="font-serif text-2xl font-semibold tracking-[-0.04em] text-foreground">MEDI<span className="text-primary">MESH</span></Link>
+              <Link to="/" aria-label="MEDIMESH home" className="block">
+                <MedimeshLogo variant="full" size="md" className="h-7 w-auto" />
+              </Link>
               {!compact && <ArrowRight className="h-4 w-4 text-primary" />}
             </div>
             <AuthCard className={compact ? 'text-center' : ''}>

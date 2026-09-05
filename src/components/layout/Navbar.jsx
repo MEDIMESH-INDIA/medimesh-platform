@@ -4,6 +4,7 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "../common/Button";
 import Container from "../common/Container";
+import MedimeshLogo from "../brand/MedimeshLogo";
 
 const navLinks = [
   { name: "Discover", href: "/discover" },
@@ -56,15 +57,10 @@ export default function Navbar() {
           <nav className="flex h-16 items-center justify-between" aria-label="Primary navigation">
             <Link
               to="/"
-              className="group flex items-center gap-2 rounded-lg px-1 py-2 focus:outline-none focus:ring-2 focus:ring-focus-ring"
+              className="group flex items-center rounded-lg px-1 py-2 focus:outline-none focus:ring-2 focus:ring-focus-ring"
               aria-label="MEDIMESH home"
             >
-              <span className="grid h-8 w-8 place-items-center rounded-[10px] border border-primary/15 bg-primary text-[10px] font-extrabold tracking-[-0.04em] text-white shadow-sm">
-                MM
-              </span>
-              <span className="text-[17px] font-extrabold tracking-[-0.045em] text-foreground">
-                MEDI<span className="text-primary">MESH</span>
-              </span>
+              <MedimeshLogo variant="full" size="md" />
             </Link>
 
             <ul className="hidden items-center gap-1 lg:flex">

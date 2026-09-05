@@ -5,7 +5,6 @@ import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
 import FormField from '../../components/common/FormField';
 import { useAuth } from '../../hooks/useAuth';
-import { useGuestGuard } from '../../hooks/useGuestGuard';
 
 const GoogleMark = () => (
   <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
@@ -17,7 +16,6 @@ const GoogleMark = () => (
 );
 
 export default function Login() {
-  useGuestGuard();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

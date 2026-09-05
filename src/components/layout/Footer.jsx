@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import Container from "../common/Container";
+import MedimeshLogo from "../brand/MedimeshLogo";
 
 const footerLinks = [
   { name: "Discover", href: "/discover" },
@@ -17,10 +18,9 @@ export default function Footer() {
         <div className="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-primary text-[10px] font-extrabold">MM</span>
-              <span className="text-xl font-extrabold tracking-[-0.045em]">MEDI<span className="text-[#8fd0c5]">MESH</span></span>
+              <MedimeshLogo variant="full" size="lg" theme="dark" />
             </div>
-            <p className="mt-5 max-w-lg text-sm leading-6 text-white/60">Healthcare discovery, comparison, and source-aware navigation—designed to make complex information easier to understand.</p>
+            <p className="mt-5 max-w-lg text-sm leading-6 text-white/60">Making healthcare information easier to discover, understand, and compare.</p>
             <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.15em] text-white/35">Smart India Hackathon 2026 · MVP demonstration</p>
           </div>
           <Link to="/register" className="group flex min-h-12 w-fit items-center gap-3 rounded-[13px] border border-white/15 bg-white/[0.06] px-4 text-sm font-bold transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#8fd0c5]">

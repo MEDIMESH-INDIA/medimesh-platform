@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getProtectedRouteState } from './authGuardState';
+import MedimeshLogo from '../components/brand/MedimeshLogo';
 
 export const ProtectedRoute = ({ children }) => {
   const {
@@ -26,9 +27,10 @@ export const ProtectedRoute = ({ children }) => {
 
   if (routeState.status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <MedimeshLogo variant="mark" size="lg" className="animate-pulse" />
         <div
-          className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin"
+          className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin opacity-50"
           role="status"
           aria-label="Loading account"
         />
