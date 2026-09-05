@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getProtectedRouteState } from './authGuardState';
 import MedimeshLogo from '../components/brand/MedimeshLogo';
@@ -71,5 +71,5 @@ export const ProtectedRoute = ({ children }) => {
     );
   }
 
-  return children;
+  return children ?? <Outlet />;
 };

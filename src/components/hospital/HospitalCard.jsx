@@ -103,6 +103,7 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
             to={`${basePath}/hospitals/${slug}`}
             className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
           >
+            View details
           </Link>
         </div>
       </div>

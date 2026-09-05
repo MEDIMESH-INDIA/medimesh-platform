@@ -13,7 +13,11 @@ export default function HospitalChooserModal({ isOpen, onClose }) {
 
   const filtered = demoHospitals.filter(h => {
     const normalizedQuery = query.trim().toLowerCase();
-    return !normalizedQuery || h.name.toLowerCase().includes(normalizedQuery) || h.location.toLowerCase().includes(normalizedQuery) || h.type.toLowerCase().includes(normalizedQuery) || h.specialties.some(s => s.toLowerCase().includes(normalizedQuery));
+    return !normalizedQuery || 
+      (h.name?.toLowerCase().includes(normalizedQuery)) || 
+      (h.location?.toLowerCase().includes(normalizedQuery)) || 
+      (h.type?.toLowerCase().includes(normalizedQuery)) || 
+      ((h.specialties ?? []).some(s => s?.toLowerCase().includes(normalizedQuery)));
   });
 
   return (

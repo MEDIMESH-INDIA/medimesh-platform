@@ -75,12 +75,15 @@ export default function Discover() {
 
   const demoFiltered = demoHospitals.filter(h => {
     const normalizedQuery = (searchParams.get('q') || '').trim().toLowerCase();
-    const matchesSearch = !normalizedQuery || h.name.toLowerCase().includes(normalizedQuery) || h.location.toLowerCase().includes(normalizedQuery) || h.specialties.some(s => s.toLowerCase().includes(normalizedQuery));
+    const matchesSearch = !normalizedQuery || 
+      (h.name?.toLowerCase().includes(normalizedQuery)) || 
+      (h.location?.toLowerCase().includes(normalizedQuery)) || 
+      ((h.specialties ?? []).some(s => s?.toLowerCase().includes(normalizedQuery)));
+      
+    const matchesSpecialty = activeSpecialty ? (h.specialties ?? []).some(s => s?.toLowerCase() === activeSpecialty.toLowerCase()) : true;
+    const matchesLocation = activeLocation ? h.location?.toLowerCase() === activeLocation.toLowerCase() : true;
+    const matchesType = activeType ? h.type?.toLowerCase() === activeType.toLowerCase() : true;
     
-    const matchesSpecialty = activeSpecialty ? h.specialties.some(s => s.toLowerCase() === activeSpecialty.toLowerCase()) : true;
-    const matchesLocation = activeLocation ? h.location.toLowerCase() === activeLocation.toLowerCase() : true;
-    const matchesType = activeType ? h.type.toLowerCase() === activeType.toLowerCase() : true;
-
     return matchesSearch && matchesSpecialty && matchesLocation && matchesType;
   });
 

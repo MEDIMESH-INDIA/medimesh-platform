@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getRoleRouteState } from './authGuardState';
 
@@ -39,5 +39,5 @@ export const RoleRoute = ({ children, allowedRoles }) => {
     return <Navigate to={routeState.to} replace />;
   }
 
-  return children;
+  return children ?? <Outlet />;
 };
