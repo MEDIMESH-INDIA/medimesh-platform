@@ -1,56 +1,82 @@
+import { useParams, Link } from 'react-router-dom';
+import { 
+  MapPin, 
+  Building2, 
+  Activity, 
+  Bed,
+  PlusSquare,
+  ArrowLeft,
+  Heart,
+  GitCompare,
+  Check
+} from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
-import { useParams, Link, useLocation } from 'react-router-dom';
-import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare, Check } from 'lucide-react';
-import { demoHospitals } from '../../data/sihDemoHospitals';
-import TrustMetadata from '../../components/hospital/TrustMetadata';
-import { useSavedHospitals } from '../../hooks/useSavedHospitals';
-import { useCompare } from '../../hooks/useCompare';
 import FrostedPanel from '../../components/common/FrostedPanel';
+import { useCompare } from '../../hooks/useCompare';
+import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+import TrustMetadata from '../../components/hospital/TrustMetadata';
+import { useHospitalDetail } from '../../hooks/useHospitalDetail';
 
 export default function HospitalDetail() {
   const { slug } = useParams();
-  const { savedSlugs, toggleSave } = useSavedHospitals();
+  // TODO: Add toggle for demo/canonical based on a context or leave it hardcoded canonical for now
+  const { hospital, loading, error } = useHospitalDetail(slug, { mode: 'canonical' });
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
-  const locationPath = useLocation().pathname;
-  const basePath = locationPath.startsWith('/app') ? '/app' : '';
-  
-  // Use demo data for now
-  const hospital = demoHospitals.find(h => h.slug === slug);
+  const { savedSlugs, toggleSave } = useSavedHospitals();
 
-  if (!hospital) {
+  if (loading) {
     return (
       <AppPageContainer>
-        <div className="text-center py-16 px-4 max-w-lg mx-auto bg-white rounded-2xl border border-border shadow-sm space-y-4 my-8">
-          <div className="w-12 h-12 bg-surface rounded-full flex items-center justify-center mx-auto text-muted-foreground border border-border">
-            <Building2 className="w-6 h-6" />
-          </div>
-          <h1 className="text-2xl font-serif font-bold text-foreground">Hospital not found</h1>
-          <p className="text-muted-foreground text-sm leading-relaxed">
-            The facility record for &ldquo;{slug}&rdquo; could not be found. It may be an external search result or no longer in the demo database.
-          </p>
-          <div className="pt-2">
-            <Link
-              to={`${basePath}/discover`}
-              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <ArrowLeft className="w-4 h-4" /> Back to discovery
-            </Link>
+        <div className="animate-pulse space-y-8">
+          <div className="h-40 bg-surface rounded-[26px]"></div>
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="h-64 bg-surface rounded-[26px]"></div>
+            <div className="h-64 bg-surface rounded-[26px]"></div>
           </div>
         </div>
       </AppPageContainer>
     );
   }
 
-  const { name, location, type, specialties, facilities, capacity, contact, trustMetadata } = hospital;
+  if (error || !hospital) {
+    return (
+      <AppPageContainer>
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Hospital not found</h2>
+          <p className="text-muted-foreground mb-8">
+            {error ? 'Unable to load data from the database.' : 'This hospital might have been removed or the URL is incorrect.'}
+          </p>
+          <Link to="/app/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+            Back to Discover
+          </Link>
+        </div>
+      </AppPageContainer>
+    );
+  }
+
+  const {
+    name,
+    location,
+    type,
+    specialties,
+    facilities,
+    metrics,
+    provenance,
+  } = hospital;
+
+  const locString = location.locality && location.city 
+    ? `${location.locality}, ${location.city}` 
+    : location.locality || location.city || 'Location not provided';
 
   return (
     <AppPageContainer>
-      <Link to={`${basePath}/discover`} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground mb-6 transition-colors">
+      <Link to="/app/discover" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-6">
         <ArrowLeft className="w-4 h-4" />
-        Back to search
+        Back to Discover
       </Link>
 
-      <FrostedPanel variant="elevated" className="overflow-hidden rounded-[28px]">
+      <FrostedPanel className="rounded-[26px] overflow-hidden">
         {/* Header Section */}
         <div className="p-6 md:p-8 border-b border-border">
           <div className="flex flex-col md:flex-row justify-between items-start gap-6">
@@ -59,12 +85,14 @@ export default function HospitalDetail() {
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 shrink-0" />
-                  <span>{location || 'Not provided'}</span>
+                  <span>{locString}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Building2 className="w-4 h-4 shrink-0" />
-                  <span>{type || 'Not provided'}</span>
-                </div>
+                {type && (
+                  <div className="flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 shrink-0" />
+                    <span>{type}</span>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -110,7 +138,7 @@ export default function HospitalDetail() {
           {/* Trust Metadata */}
           <section>
             <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Data Source & Trust</h2>
-            <TrustMetadata trustMetadata={trustMetadata} />
+            <TrustMetadata provenance={provenance} />
           </section>
 
           <div className="grid md:grid-cols-2 gap-12">
@@ -158,51 +186,26 @@ export default function HospitalDetail() {
                 <div className="bg-surface/50 rounded-xl p-5 border border-border/50 space-y-4">
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <span className="text-sm text-muted-foreground">Total Beds</span>
-                    <span className="font-semibold text-foreground">{capacity?.totalBeds ?? 'Not provided'}</span>
+                    <span className="font-semibold text-foreground">{metrics?.totalBeds ?? 'Not provided'}</span>
                   </div>
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <span className="text-sm text-muted-foreground">ICU Beds</span>
-                    <span className="font-semibold text-foreground">{capacity?.icuBeds ?? 'Not provided'}</span>
+                    <span className="font-semibold text-foreground">
+                      {metrics?.icuBeds !== null ? (metrics.icuBeds ? 'Available' : 'No') : 'Not provided'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center pb-4 border-b border-border/50">
                     <span className="text-sm text-muted-foreground">Emergency</span>
-                    <span className="font-semibold text-foreground">{capacity?.emergency ?? 'Not provided'}</span>
+                    <span className="font-semibold text-foreground">
+                      {metrics?.emergency === true ? '24/7' : metrics?.emergency === false ? 'No' : 'Not provided'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Ambulance</span>
-                    <span className="font-semibold text-foreground">{capacity?.ambulance ?? 'Not provided'}</span>
+                    <span className="font-semibold text-foreground">
+                      {metrics?.ambulance === true ? 'Available' : metrics?.ambulance === false ? 'No' : 'Not provided'}
+                    </span>
                   </div>
-                </div>
-              </section>
-
-              {/* Contact */}
-              <section>
-                <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-primary" /> Contact
-                </h2>
-                <div className="space-y-4">
-                  {contact?.address ? (
-                    <div className="flex items-start gap-3 text-sm text-foreground">
-                      <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                      <span>{contact.address}</span>
-                    </div>
-                  ) : <p className="text-sm text-muted-foreground">Address not provided</p>}
-                  
-                  {contact?.phone && (
-                    <div className="flex items-center gap-3 text-sm text-foreground">
-                      <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span>{contact.phone}</span>
-                    </div>
-                  )}
-
-                  {contact?.website && (
-                    <div className="flex items-center gap-3 text-sm text-primary">
-                      <Globe className="w-4 h-4 shrink-0" />
-                      <a href={`https://${contact.website}`} target="_blank" rel="noreferrer" className="hover:underline">
-                        {contact.website}
-                      </a>
-                    </div>
-                  )}
                 </div>
               </section>
             </div>
