@@ -1,39 +1,41 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Building2, X, Filter, Heart } from 'lucide-react';
+import { Search, MapPin, Building2, X, Filter, Activity, ChevronDown } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import HospitalCard from '../../components/hospital/HospitalCard';
+import HospitalCardSkeleton from '../../components/hospital/HospitalCardSkeleton';
+import CollapsibleFilter from '../../components/hospital/CollapsibleFilter';
+import CompareTray from '../../components/hospital/CompareTray';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+import { formatHospitalType } from '../../lib/utils/formatters';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export default function DiscoverExperience({ mode = 'canonical' }) {
+export default function DiscoverExperience({ requireAuth, activeMode, setActiveMode }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const { savedSlugs, toggleSave } = useSavedHospitals();
+  const { savedSlugs, toggleSave } = useSavedHospitals(requireAuth);
   
-  // Local state for filters
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   
+  const [sort, setSort] = useState('name_asc');
+
   const filters = {
     q: searchParams.get('q') || '',
     location: searchParams.get('location') || '',
-    type: searchParams.get('type') || '',
     specialty: searchParams.get('specialty') || '',
+    type: searchParams.get('type') || ''
   };
 
-  const [sort, setSort] = useState('name_asc');
-
-  // We explicitly manage mode for the whole page (e.g. if Supabase fails)
-  const [activeMode, setActiveMode] = useState(mode);
-
-  const { facets } = useHospitalFacets({ mode: activeMode });
-  const { hospitals, loading, error, hasMore, loadMore } = useHospitalSearch({ 
-    mode: activeMode, 
-    filters, 
-    sort 
+  const { hospitals, loading, error, hasMore, loadMore } = useHospitalSearch({
+    filters,
+    sort,
+    mode: activeMode,
+    pageSize: 12
   });
+
+  const { facets } = useHospitalFacets(activeMode);
 
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -43,6 +45,12 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
       newParams.delete(key);
     }
     setSearchParams(newParams);
+    if (key === 'q') setQuery(value); // Sync local state
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    updateFilter('q', query);
   };
 
   const clearAllFilters = () => {
@@ -50,172 +58,137 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
     setQuery('');
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    updateFilter('q', query);
-  };
+  const hasActiveFilters = Object.values(filters).some(v => v !== '');
 
-  const hasActiveFilters = Array.from(searchParams.keys()).length > 0;
+  // Build Results Header chips logic
+  const activeChips = [];
+  if (filters.location) activeChips.push({ key: 'location', label: filters.location });
+  if (filters.specialty) activeChips.push({ key: 'specialty', label: filters.specialty });
+  if (filters.type) activeChips.push({ key: 'type', label: formatHospitalType(filters.type) });
 
   return (
-    <AppPageContainer>
-      {/* Header Area */}
-      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-3xl p-8 mb-8 border border-border">
-        <h1 className="text-3xl font-serif font-bold text-foreground mb-3">Explore Healthcare</h1>
-        <p className="text-lg text-muted-foreground mb-6 max-w-2xl">
-          Find and compare structured healthcare information from verified sources and live providers.
+    <AppPageContainer className="!max-w-[1240px]">
+      {/* Hero Search Area */}
+      <div className="mb-6 lg:mb-8 pt-4">
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3 text-center lg:text-left">
+          Explore Healthcare
+        </h1>
+        <p className="text-muted-foreground text-center lg:text-left text-sm md:text-base max-w-2xl mb-6">
+          Find and compare structured healthcare information from verified sources across supported regions.
         </p>
         
-        <form onSubmit={handleSearch} className="relative max-w-3xl flex items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <div className="max-w-2xl">
+          <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
+            <Search className="absolute left-4 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input 
-              type="text" 
-              placeholder="Search hospitals by name, city, or locality..." 
+              type="text"
+              placeholder="Search by hospital name, city, or locality..."
+              className="w-full pl-12 pr-[140px] py-3.5 bg-white border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all shadow-sm"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-4 rounded-xl bg-background border border-border focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all shadow-sm text-foreground"
             />
-          </div>
-          <button 
-            type="submit"
-            className="px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm hidden sm:block"
-          >
-            Search
-          </button>
-        </form>
+            {query && (
+              <button
+                type="button"
+                onClick={() => { setQuery(''); updateFilter('q', ''); }}
+                className="absolute right-[130px] p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <button 
+              type="submit"
+              className="absolute right-2 px-5 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:shadow-sm active:scale-95 transition-all duration-150"
+            >
+              Search
+            </button>
+          </form>
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Mobile Filter Toggle */}
-        <div className="lg:hidden flex items-center justify-between mb-4">
-          <button 
-            onClick={() => setIsMobileFiltersOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-sm font-semibold text-foreground"
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-          </button>
-          
+      {/* Mobile Controls */}
+      <div className="flex items-center gap-3 mb-6 lg:hidden">
+        <button 
+          onClick={() => setIsMobileFiltersOpen(true)}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground"
+        >
+          <Filter className="w-4 h-4" /> Filters
+          {hasActiveFilters && (
+            <span className="w-2 h-2 rounded-full bg-primary" />
+          )}
+        </button>
+        <div className="flex-1 relative">
           <select 
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="px-3 py-2 bg-surface border border-border rounded-lg text-sm text-foreground"
+            className="w-full pl-3 pr-8 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
-            <option value="name_asc">Name (A-Z)</option>
+            <option value="name_asc">Name A-Z</option>
+            <option value="name_desc">Name Z-A</option>
           </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         </div>
+      </div>
 
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Sidebar Filters */}
         <aside className={`
-          fixed inset-y-0 left-0 z-40 w-full max-w-xs bg-background border-r border-border shadow-2xl lg:shadow-none p-6 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:w-64 lg:shrink-0 lg:border-r-0 lg:p-0 lg:bg-transparent overflow-y-auto lg:overflow-visible
+          fixed lg:static inset-y-0 left-0 z-40 lg:z-0
+          w-full sm:w-[320px] lg:w-[260px] 
+          bg-background lg:bg-transparent
+          border-r border-border lg:border-none
+          p-6 lg:p-0
+          overflow-y-auto lg:overflow-visible
+          transition-transform duration-300 ease-in-out
           ${isMobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          flex flex-col
         `}>
-          <div className="flex items-center justify-between lg:hidden mb-6">
+          <div className="flex items-center justify-between lg:hidden mb-6 shrink-0">
             <h2 className="text-lg font-bold text-foreground">Filters</h2>
             <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
 
-          <div className="sticky top-6">
-            <h2 className="text-xl font-bold text-foreground mb-6 hidden lg:block">Filters</h2>
+          <div className="flex-1">
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 hidden lg:block">Filter by</h2>
             
-            <div className="space-y-8">
-              {/* Location */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary" /> Location
-                </h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input 
-                      type="radio"
-                      className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
-                      checked={filters.location === ''}
-                      onChange={() => updateFilter('location', '')}
-                    />
-                    <span className="text-sm text-foreground group-hover:text-primary transition-colors">Any location</span>
-                  </label>
-                  {facets.locations.map(loc => (
-                    <label key={loc} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="radio"
-                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
-                        checked={filters.location === loc}
-                        onChange={() => updateFilter('location', loc)}
-                      />
-                      <span className="text-sm text-foreground group-hover:text-primary transition-colors">{loc}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Specialty */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-primary" /> Specialty
-                </h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input 
-                      type="radio"
-                      className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
-                      checked={filters.specialty === ''}
-                      onChange={() => updateFilter('specialty', '')}
-                    />
-                    <span className="text-sm text-foreground group-hover:text-primary transition-colors">Any specialty</span>
-                  </label>
-                  {facets.specialties.map(s => (
-                    <label key={s} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="radio"
-                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
-                        checked={filters.specialty === s}
-                        onChange={() => updateFilter('specialty', s)}
-                      />
-                      <span className="text-sm text-foreground group-hover:text-primary transition-colors">{s}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Type */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-primary" /> Hospital Type
-                </h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input 
-                      type="radio"
-                      className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
-                      checked={filters.type === ''}
-                      onChange={() => updateFilter('type', '')}
-                    />
-                    <span className="text-sm text-foreground group-hover:text-primary transition-colors">Any type</span>
-                  </label>
-                  {facets.types.map(t => (
-                    <label key={t} className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="radio"
-                        className="w-4 h-4 text-primary focus:ring-primary border-border cursor-pointer appearance-none checked:bg-primary rounded-full checked:border-transparent ring-1 ring-offset-1 ring-border checked:ring-primary"
-                        checked={filters.type === t}
-                        onChange={() => updateFilter('type', t)}
-                      />
-                      <span className="text-sm text-foreground group-hover:text-primary transition-colors">{t}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+            <div className="space-y-4">
+              <CollapsibleFilter
+                title="Location"
+                icon={MapPin}
+                options={facets.locations}
+                value={filters.location}
+                onChange={(val) => updateFilter('location', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
+                title="Specialty"
+                icon={Activity}
+                options={facets.specialties}
+                value={filters.specialty}
+                onChange={(val) => updateFilter('specialty', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
+                title="Hospital Type"
+                icon={Building2}
+                options={facets.types}
+                value={filters.type}
+                onChange={(val) => updateFilter('type', val)}
+                defaultOpen={true}
+                formatOption={formatHospitalType}
+              />
             </div>
             
-            <div className="mt-6 pt-6 border-t border-border lg:hidden">
+            {/* Mobile apply button */}
+            <div className="mt-8 pt-6 border-t border-border lg:hidden pb-safe">
               <button 
                 onClick={() => setIsMobileFiltersOpen(false)}
-                className="w-full py-3 bg-foreground text-background font-semibold rounded-xl"
+                className="w-full py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors"
               >
-                Show Results
+                Apply Filters
               </button>
             </div>
           </div>
@@ -230,66 +203,59 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 flex flex-col">
-          {/* Active Filters */}
-          <AnimatePresence>
-            {hasActiveFilters && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex flex-wrap items-center gap-2 mb-4 overflow-hidden"
-              >
-                <span className="text-sm text-muted-foreground mr-1">Active filters:</span>
-                {filters.q && (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-surface border border-border rounded-full text-sm font-medium text-foreground">
-                    Search: &quot;{filters.q}&quot;
-                    <button onClick={() => { setQuery(''); updateFilter('q', ''); }}><X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
-                  </span>
+        <main className="flex-1 min-w-0 w-full flex flex-col pb-24 lg:pb-32">
+          {/* Results Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-lg font-semibold text-foreground">
+                {loading && hospitals.length === 0 ? 'Searching...' : 
+                 `${hospitals.length} hospital${hospitals.length !== 1 ? 's' : ''} found`}
+              </h2>
+              {/* Active Filter Chips */}
+              <AnimatePresence>
+                {activeChips.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex flex-wrap items-center gap-1.5"
+                  >
+                    {filters.q && (
+                      <span className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
+                        Search: &quot;{filters.q}&quot;
+                        <button onClick={() => { setQuery(''); updateFilter('q', ''); }} className="p-0.5 hover:bg-border/60 rounded-full"><X className="w-3 h-3" /></button>
+                      </span>
+                    )}
+                    {activeChips.map(chip => (
+                      <span key={chip.key} className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
+                        {chip.label}
+                        <button onClick={() => updateFilter(chip.key, '')} className="p-0.5 hover:bg-border/60 rounded-full"><X className="w-3 h-3" /></button>
+                      </span>
+                    ))}
+                    <button 
+                      onClick={clearAllFilters}
+                      className="text-[12px] font-medium text-primary hover:underline ml-1"
+                    >
+                      Clear all
+                    </button>
+                  </motion.div>
                 )}
-                {filters.location && (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-surface border border-border rounded-full text-sm font-medium text-foreground">
-                    {filters.location}
-                    <button onClick={() => updateFilter('location', '')}><X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
-                  </span>
-                )}
-                {filters.specialty && (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-surface border border-border rounded-full text-sm font-medium text-foreground">
-                    {filters.specialty}
-                    <button onClick={() => updateFilter('specialty', '')}><X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
-                  </span>
-                )}
-                {filters.type && (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-surface border border-border rounded-full text-sm font-medium text-foreground">
-                    {filters.type}
-                    <button onClick={() => updateFilter('type', '')}><X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" /></button>
-                  </span>
-                )}
-                <button 
-                  onClick={clearAllFilters}
-                  className="text-sm font-medium text-primary hover:underline ml-2"
+              </AnimatePresence>
+            </div>
+            
+            <div className="hidden lg:flex items-center gap-2 shrink-0 self-start">
+              <span className="text-sm text-muted-foreground font-medium">Sort by:</span>
+              <div className="relative">
+                <select 
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="pl-3 pr-8 py-2 bg-surface/50 hover:bg-surface border border-border/80 rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/50 outline-none appearance-none cursor-pointer transition-colors"
                 >
-                  Clear all
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">
-              {loading && hospitals.length === 0 ? 'Searching...' : 
-               `${hospitals.length} hospital${hospitals.length !== 1 ? 's' : ''} found`}
-               {filters.location ? ` • ${filters.location}` : ''}
-            </h2>
-            <div className="hidden lg:flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort by:</span>
-              <select 
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="px-3 py-1.5 bg-surface border border-border rounded-lg text-sm text-foreground focus:ring-2 focus:ring-primary outline-none"
-              >
-                <option value="name_asc">Name (A-Z)</option>
-              </select>
+                  <option value="name_asc">Name A–Z</option>
+                  <option value="name_desc">Name Z–A</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
           </div>
           
@@ -306,19 +272,12 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
             </div>
           ) : null}
 
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5 pb-8">
+          {/* Grid setup based on rules: Desktop (lg): 2 cols, Medium/Tablet: 1 col, Mobile: 1 col */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6 mb-8">
             {loading && hospitals.length === 0 ? (
               // Skeletons
               Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-60 bg-surface rounded-[22px] border border-border animate-pulse p-5">
-                  <div className="w-2/3 h-6 bg-muted rounded mb-3"></div>
-                  <div className="w-1/2 h-4 bg-muted rounded mb-8"></div>
-                  <div className="flex gap-2 mb-6">
-                    <div className="w-16 h-5 bg-muted rounded"></div>
-                    <div className="w-20 h-5 bg-muted rounded"></div>
-                  </div>
-                  <div className="w-full h-10 bg-muted rounded"></div>
-                </div>
+                <HospitalCardSkeleton key={i} />
               ))
             ) : hospitals.length > 0 ? (
               hospitals.map(hospital => (
@@ -330,15 +289,17 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 />
               ))
             ) : (
-              <div className="col-span-full py-16 text-center bg-surface/30 rounded-2xl border border-dashed border-border/60">
-                <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-4 border border-border">
-                  <Search className="w-8 h-8 text-muted-foreground/50" />
+              <div className="col-span-full py-16 text-center bg-surface/30 rounded-[24px] border border-dashed border-border/60">
+                <div className="w-14 h-14 bg-surface rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-sm">
+                  <Search className="w-6 h-6 text-muted-foreground/60" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">No hospitals match these filters.</h3>
-                <p className="text-sm text-muted-foreground mb-6">Try expanding your location or clearing specific facility requirements.</p>
+                <h3 className="text-base font-semibold text-foreground mb-1">
+                  {filters.q ? `No hospitals found for "${filters.q}".` : 'No hospitals match these filters.'}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-6">Try expanding your location or clearing specific requirements.</p>
                 <button 
                   onClick={clearAllFilters}
-                  className="px-6 py-2 bg-white border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-surface transition-colors shadow-sm"
+                  className="px-5 py-2 bg-white border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface hover:border-border transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   Clear filters
                 </button>
@@ -347,11 +308,11 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
           </div>
           
           {hasMore && (
-            <div className="flex justify-center pb-20">
+            <div className="flex justify-center pt-2">
               <button 
                 onClick={loadMore}
                 disabled={loading}
-                className="px-8 py-3 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-surface/80 transition-colors shadow-sm disabled:opacity-50"
+                className="px-6 py-2.5 bg-surface border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface/80 hover:border-border transition-all shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
               >
                 {loading ? 'Loading...' : `Load more hospitals`}
               </button>
@@ -359,6 +320,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
           )}
         </main>
       </div>
+      <CompareTray />
     </AppPageContainer>
   );
 }

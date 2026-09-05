@@ -13,10 +13,14 @@ export function useCompare() {
     return () => window.removeEventListener('compare-updated', updateList);
   }, []);
 
-  const addHospital = (slug) => {
+  const addHospital = (hospital) => {
+    // hospital can be a slug string or an object {slug, name}
+    const slug = typeof hospital === 'string' ? hospital : hospital.slug;
+    const name = typeof hospital === 'string' ? slug : hospital.name;
+    
     const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-    if (list.length < 3 && !list.includes(slug)) {
-      list.push(slug);
+    if (list.length < 3 && !list.some(item => (typeof item === 'string' ? item : item.slug) === slug)) {
+      list.push({ slug, name });
       localStorage.setItem('compareList', JSON.stringify(list));
       setCompareList(list);
       window.dispatchEvent(new Event('compare-updated'));
@@ -25,7 +29,7 @@ export function useCompare() {
 
   const removeHospital = (slug) => {
     const list = JSON.parse(localStorage.getItem('compareList') || '[]');
-    const updated = list.filter(s => s !== slug);
+    const updated = list.filter(item => (typeof item === 'string' ? item : item.slug) !== slug);
     localStorage.setItem('compareList', JSON.stringify(updated));
     setCompareList(updated);
     window.dispatchEvent(new Event('compare-updated'));
@@ -37,7 +41,7 @@ export function useCompare() {
     window.dispatchEvent(new Event('compare-updated'));
   };
 
-  const isCompared = (slug) => compareList.includes(slug);
+  const isCompared = (slug) => compareList.some(item => (typeof item === 'string' ? item : item.slug) === slug);
 
   const canAdd = compareList.length < 3;
 

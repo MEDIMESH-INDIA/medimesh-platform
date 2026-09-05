@@ -24,9 +24,11 @@ export default function Compare() {
     }
   }, [searchParams, setSearchParams, canAdd, addHospital]);
 
-  const hospitals = compareList
-    .map(slug => demoHospitals.find(h => h.slug === slug))
-    .filter(Boolean);
+  // Handle both string and object compare list items
+  const hospitals = compareList.map(item => {
+    const slug = typeof item === 'string' ? item : item.slug;
+    return demoHospitals.find(h => h.slug === slug);
+  }).filter(Boolean);
 
   const locationPath = useLocation().pathname;
   const basePath = locationPath.startsWith('/app') ? '/app' : '';

@@ -1,25 +1,34 @@
 import { Database, ShieldCheck, Clock, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 import FrostedPanel from '../common/FrostedPanel';
+import { formatReviewStatus } from '../../lib/utils/formatters';
 
 export default function TrustMetadata({ provenance, compact = false }) {
   if (compact) {
     if (!provenance) {
       return (
-        <div className="flex flex-col text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-          <span className="opacity-60">Source Unknown</span>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
+          <ShieldCheck className="w-3.5 h-3.5 opacity-50" />
+          <span>Source Unknown</span>
         </div>
       );
     }
+
+    let badgeText = 'Public source';
+    if (provenance.reviewStatus === 'demonstration') badgeText = 'Demo Data';
+    else if (provenance.reviewStatus === 'manually_reviewed') badgeText = 'Verified';
+    else if (provenance.reviewStatus === 'source_matched') badgeText = 'Public source';
     
     return (
-      <div className="flex flex-col text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-        <span className="text-primary/80">
-          {provenance.reviewStatus === 'demonstration' ? 'MEDIMESH DEMO' : (provenance.sourceName || 'PUBLIC DATA')}
-        </span>
+      <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground group relative">
+        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-surface/50 border border-border/50 rounded-md cursor-help" title={provenance.sourceName || 'Unknown Source'}>
+          <ShieldCheck className={`w-3 h-3 ${provenance.reviewStatus === 'manually_reviewed' ? 'text-green-500' : 'text-primary/70'}`} />
+          <span className="font-medium text-[11px] uppercase tracking-wider">{badgeText}</span>
+        </div>
+        
         {provenance.checkedAt && (
-          <span className="opacity-70 mt-0.5 normal-case font-normal">
-            Checked {new Date(provenance.checkedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric'})}
+          <span className="text-[11.5px]">
+            · Checked {new Date(provenance.checkedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric'})}
           </span>
         )}
       </div>
@@ -37,7 +46,7 @@ export default function TrustMetadata({ provenance, compact = false }) {
     {
       icon: ShieldCheck,
       label: 'Review Status',
-      value: provenance?.reviewStatus?.replace('_', ' ') || 'Unverified',
+      value: formatReviewStatus(provenance?.reviewStatus) || 'Unverified',
       color: 'text-amber-500'
     },
     {
