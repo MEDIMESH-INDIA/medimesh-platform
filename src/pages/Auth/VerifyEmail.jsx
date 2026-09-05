@@ -35,17 +35,18 @@ export default function VerifyEmail() {
       const { error: resendError } = await resendVerification(email);
       if (resendError) throw resendError;
       
-      setMessage('Verification email resent successfully.');
+      setMessage('A new verification email has been sent.');
       setCountdown(30);
-    } catch (err) {
-      setError(err.message || 'Failed to resend verification email.');
+    } catch {
+      setError('We could not resend the verification email. Please wait a moment and try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout 
+    <AuthLayout
+      compact
       title="Check your inbox" 
       subtitle="We've sent you a verification link"
     >
@@ -62,7 +63,7 @@ export default function VerifyEmail() {
 
         <p className="text-center text-muted-foreground mb-8 text-sm leading-relaxed">
           Click the link in the email we sent to verify your account. 
-          If you don't see it, check your spam folder.
+          If you don&apos;t see it, check your spam folder.
         </p>
 
         {error && (
@@ -75,6 +76,12 @@ export default function VerifyEmail() {
           <div className="w-full p-3 mb-6 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100 text-center">
             {message}
           </div>
+        )}
+
+        {!email && (
+          <p className="mb-5 rounded-[12px] border border-border bg-surface-elevated/60 p-3 text-center text-xs leading-5 text-muted-foreground">
+            Open this page from registration to resend an email. You can still return to sign in.
+          </p>
         )}
 
         {email ? (

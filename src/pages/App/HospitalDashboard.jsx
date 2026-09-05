@@ -1,64 +1,42 @@
+import { AlertCircle, Building2, CheckCircle2, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import AppPageContainer from '../../components/layout/AppPageContainer';
+import Button from '../../components/common/Button';
+import FrostedPanel from '../../components/common/FrostedPanel';
+import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function HospitalDashboard() {
   const { profile } = useAuth();
-  
   const isVerified = profile?.verification_status === 'verified';
+  const StatusIcon = isVerified ? CheckCircle2 : AlertCircle;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {!isVerified && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-4 items-start">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-amber-800">Verification Pending</h3>
-            <p className="text-sm text-amber-700 mt-1">
-              Your organizational credentials are currently under review. Your facility will not be listed publicly until verification is complete.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {isVerified && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex gap-4 items-start">
-          <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-green-800">Verified Organization</h3>
-            <p className="text-sm text-green-700 mt-1">
-              Your hospital is verified and visible to patients on the MEDIMESH platform.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white p-8 rounded-[2rem] border border-border shadow-sm">
-        <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Hospital Portal</h1>
-        <p className="text-muted-foreground mb-6">Welcome, {profile?.display_name}. Manage your institutional presence.</p>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="p-6 bg-surface-elevated rounded-xl border border-border">
-            <h3 className="font-bold mb-2">Departments</h3>
-            <p className="text-3xl font-light text-primary">0</p>
-            <p className="text-xs text-muted-foreground mt-2">Update your active departments</p>
-          </div>
-          
-          <div className="p-6 bg-surface-elevated rounded-xl border border-border">
-            <h3 className="font-bold mb-2">Registered Doctors</h3>
-            <p className="text-3xl font-light text-secondary-accent">0</p>
-            <p className="text-xs text-muted-foreground mt-2">Doctors affiliated with this branch</p>
-          </div>
-
-          <div className="p-6 bg-surface-elevated rounded-xl border border-border">
-            <h3 className="font-bold mb-2">Profile Completion</h3>
-            <div className="w-full bg-border rounded-full h-2 mb-2 mt-4">
-              <div className="bg-primary h-2 rounded-full w-[20%]"></div>
+    <AppPageContainer>
+      <PageHeader eyebrow="Organization workspace" title="Hospital profile" description="Review your authorized organization identity and its current verification state." actions={<Button as={Link} to="/app/profile" variant="outline">Edit profile</Button>} />
+      <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+        <FrostedPanel variant="elevated" className="rounded-[26px] p-7 sm:p-8">
+          <div className="flex items-start gap-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[15px] bg-primary/10 text-primary"><Building2 className="h-5 w-5" /></span>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">Organization identity</p>
+              <h2 className="mt-2 font-serif text-2xl font-semibold">{profile?.display_name || 'Organization name not provided'}</h2>
+              <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4" />{profile?.city || 'Location not provided'}</p>
             </div>
-            <p className="text-xs text-muted-foreground">Add facilities and services</p>
           </div>
-        </div>
+          <div className="mt-8 border-t border-border pt-6">
+            <p className="text-sm leading-6 text-muted-foreground">Organization details, capacity, services, and facilities submitted during onboarding remain account data. No occupancy or operational analytics are inferred.</p>
+          </div>
+        </FrostedPanel>
+
+        <FrostedPanel className="rounded-[24px] p-6">
+          <StatusIcon className={`h-6 w-6 ${isVerified ? 'text-primary' : 'text-amber-600'}`} />
+          <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">Verification state</p>
+          <h2 className="mt-2 font-serif text-xl font-semibold capitalize">{profile?.verification_status || 'Not provided'}</h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{isVerified ? 'Your organization record is marked verified.' : 'Organization verification is not automatic. Review remains pending.'}</p>
+          <div className="mt-5 rounded-[12px] border border-border bg-white/55 p-3 text-xs font-medium text-muted-foreground">Onboarding: {profile?.onboarding_completed ? 'Complete' : 'Incomplete'}</div>
+        </FrostedPanel>
       </div>
-    </div>
+    </AppPageContainer>
   );
 }

@@ -15,6 +15,7 @@ export function useSavedHospitals() {
     }
     try {
       setLoading(true);
+      setError(null);
       const { data, error } = await supabase
         .from('saved_hospitals')
         .select('hospital_slug');

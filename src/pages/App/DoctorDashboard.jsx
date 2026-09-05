@@ -1,57 +1,42 @@
+import { AlertCircle, CheckCircle2, MapPin, UserRound } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import AppPageContainer from '../../components/layout/AppPageContainer';
+import Button from '../../components/common/Button';
+import FrostedPanel from '../../components/common/FrostedPanel';
+import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../hooks/useAuth';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
-  
   const isVerified = profile?.verification_status === 'verified';
+  const StatusIcon = isVerified ? CheckCircle2 : AlertCircle;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {!isVerified && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-4 items-start">
-          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-amber-800">Verification Pending</h3>
-            <p className="text-sm text-amber-700 mt-1">
-              Your professional credentials are currently under review. You cannot be listed publicly until verification is complete.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {isVerified && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex gap-4 items-start">
-          <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-green-800">Verified Professional</h3>
-            <p className="text-sm text-green-700 mt-1">
-              Your profile is verified and visible to patients on the MEDIMESH platform.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white p-8 rounded-[2rem] border border-border shadow-sm">
-        <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Doctor Portal</h1>
-        <p className="text-muted-foreground mb-6">Welcome, Dr. {profile?.last_name || profile?.display_name}. Manage your professional presence.</p>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-6 bg-surface-elevated rounded-xl border border-border">
-            <h3 className="font-bold mb-2">Profile Completion</h3>
-            <div className="w-full bg-border rounded-full h-2 mb-2">
-              <div className="bg-primary h-2 rounded-full w-[30%]"></div>
+    <AppPageContainer>
+      <PageHeader eyebrow="Professional workspace" title="Doctor profile" description="Review the professional account information and verification state currently stored for your profile." actions={<Button as={Link} to="/app/profile" variant="outline">Edit profile</Button>} />
+      <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+        <FrostedPanel variant="elevated" className="rounded-[26px] p-7 sm:p-8">
+          <div className="flex items-start gap-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[15px] bg-primary/10 text-primary"><UserRound className="h-5 w-5" /></span>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">Professional identity</p>
+              <h2 className="mt-2 font-serif text-2xl font-semibold">{profile?.display_name || 'Name not provided'}</h2>
+              <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4" />{profile?.city || 'Location not provided'}</p>
             </div>
-            <p className="text-xs text-muted-foreground">Add your specialties and hospital affiliations.</p>
           </div>
-          
-          <div className="p-6 bg-surface-elevated rounded-xl border border-border">
-            <h3 className="font-bold mb-2">Upcoming Consultations</h3>
-            <p className="text-sm text-muted-foreground">Integration coming in Phase 3.</p>
+          <div className="mt-8 border-t border-border pt-6">
+            <p className="text-sm leading-6 text-muted-foreground">Professional qualifications, specialization, and affiliations submitted during onboarding remain protected account data. This dashboard does not publish or rank them.</p>
           </div>
-        </div>
+        </FrostedPanel>
+
+        <FrostedPanel className="rounded-[24px] p-6">
+          <StatusIcon className={`h-6 w-6 ${isVerified ? 'text-primary' : 'text-amber-600'}`} />
+          <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-muted-foreground">Verification state</p>
+          <h2 className="mt-2 font-serif text-xl font-semibold capitalize">{profile?.verification_status || 'Not provided'}</h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{isVerified ? 'Your account record is marked verified.' : 'Creating an account does not verify a medical professional. Review remains pending.'}</p>
+          <div className="mt-5 rounded-[12px] border border-border bg-white/55 p-3 text-xs font-medium text-muted-foreground">Onboarding: {profile?.onboarding_completed ? 'Complete' : 'Incomplete'}</div>
+        </FrostedPanel>
       </div>
-    </div>
+    </AppPageContainer>
   );
 }

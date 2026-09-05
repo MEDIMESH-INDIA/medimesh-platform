@@ -48,6 +48,12 @@
   }
 }
 
+@layer components {
+  .medimesh-field {
+    @apply min-h-12 w-full rounded-[13px] border border-border bg-white/75 px-4 py-3 text-sm text-foreground shadow-sm outline-none backdrop-blur-md transition duration-200 placeholder:text-muted-foreground/55 hover:border-foreground/20 focus:-translate-y-px focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-surface-elevated disabled:text-muted-foreground;
+  }
+}
+
 #app-mesh-tsparticles,
 #app-mesh-tsparticles canvas {
   pointer-events: none !important;

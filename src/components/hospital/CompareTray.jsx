@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GitCompare, X } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
@@ -88,4 +87,3 @@ export default function CompareTray() {
     </AnimatePresence>
   );
 }
-

@@ -1,16 +1,15 @@
 import { Database, ShieldCheck, Clock, CheckCircle2, Activity, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import FrostedPanel from '../common/FrostedPanel';
+import SourceBadge from '../common/SourceBadge';
 
 export default function TrustMetadata({ trustMetadata, compact = false }) {
   if (!trustMetadata) return null;
 
   if (compact) {
     return (
-      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground bg-surface/50 p-2.5 rounded-lg border border-border/50">
-        <div className="flex items-center gap-1.5" title="Data Source">
-          <Database className="w-3.5 h-3.5 text-primary/70" />
-          <span className="font-medium text-foreground">{trustMetadata.sourceLabel || trustMetadata.source || 'Unknown'}</span>
-        </div>
+      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        <SourceBadge>{trustMetadata.sourceLabel || trustMetadata.source || 'Source not provided'}</SourceBadge>
         {trustMetadata.reviewState && (
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="w-1 h-1 rounded-full bg-border"></span>
@@ -50,7 +49,7 @@ export default function TrustMetadata({ trustMetadata, compact = false }) {
   ];
 
   return (
-    <div className="bg-white border border-border rounded-xl p-5 shadow-sm space-y-4">
+    <FrostedPanel className="rounded-[20px] p-5 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Activity className="w-5 h-5 text-primary" />
         <h3 className="font-semibold text-foreground font-serif">Data Provenance</h3>
@@ -92,6 +91,6 @@ export default function TrustMetadata({ trustMetadata, compact = false }) {
           <p className="text-xs text-amber-800 font-medium">{trustMetadata.dataScope}</p>
         </div>
       )}
-    </div>
+    </FrostedPanel>
   );
 }

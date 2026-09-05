@@ -3,6 +3,7 @@ import { X, Search } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import { useCompare } from '../../hooks/useCompare';
 import { motion, AnimatePresence } from 'framer-motion';
+import FrostedPanel from '../common/FrostedPanel';
 
 export default function HospitalChooserModal({ isOpen, onClose }) {
   const [query, setQuery] = useState('');
@@ -11,23 +12,25 @@ export default function HospitalChooserModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const filtered = demoHospitals.filter(h => {
-    const searchRegex = new RegExp(query, 'i');
-    return searchRegex.test(h.name) || searchRegex.test(h.location) || searchRegex.test(h.type) || h.specialties.some(s => searchRegex.test(s));
+    const normalizedQuery = query.trim().toLowerCase();
+    return !normalizedQuery || h.name.toLowerCase().includes(normalizedQuery) || h.location.toLowerCase().includes(normalizedQuery) || h.type.toLowerCase().includes(normalizedQuery) || h.specialties.some(s => s.toLowerCase().includes(normalizedQuery));
   });
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} 
         />
         
-        <motion.div 
+        <FrostedPanel
+          as={motion.div}
+          variant="floating"
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[85vh] overflow-hidden"
+          className="w-full max-w-2xl rounded-[26px] relative z-10 flex flex-col max-h-[85vh] overflow-hidden"
         >
           <div className="p-6 border-b border-border flex items-center justify-between bg-surface/50">
             <div>
@@ -55,7 +58,7 @@ export default function HospitalChooserModal({ isOpen, onClose }) {
 
           <div className="flex-1 overflow-y-auto p-2">
             {filtered.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground text-sm">No hospitals found matching "{query}"</div>
+              <div className="text-center py-12 text-muted-foreground text-sm">No hospitals found matching &ldquo;{query}&rdquo;</div>
             ) : (
               <ul className="space-y-1">
                 {filtered.map(h => {
@@ -89,7 +92,7 @@ export default function HospitalChooserModal({ isOpen, onClose }) {
               </ul>
             )}
           </div>
-        </motion.div>
+        </FrostedPanel>
       </div>
     </AnimatePresence>
   );

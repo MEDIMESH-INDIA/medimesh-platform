@@ -60,3 +60,26 @@ The interactive particle mesh (`InteractiveMeshBackground`) is the signature bac
 2.  **Navigation**: Never use `<a href="#">`. Use `react-router-dom` `<Link>` components pointing to real routes or standard placeholder components (`/discover`, `/about`, etc.).
 3.  **Vibe-Coding Ban**: Avoid unstructured "glassmorphism everywhere" or random CSS gradients. Use gradients sparingly as subtle washes (e.g., `bg-gradient-to-tr from-peach/10 mix-blend-multiply opacity-20`).
 4.  **Imagery**: Prefer high-quality, professional editorial photography over generic stock photos. Compose images with floating UI elements to anchor them into the platform aesthetic.
+
+## 7. Product Primitives
+
+The landing page is the permanent visual source of truth. Product pages should compose these shared primitives instead of recreating local card, field, or background styles:
+
+* `MedimeshBackground`: shared graph-paper, mesh, and ambient-node stack.
+* `GraphPaperBackground` and `MeshOverlay`: intensity-controlled background layers.
+* `FrostedPanel`: strategic surface variants (`subtle`, `elevated`, `floating`).
+* `AuthCard`: the standard public-auth form surface.
+* `AppPageContainer` and `PageHeader`: application spacing and editorial hierarchy.
+* `FormField` / `.medimesh-field`: consistent labels, controls, focus, help, and validation states.
+* `Button`: primary, outline, secondary, and ghost actions. Do not create page-local button systems.
+* `EmptyState`, `LoadingState`, `SourceBadge`, and `SectionEyebrow`: standard product feedback and metadata.
+
+Background intensity is deliberate: landing uses full intensity; auth and dashboards use medium graph with light-to-medium mesh; Discover uses medium graph and light mesh; comparison, saved, profile, and settings use light graph with minimal mesh.
+
+## 8. Product Integrity
+
+* Use serif typography for major page headlines and emotional statements; use sans-serif for navigation, forms, metadata, cards, and body copy.
+* Controls use 10–14px radii, cards 18–24px, frosted containers 22–28px, and product canvases 28–36px.
+* Page transitions use a 300ms fade with an 8px vertical offset. Interactive cards may lift 2px; buttons press to `scale(.98)`.
+* Never infer ratings, rankings, availability, verification, patient counts, appointments, revenue, or operational analytics.
+* Label non-live records as demonstration data and preserve source/review metadata wherever records are compared or evaluated.

@@ -1,97 +1,63 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Building2, CheckCircle2, Eye, EyeOff, Stethoscope, UserCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
+import FormField from '../../components/common/FormField';
+import FrostedPanel from '../../components/common/FrostedPanel';
 import { useAuth } from '../../hooks/useAuth';
-import { Eye, EyeOff, UserCircle, Stethoscope, Building2, CheckCircle2 } from 'lucide-react';
+
+const roles = [
+  { id: 'patient', label: 'Patient', description: 'Discover and compare healthcare options.', icon: UserCircle, tone: 'text-primary bg-primary/10' },
+  { id: 'doctor', label: 'Doctor', description: 'Build a professional presence and manage affiliations.', icon: Stethoscope, tone: 'text-coral bg-coral/10' },
+  { id: 'hospital', label: 'Hospital', description: 'Represent your healthcare organization.', icon: Building2, tone: 'text-blue-muted bg-blue-light/15' },
+];
+
+const progressLabels = ['Account', 'Profile', 'Details', 'Review'];
 
 export default function Register() {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState(null);
-  
-  // Personal / Org Info
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [hospitalName, setHospitalName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
-  
-  // Password
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  // Final
   const [termsAccepted, setTermsAccepted] = useState(false);
-
-  // UX State
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { signUp, signInWithGoogle, user, role: sessionRole } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  useEffect(() => {
-    if (user && sessionRole) {
-      navigate('/app');
-    }
-  }, [user, sessionRole, navigate]);
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
+  const selectRole = (nextRole) => {
+    setRole(nextRole);
     setError('');
-    try {
-      const { error: signInError } = await signInWithGoogle();
-      if (signInError) throw signInError;
-      // AuthContext handles redirect
-    } catch (err) {
-      setError('Something went wrong while signing in with Google. Please try again.');
-      setLoading(false);
-    }
-  };
-
-  const handleRoleSelect = (selectedRole) => {
-    setRole(selectedRole);
     setStep(2);
-    setError('');
   };
 
-  const handleInfoSubmit = (e) => {
-    e.preventDefault();
+  const submitProfile = (event) => {
+    event.preventDefault();
     setError('');
     setStep(3);
   };
-  
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
+
+  const submitPassword = (event) => {
+    event.preventDefault();
     setError('');
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-    
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
-
+    if (password !== confirmPassword) return setError('Passwords do not match.');
+    if (password.length < 8) return setError('Password must be at least 8 characters long.');
     setStep(4);
   };
 
-  const handleFinalSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const submitRegistration = async (event) => {
+    event.preventDefault();
     setError('');
-
-    if (!termsAccepted) {
-      setError("You must accept the Terms and Privacy Policy.");
-      setLoading(false);
-      return;
-    }
-
+    if (!termsAccepted) return setError('Accept the Terms and Privacy Policy to continue.');
+    setLoading(true);
     try {
       const profileData = {
         role,
@@ -100,262 +66,125 @@ export default function Register() {
         display_name: role === 'hospital' ? hospitalName : `${firstName} ${lastName}`,
         phone,
         city,
-        country: 'India', // Default as requested
+        country: 'India',
       };
-
       const { error: signUpError } = await signUp(email, password, profileData);
-      
       if (signUpError) throw signUpError;
-      
-      // Redirect to verification email notice
       navigate('/verify-email', { state: { email } });
-      
-    } catch (err) {
-      if (err.message?.includes('User already registered') || err.message?.includes('already exists')) {
-        setError('If an account already exists with this email, please sign in or use password recovery.');
-      } else {
-        setError('We couldn\'t create your account. Something went wrong while setting up your account. Please try again.');
-      }
+    } catch {
+      setError('We could not create your account. If you already registered, sign in or use password recovery.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Step indicator component
-  const StepIndicator = ({ current }) => (
-    <div className="flex items-center justify-center gap-2 mb-8">
-      {[1, 2, 3, 4].map((i) => (
-        <div 
-          key={i} 
-          className={`h-1.5 rounded-full transition-all duration-300 ${
-            current >= i ? 'w-8 bg-primary' : 'w-4 bg-primary/20'
-          }`}
-        />
-      ))}
-    </div>
-  );
+  const startGoogle = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const { error: oauthError } = await signInWithGoogle();
+      if (oauthError) throw oauthError;
+    } catch {
+      setError('Google sign-in could not be started. Please try again.');
+      setLoading(false);
+    }
+  };
 
   return (
-    <AuthLayout 
-      title="Create your MEDIMESH account" 
-      subtitle="Join the healthcare discovery ecosystem."
+    <AuthLayout
+      title="Create your MEDIMESH account"
+      subtitle="Choose how you’ll use MEDIMESH."
+      eyebrow="Join the mesh"
+      statement="One clear place for healthcare context."
+      description="Create a workspace for discovery, professional identity, or organization information—without implying verification."
     >
-      <StepIndicator current={step} />
+      <div className="mb-7 grid grid-cols-4 gap-2" aria-label={`Registration step ${step} of 4`}>
+        {progressLabels.map((label, index) => (
+          <div key={label}>
+            <div className={`h-1.5 rounded-full transition-all ${step >= index + 1 ? 'bg-primary' : 'bg-primary/15'}`} />
+            <p className={`mt-2 hidden text-[9px] font-bold uppercase tracking-[0.1em] sm:block ${step === index + 1 ? 'text-primary' : 'text-muted-foreground'}`}>{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {error && <div className="mb-5 rounded-[12px] border border-destructive/20 bg-red-50/80 p-3 text-sm text-destructive" role="alert">{error}</div>}
 
       {step === 1 && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <button 
-            type="button"
-            onClick={() => handleRoleSelect('patient')}
-            className="w-full flex items-start gap-4 p-5 rounded-2xl border border-border bg-white shadow-sm hover:shadow-card-hover hover:border-primary/40 transition-all text-left group"
-          >
-            <div className="w-12 h-12 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/10 group-hover:scale-105 transition-transform">
-              <UserCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground text-lg mb-1">Patient</h3>
-              <p className="text-sm text-muted-foreground">Find hospitals, compare healthcare options, and make informed choices.</p>
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => handleRoleSelect('doctor')}
-            className="w-full flex items-start gap-4 p-5 rounded-2xl border border-border bg-white shadow-sm hover:shadow-card-hover hover:border-secondary-accent/40 transition-all text-left group"
-          >
-            <div className="w-12 h-12 shrink-0 rounded-xl bg-secondary-accent/10 text-secondary-accent flex items-center justify-center border border-secondary-accent/10 group-hover:scale-105 transition-transform">
-              <Stethoscope className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground text-lg mb-1">Doctor</h3>
-              <p className="text-sm text-muted-foreground">Highlight your specialties and establish a trusted professional presence.</p>
-            </div>
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => handleRoleSelect('hospital')}
-            className="w-full flex items-start gap-4 p-5 rounded-2xl border border-border bg-white shadow-sm hover:shadow-card-hover hover:border-foreground/40 transition-all text-left group"
-          >
-            <div className="w-12 h-12 shrink-0 rounded-xl bg-foreground/5 text-foreground flex items-center justify-center border border-foreground/10 group-hover:scale-105 transition-transform">
-              <Building2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground text-lg mb-1">Hospital or Clinic</h3>
-              <p className="text-sm text-muted-foreground">Present your institution and help patients find specialized services.</p>
-            </div>
-          </button>
-          
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-muted-foreground">OR</span>
-            </div>
-          </div>
-
-          <button 
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-xl border border-border bg-white text-foreground hover:bg-surface-elevated transition-colors font-medium shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-            </svg>
-            {loading ? 'Connecting...' : 'Continue with Google'}
-          </button>
-          
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 text-center">
-              {error}
-            </div>
-          )}
-          
-          <p className="text-center text-sm text-muted-foreground mt-8">
-            Already have an account?{' '}
-            <Link to="/login" className="font-semibold text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
+        <div className="space-y-3">
+          {roles.map((item) => (
+            <FrostedPanel
+              as="button"
+              type="button"
+              key={item.id}
+              onClick={() => selectRole(item.id)}
+              className="group flex w-full items-center gap-4 rounded-[20px] p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:bg-white/85"
+            >
+              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-[14px] ${item.tone}`}><item.icon className="h-5 w-5" /></span>
+              <span className="min-w-0 flex-1"><strong className="block font-serif text-lg font-semibold">{item.label}</strong><span className="mt-1 block text-xs leading-5 text-muted-foreground">{item.description}</span></span>
+              <span className="h-2 w-2 rounded-full bg-primary/20 transition group-hover:bg-primary" />
+            </FrostedPanel>
+          ))}
+          <div className="flex items-center gap-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
+          <Button type="button" variant="outline" className="w-full" onClick={startGoogle} disabled={loading}>{loading ? 'Connecting…' : 'Continue with Google'}</Button>
+          <p className="pt-2 text-center text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-bold text-primary hover:underline">Sign in</Link></p>
         </div>
       )}
 
       {step === 2 && (
-        <form onSubmit={handleInfoSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h2 className="text-xl font-semibold text-foreground mb-4">
-            {role === 'hospital' ? 'Organization Details' : 'Personal Details'}
-          </h2>
-          
+        <form onSubmit={submitProfile} className="space-y-4">
+          <h3 className="font-serif text-xl font-semibold">{role === 'hospital' ? 'Organization profile' : 'Your profile'}</h3>
           {role === 'hospital' ? (
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Organization Name *</label>
-              <input required type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={hospitalName} onChange={e => setHospitalName(e.target.value)} />
-            </div>
+            <FormField id="organization-name" label="Organization name" required value={hospitalName} onChange={(event) => setHospitalName(event.target.value)} />
           ) : (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">First Name *</label>
-                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={firstName} onChange={e => setFirstName(e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Last Name *</label>
-                <input required type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={lastName} onChange={e => setLastName(e.target.value)} />
-              </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField id="first-name" label="First name" autoComplete="given-name" required value={firstName} onChange={(event) => setFirstName(event.target.value)} />
+              <FormField id="last-name" label="Last name" autoComplete="family-name" required value={lastName} onChange={(event) => setLastName(event.target.value)} />
             </div>
           )}
-          
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Email Address *</label>
-            <input required type="email" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={email} onChange={e => setEmail(e.target.value)} />
+          <FormField id="register-email" label="Email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField id="phone" label="Phone" type="tel" autoComplete="tel" required value={phone} onChange={(event) => setPhone(event.target.value)} />
+            <FormField id="city" label="City" autoComplete="address-level2" required value={city} onChange={(event) => setCity(event.target.value)} />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Phone Number *</label>
-              <input required type="tel" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={phone} onChange={e => setPhone(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">City *</label>
-              <input required type="text" className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={city} onChange={e => setCity(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="flex gap-4 mt-8 pt-4">
-            <button type="button" onClick={() => setStep(1)} className="px-6 py-2 rounded-xl border border-border text-foreground hover:bg-surface-elevated transition-colors font-medium">
-              Back
-            </button>
-            <Button type="submit" className="flex-1 justify-center shadow-sm hover:-translate-y-0.5">
-              Continue
-            </Button>
-          </div>
+          <StepActions back={() => setStep(1)} />
         </form>
       )}
 
       {step === 3 && (
-        <form onSubmit={handlePasswordSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-          <h2 className="text-xl font-semibold text-foreground mb-4">Secure your account</h2>
-          
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Password *</label>
-            <div className="relative">
-              <input required type={showPassword ? "text" : "password"} className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all pr-10" value={password} onChange={e => setPassword(e.target.value)} />
-              <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+        <form onSubmit={submitPassword} className="space-y-4">
+          <h3 className="font-serif text-xl font-semibold">Secure your account</h3>
+          <div className="relative">
+            <FormField id="register-password" label="Password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" required helpText="Use at least eight characters." inputClassName="pr-12" value={password} onChange={(event) => setPassword(event.target.value)} />
+            <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-[2.55rem] text-muted-foreground" aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Confirm Password *</label>
-            <input required type={showPassword ? "text" : "password"} className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
-          </div>
-
-          <div className="flex gap-4 mt-8 pt-4">
-            <button type="button" onClick={() => setStep(2)} className="px-6 py-2 rounded-xl border border-border text-foreground hover:bg-surface-elevated transition-colors font-medium">
-              Back
-            </button>
-            <Button type="submit" className="flex-1 justify-center shadow-sm hover:-translate-y-0.5" disabled={loading}>
-              Continue
-            </Button>
-          </div>
+          <FormField id="register-password-confirm" label="Confirm password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+          <StepActions back={() => setStep(2)} />
         </form>
       )}
 
       {step === 4 && (
-        <form onSubmit={handleFinalSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-            <h2 className="text-xl font-semibold text-foreground">You're almost ready!</h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              Review and agree to the terms to complete your {role} account setup.
-            </p>
+        <form onSubmit={submitRegistration} className="space-y-5">
+          <div className="text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-[18px] bg-primary/10 text-primary"><CheckCircle2 className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-serif text-xl font-semibold">Review your {role} account</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Professional and organization accounts begin with verification pending. Account creation is not verification.</p>
           </div>
-
-          {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
-              {error}
-            </div>
-          )}
-
-          <div className="bg-surface-elevated/50 p-4 rounded-xl border border-border/50">
-            <div className="flex items-start gap-3">
-              <input 
-                type="checkbox" 
-                id="terms" 
-                className="mt-1 w-4 h-4 text-primary rounded border-border focus:ring-primary shrink-0 transition-colors"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-              />
-              <label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
-                I agree to the <a href="#" className="text-primary hover:underline font-medium">Terms of Service</a> and <a href="#" className="text-primary hover:underline font-medium">Privacy Policy</a>.
-                {(role === 'doctor' || role === 'hospital') && " I understand that creating an account does not mean professional verification."}
-              </label>
-            </div>
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <button type="button" onClick={() => setStep(3)} className="px-6 py-2 rounded-xl border border-border text-foreground hover:bg-surface-elevated transition-colors font-medium">
-              Back
-            </button>
-            <Button type="submit" className="flex-1 justify-center shadow-sm hover:-translate-y-0.5" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create Account'}
-            </Button>
-          </div>
+          <label className="flex items-start gap-3 rounded-[14px] border border-border bg-white/55 p-4 text-sm leading-6 text-muted-foreground">
+            <input type="checkbox" className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} />
+            <span>I agree to the MEDIMESH Terms of Service and Privacy Policy.</span>
+          </label>
+          <StepActions back={() => setStep(3)} loading={loading} final />
         </form>
       )}
     </AuthLayout>
+  );
+}
+
+function StepActions({ back, loading = false, final = false }) {
+  return (
+    <div className="flex gap-3 border-t border-border pt-5">
+      <Button type="button" variant="ghost" onClick={back}>Back</Button>
+      <Button type="submit" className="flex-1" disabled={loading}>{loading ? 'Creating account…' : final ? 'Create account' : 'Continue'}</Button>
+    </div>
   );
 }

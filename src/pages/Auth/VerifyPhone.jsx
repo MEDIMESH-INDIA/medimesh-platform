@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
 import { supabase } from '../../lib/supabase/client';
-import { useAuth } from '../../hooks/useAuth';
 
 export default function VerifyPhone() {
   const [phone, setPhone] = useState('');
@@ -13,8 +11,6 @@ export default function VerifyPhone() {
   const [error, setError] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const inputRefs = useRef([]);
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     let timer;

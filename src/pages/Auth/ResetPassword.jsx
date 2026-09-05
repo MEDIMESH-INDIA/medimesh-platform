@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
+import FormField from '../../components/common/FormField';
+import LoadingState from '../../components/common/LoadingState';
 import { useAuth } from '../../hooks/useAuth';
-import { Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase/client';
 
 export default function ResetPassword() {
@@ -11,116 +13,69 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState('');
   const [sessionAvailable, setSessionAvailable] = useState(false);
-  
   const { updatePassword } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // When clicking the link in the email, Supabase handles the hash fragment in the URL
-    // and sets the session. We need to verify that we have an active session to reset the password.
+    let active = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionAvailable(true);
-      } else {
-        setError("Invalid or expired password reset link. Please request a new one.");
-      }
+      if (!active) return;
+      setSessionAvailable(Boolean(session));
+      if (!session) setError('Invalid or expired password reset link. Please request a new one.');
+      setCheckingSession(false);
+    }).catch(() => {
+      if (!active) return;
+      setError('We could not validate this reset link. Please request a new one.');
+      setCheckingSession(false);
     });
+    return () => { active = false; };
   }, []);
 
-  const handleReset = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleReset = async (event) => {
+    event.preventDefault();
     setError('');
-    
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setLoading(false);
-      return;
-    }
-    
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      setLoading(false);
-      return;
-    }
-
+    if (password !== confirmPassword) return setError('Passwords do not match.');
+    if (password.length < 8) return setError('Password must be at least 8 characters long.');
+    setLoading(true);
     try {
       const { error: updateError } = await updatePassword(password);
       if (updateError) throw updateError;
-      
       navigate('/login?message=Password updated successfully');
-    } catch (err) {
-      setError(err.message || 'An error occurred. Please try again.');
+    } catch {
+      setError('Your password could not be updated. Request a new link and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!sessionAvailable && error) {
+  if (checkingSession) {
+    return <AuthLayout compact title="Checking your link" subtitle="Please wait while we validate this password reset."><LoadingState label="Validating secure link…" /></AuthLayout>;
+  }
+
+  if (!sessionAvailable) {
     return (
-      <AuthLayout title="Reset Password" subtitle="Session Expired">
-         <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 mb-6">
-            {error}
-          </div>
-          <Button onClick={() => navigate('/forgot-password')} className="w-full justify-center">
-            Request New Link
-          </Button>
+      <AuthLayout compact title="Reset password" subtitle="This reset link is no longer available.">
+        <div className="rounded-[12px] border border-destructive/20 bg-red-50/80 p-3 text-sm text-destructive" role="alert">{error}</div>
+        <Button onClick={() => navigate('/forgot-password')} className="mt-5 w-full">Request new link</Button>
       </AuthLayout>
-    )
+    );
   }
 
   return (
-    <AuthLayout 
-      title="Create New Password" 
-      subtitle="Enter your new password below"
-    >
-      <form onSubmit={handleReset} className="space-y-6">
-        {error && (
-          <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
-            {error}
-          </div>
-        )}
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">New Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground pr-10"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
+    <AuthLayout compact title="Create a new password" subtitle="Use at least eight characters for your new password.">
+      <form onSubmit={handleReset} className="space-y-5 text-left">
+        {error && <div className="rounded-[12px] border border-destructive/20 bg-red-50/80 p-3 text-sm text-destructive" role="alert">{error}</div>}
+        <div className="relative">
+          <FormField id="new-password" label="New password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" required inputClassName="pr-12" value={password} onChange={(event) => setPassword(event.target.value)} />
+          <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-[2.55rem] text-muted-foreground hover:text-foreground" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">Confirm New Password</label>
-          <input
-            type={showPassword ? "text" : "password"}
-            required
-            className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-        </div>
-
-        <Button 
-          type="submit" 
-          className="w-full justify-center shadow-sm hover:-translate-y-0.5" 
-          disabled={loading || !sessionAvailable}
-        >
-          {loading ? 'Updating...' : 'Update Password'}
-        </Button>
+        <FormField id="confirm-password" label="Confirm new password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+        <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Updating…' : 'Update password'}</Button>
       </form>
     </AuthLayout>
   );

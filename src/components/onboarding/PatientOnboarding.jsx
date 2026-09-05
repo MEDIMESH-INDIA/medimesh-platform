@@ -70,7 +70,7 @@ export default function PatientOnboarding() {
       // 4. Navigate
       await refreshProfile();
       navigate('/app');
-    } catch (err) {
+    } catch {
       setError('Failed to save profile information. Please try again.');
     } finally {
       setLoading(false);
@@ -78,7 +78,7 @@ export default function PatientOnboarding() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 relative z-10">
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Complete your profile</h1>
         <p className="text-muted-foreground">
@@ -105,18 +105,18 @@ export default function PatientOnboarding() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
+      <div className="rounded-[24px] border border-white/80 bg-white/75 p-6 shadow-[0_18px_50px_rgba(15,40,35,0.07)] backdrop-blur-xl">
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-semibold mb-4">Basic Information (Optional)</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1">Date of Birth</label>
-                <input type="date" className="w-full p-2 border rounded-xl" value={dob} onChange={e => setDob(e.target.value)} />
+                <input type="date" className="medimesh-field" value={dob} onChange={e => setDob(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Gender</label>
-                <select className="w-full p-2 border rounded-xl bg-white" value={gender} onChange={e => setGender(e.target.value)}>
+                <select className="medimesh-field" value={gender} onChange={e => setGender(e.target.value)}>
                   <option value="">Select...</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -125,7 +125,7 @@ export default function PatientOnboarding() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Preferred Language</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={language} onChange={e => setLanguage(e.target.value)} placeholder="e.g. English, Hindi" />
+                <input type="text" className="medimesh-field" value={language} onChange={e => setLanguage(e.target.value)} placeholder="e.g. English, Hindi" />
               </div>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function PatientOnboarding() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Blood Group</label>
-                <select className="w-full p-2 border rounded-xl bg-white" value={bloodGroup} onChange={e => setBloodGroup(e.target.value)}>
+                <select className="medimesh-field" value={bloodGroup} onChange={e => setBloodGroup(e.target.value)}>
                   <option value="">Select...</option>
                   <option value="A+">A+</option><option value="O+">O+</option><option value="B+">B+</option><option value="AB+">AB+</option>
                   <option value="A-">A-</option><option value="O-">O-</option><option value="B-">B-</option><option value="AB-">AB-</option>
@@ -145,11 +145,11 @@ export default function PatientOnboarding() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Allergies</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={allergies} onChange={e => setAllergies(e.target.value)} placeholder="e.g. Penicillin, Peanuts" />
+                <input type="text" className="medimesh-field" value={allergies} onChange={e => setAllergies(e.target.value)} placeholder="e.g. Penicillin, Peanuts" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Chronic Conditions</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={chronic} onChange={e => setChronic(e.target.value)} placeholder="e.g. Asthma, Diabetes Type 2" />
+                <input type="text" className="medimesh-field" value={chronic} onChange={e => setChronic(e.target.value)} placeholder="e.g. Asthma, Diabetes Type 2" />
               </div>
             </div>
           </div>
@@ -158,18 +158,18 @@ export default function PatientOnboarding() {
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-semibold mb-4">Emergency Contact (Optional)</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1">Contact Name</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={emergencyName} onChange={e => setEmergencyName(e.target.value)} />
+                <input type="text" className="medimesh-field" value={emergencyName} onChange={e => setEmergencyName(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Relationship</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={emergencyRel} onChange={e => setEmergencyRel(e.target.value)} />
+                <input type="text" className="medimesh-field" value={emergencyRel} onChange={e => setEmergencyRel(e.target.value)} />
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className="block text-sm font-medium mb-1">Phone Number</label>
-                <input type="tel" className="w-full p-2 border rounded-xl" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)} />
+                <input type="tel" className="medimesh-field" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)} />
               </div>
             </div>
           </div>

@@ -1,14 +1,14 @@
 import AppPageContainer from '../../components/layout/AppPageContainer';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Heart, GitCompare, ArrowLeft, MapPin, Building2, Phone, Globe, Bed, Activity, PlusSquare, Check } from 'lucide-react';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import { useCompare } from '../../hooks/useCompare';
+import FrostedPanel from '../../components/common/FrostedPanel';
 
 export default function HospitalDetail() {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const { savedSlugs, toggleSave } = useSavedHospitals();
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
   
@@ -48,7 +48,7 @@ export default function HospitalDetail() {
         Back to search
       </Link>
 
-      <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
+      <FrostedPanel variant="elevated" className="overflow-hidden rounded-[28px]">
         {/* Header Section */}
         <div className="p-6 md:p-8 border-b border-border">
           <div className="flex flex-col md:flex-row justify-between items-start gap-6">
@@ -134,7 +134,7 @@ export default function HospitalDetail() {
                 <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                   <PlusSquare className="w-5 h-5 text-primary" /> Facilities
                 </h2>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {facilities?.length ? facilities.map(f => (
                     <div key={f} className="flex items-center gap-2 text-sm text-foreground">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary/50"></div>
@@ -206,8 +206,7 @@ export default function HospitalDetail() {
             </div>
           </div>
         </div>
-      </div>
+      </FrostedPanel>
     </AppPageContainer>
   );
 }
-

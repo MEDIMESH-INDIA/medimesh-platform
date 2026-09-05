@@ -72,15 +72,15 @@ export default function HospitalOnboarding() {
 
       await refreshProfile();
       navigate('/hospital');
-    } catch (err) {
-      setError(err.message || 'Failed to save hospital information. Please try again.');
+    } catch {
+      setError('We could not save your organization information. Please review the required fields and try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 relative z-10">
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Hospital Registration</h1>
         <p className="text-muted-foreground">
@@ -107,14 +107,14 @@ export default function HospitalOnboarding() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
+      <div className="rounded-[24px] border border-white/80 bg-white/75 p-6 shadow-[0_18px_50px_rgba(15,40,35,0.07)] backdrop-blur-xl">
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-semibold mb-4">Hospital Identity</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1">Hospital Type *</label>
-                <select className="w-full p-2 border rounded-xl bg-white" value={hospitalType} onChange={e => setHospitalType(e.target.value)}>
+                <select className="medimesh-field" value={hospitalType} onChange={e => setHospitalType(e.target.value)}>
                   <option value="Private">Private</option>
                   <option value="Government">Government</option>
                   <option value="Trust">Trust</option>
@@ -123,11 +123,11 @@ export default function HospitalOnboarding() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Registration Number</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={regNumber} onChange={e => setRegNumber(e.target.value)} />
+                <input type="text" className="medimesh-field" value={regNumber} onChange={e => setRegNumber(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Year Established</label>
-                <input type="number" className="w-full p-2 border rounded-xl" value={yearEst} onChange={e => setYearEst(e.target.value)} />
+                <input type="number" className="medimesh-field" value={yearEst} onChange={e => setYearEst(e.target.value)} />
               </div>
             </div>
           </div>
@@ -139,20 +139,20 @@ export default function HospitalOnboarding() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Address *</label>
-                <input required type="text" className="w-full p-2 border rounded-xl" value={address} onChange={e => setAddress(e.target.value)} />
+                <input required type="text" className="medimesh-field" value={address} onChange={e => setAddress(e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium mb-1">State/Region *</label>
-                  <input required type="text" className="w-full p-2 border rounded-xl" value={state} onChange={e => setState(e.target.value)} />
+                  <input required type="text" className="medimesh-field" value={state} onChange={e => setState(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Total Beds</label>
-                  <input type="number" className="w-full p-2 border rounded-xl" value={totalBeds} onChange={e => setTotalBeds(e.target.value)} />
+                  <input type="number" className="medimesh-field" value={totalBeds} onChange={e => setTotalBeds(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">ICU Beds</label>
-                  <input type="number" className="w-full p-2 border rounded-xl" value={icuBeds} onChange={e => setIcuBeds(e.target.value)} />
+                  <input type="number" className="medimesh-field" value={icuBeds} onChange={e => setIcuBeds(e.target.value)} />
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-2">
@@ -169,11 +169,11 @@ export default function HospitalOnboarding() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Specialties (comma separated)</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={specialties} onChange={e => setSpecialties(e.target.value)} placeholder="Cardiology, Neurology, Orthopedics" />
+                <input type="text" className="medimesh-field" value={specialties} onChange={e => setSpecialties(e.target.value)} placeholder="Cardiology, Neurology, Orthopedics" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Facilities (comma separated)</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={facilities} onChange={e => setFacilities(e.target.value)} placeholder="Blood Bank, Pharmacy, Ambulance" />
+                <input type="text" className="medimesh-field" value={facilities} onChange={e => setFacilities(e.target.value)} placeholder="Blood Bank, Pharmacy, Ambulance" />
               </div>
             </div>
           </div>

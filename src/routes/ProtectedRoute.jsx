@@ -2,7 +2,6 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getProtectedRouteState } from './authGuardState';
 
-// eslint-disable-next-line react/prop-types
 export const ProtectedRoute = ({ children }) => {
   const {
     user,

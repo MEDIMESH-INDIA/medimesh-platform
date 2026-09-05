@@ -5,6 +5,9 @@ import { demoHospitals } from '../../data/sihDemoHospitals';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import { useCompare } from '../../hooks/useCompare';
 import HospitalChooserModal from '../../components/hospital/HospitalChooserModal';
+import EmptyState from '../../components/common/EmptyState';
+import Button from '../../components/common/Button';
+import PageHeader from '../../components/common/PageHeader';
 
 export default function Compare() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,27 +31,7 @@ export default function Compare() {
   if (hospitals.length === 0) {
     return (
       <AppPageContainer className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center px-4 max-w-2xl mx-auto space-y-6">
-          <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto mb-2 border border-border">
-            <GitCompare className="w-8 h-8 text-muted-foreground/50" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">SIDE-BY-SIDE VIEW</p>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Compare hospitals</h1>
-            <p className="text-muted-foreground mt-2">Evaluate capacity, facilities, and data sources.</p>
-          </div>
-          <div className="flex items-center justify-center gap-4">
-            <button 
-              onClick={() => setIsChooserOpen(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <Plus className="w-5 h-5" /> Add hospital
-            </button>
-            <Link to="/app/discover" className="inline-flex items-center gap-2 px-6 py-3 bg-surface text-foreground font-semibold rounded-xl hover:bg-surface/80 border border-border transition-colors">
-              Discover hospitals
-            </Link>
-          </div>
-        </div>
+        <EmptyState icon={GitCompare} eyebrow="Side-by-side view" title="Compare hospitals" description="Evaluate capacity, facilities, and data sources without scores or promoted winners." action={<div className="flex flex-wrap justify-center gap-3"><Button onClick={() => setIsChooserOpen(true)} className="gap-2"><Plus className="h-4 w-4" /> Add hospital</Button><Button as={Link} to="/app/discover" variant="outline">Discover hospitals</Button></div>} />
         <HospitalChooserModal isOpen={isChooserOpen} onClose={() => setIsChooserOpen(false)} />
       </AppPageContainer>
     );
@@ -60,26 +43,11 @@ export default function Compare() {
   return (
     <AppPageContainer>
       {/* Header */}
-      <header className="mb-10 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">SIDE-BY-SIDE VIEW</p>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Compare hospitals</h1>
-            <p className="text-muted-foreground mt-2 max-w-2xl">
-              Evaluate differences in facilities, capacity and source information.
-            </p>
-          </div>
-          {hospitals.length < 3 && (
-            <Link to="/app/discover" className="shrink-0 flex items-center gap-2 text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/15 border border-primary/20 px-5 py-2.5 rounded-xl transition-all shadow-sm">
-              <Plus className="w-4 h-4" /> Add another
-            </Link>
-          )}
-        </div>
-      </header>
+      <PageHeader eyebrow="Side-by-side view" title="Compare hospitals" description="Evaluate differences in facilities, capacity and source information." actions={hospitals.length < 3 ? <Button as={Link} to="/app/discover" variant="outline" className="gap-2"><Plus className="h-4 w-4" /> Add another</Button> : null} />
 
       {/* Comparison Table */}
       <div className="w-full overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
-        <div className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden min-w-[720px] md:min-w-[800px] mb-8">
+        <div className="bg-white/78 backdrop-blur-xl border border-white/80 rounded-[28px] shadow-[0_18px_50px_rgba(15,40,35,0.07)] overflow-hidden min-w-[720px] md:min-w-[800px] mb-8">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr>

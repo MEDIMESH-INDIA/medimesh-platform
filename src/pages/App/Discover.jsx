@@ -7,6 +7,9 @@ import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase/client';
+import PageHeader from '../../components/common/PageHeader';
+import FrostedPanel from '../../components/common/FrostedPanel';
+import SourceBadge from '../../components/common/SourceBadge';
 
 export default function Discover() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,9 +26,9 @@ export default function Discover() {
   const activeLocation = searchParams.get('location') || '';
   const activeType = searchParams.get('type') || '';
 
-  const handleSearch = async (e) => {
+  const handleSearch = async (e, source = dataSource) => {
     if (e) e.preventDefault();
-    if (dataSource === 'demo') {
+    if (source === 'demo') {
       if (query.trim()) {
         setSearchParams(prev => { prev.set('q', query); return prev; });
       } else {
@@ -71,8 +74,8 @@ export default function Discover() {
   const types = [...new Set(demoHospitals.map(h => h.type))];
 
   const demoFiltered = demoHospitals.filter(h => {
-    const searchRegex = new RegExp(searchParams.get('q') || '', 'i');
-    const matchesSearch = searchRegex.test(h.name) || searchRegex.test(h.location) || h.specialties.some(s => searchRegex.test(s));
+    const normalizedQuery = (searchParams.get('q') || '').trim().toLowerCase();
+    const matchesSearch = !normalizedQuery || h.name.toLowerCase().includes(normalizedQuery) || h.location.toLowerCase().includes(normalizedQuery) || h.specialties.some(s => s.toLowerCase().includes(normalizedQuery));
     
     const matchesSpecialty = activeSpecialty ? h.specialties.some(s => s.toLowerCase() === activeSpecialty.toLowerCase()) : true;
     const matchesLocation = activeLocation ? h.location.toLowerCase() === activeLocation.toLowerCase() : true;
@@ -88,17 +91,12 @@ export default function Discover() {
   return (
     <AppPageContainer>
       {/* Header & Search */}
-      <header className="mb-12 space-y-8 relative z-10">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-          <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">EXPLORE HEALTHCARE</p>
-            <h1 className="text-4xl font-serif font-bold text-foreground">Discover hospitals</h1>
-            <p className="text-lg text-muted-foreground mt-3 max-w-2xl">
-              Search healthcare providers, refine options and understand the source behind each record.
-            </p>
-          </div>
-          
-          <div className="flex bg-surface p-1 rounded-xl border border-border shadow-sm">
+      <header className="relative z-10 mb-10">
+        <PageHeader
+          eyebrow="Explore healthcare"
+          title="Discover hospitals"
+          description="Search healthcare providers, refine options and understand the source behind each record."
+          actions={<div className="flex rounded-[14px] border border-white/80 bg-white/65 p-1 shadow-sm backdrop-blur-xl">
             <button
               onClick={() => { setDataSource('demo'); setLiveHospitals([]); }}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
@@ -109,7 +107,7 @@ export default function Discover() {
               MEDIMESH Demo
             </button>
             <button
-              onClick={() => { setDataSource('live'); handleSearch(); }}
+              onClick={() => { setDataSource('live'); void handleSearch(null, 'live'); }}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 dataSource === 'live' ? 'bg-white shadow-sm border border-border/50 text-primary ring-1 ring-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-white/50'
               }`}
@@ -117,11 +115,12 @@ export default function Discover() {
               <Globe className="w-4 h-4" />
               Live Places
             </button>
-          </div>
-        </div>
+          </div>}
+        />
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="relative max-w-3xl">
-          <div className="relative flex items-center bg-white rounded-2xl border border-border focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 transition-all shadow-sm h-[60px]">
+        <FrostedPanel variant="elevated" className="max-w-3xl rounded-[22px] p-2">
+        <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="relative">
+          <div className="relative flex h-[58px] items-center rounded-[15px] border border-border bg-white/75 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
             <Search className="w-5 h-5 text-muted-foreground ml-5 shrink-0" />
             <input 
               type="text" 
@@ -147,6 +146,7 @@ export default function Discover() {
             </button>
           </div>
         </form>
+        </FrostedPanel>
         
         <div className="lg:hidden mt-4">
           <button 
@@ -160,8 +160,8 @@ export default function Discover() {
 
       <div className="flex gap-8 flex-1 relative pb-12">
         {/* Desktop Sidebar Filters */}
-        <aside className={`fixed inset-y-0 right-0 z-40 w-[280px] bg-white border-l border-border transform transition-transform duration-300 ease-in-out lg:sticky lg:top-8 lg:self-start lg:transform-none lg:w-72 lg:bg-white lg:border lg:border-border lg:rounded-2xl lg:shadow-sm lg:z-0 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto ${
-          isMobileFiltersOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full lg:translate-x-0'
+        <aside className={`fixed inset-y-0 right-0 z-40 w-[280px] border-l border-white/80 bg-white/90 backdrop-blur-xl transform transition-transform duration-300 ease-in-out lg:sticky lg:top-8 lg:self-start lg:transform-none lg:w-72 lg:border lg:rounded-[22px] lg:shadow-[0_14px_40px_rgba(15,40,35,0.06)] lg:z-0 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto ${
+          isMobileFiltersOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-[calc(100%+1rem)] lg:translate-x-0'
         }`}>
           <div className="h-full flex flex-col p-6 lg:p-6">
             <div className="flex items-center justify-between mb-6 lg:hidden">
@@ -329,7 +329,7 @@ export default function Discover() {
               {liveLoading ? 'Searching live places...' : `${filteredHospitals.length} result${filteredHospitals.length !== 1 ? 's' : ''}`}
             </h2>
             {dataSource === 'live' && (
-              <span className="text-xs text-muted-foreground">Results provided by Google</span>
+              <SourceBadge>Results provided by Google</SourceBadge>
             )}
           </div>
           

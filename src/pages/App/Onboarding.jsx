@@ -4,6 +4,7 @@ import DoctorOnboarding from '../../components/onboarding/DoctorOnboarding';
 import HospitalOnboarding from '../../components/onboarding/HospitalOnboarding';
 import { Navigate } from 'react-router-dom';
 import PageTransition from '../../components/effects/PageTransition';
+import MedimeshBackground from '../../components/common/MedimeshBackground';
 
 export default function Onboarding() {
   const { role, profile, loading } = useAuth();
@@ -21,8 +22,9 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageTransition>
+    <div className="relative min-h-screen bg-background">
+      <MedimeshBackground graph="medium" mesh="light" />
+      <PageTransition className="relative z-10">
         {role === 'patient' && <PatientOnboarding />}
         {role === 'doctor' && <DoctorOnboarding />}
         {role === 'hospital' && <HospitalOnboarding />}

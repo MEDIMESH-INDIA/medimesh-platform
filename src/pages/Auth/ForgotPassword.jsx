@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
+import FormField from '../../components/common/FormField';
 import { useAuth } from '../../hooks/useAuth';
 
 export default function ForgotPassword() {
@@ -35,7 +36,7 @@ export default function ForgotPassword() {
 
   if (success) {
     return (
-      <AuthLayout title="Check your email" subtitle="We've sent password reset instructions">
+      <AuthLayout compact title="Check your email" subtitle="Password reset instructions are on their way.">
         <div className="text-center py-6">
           <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
             If an account exists for {email}, you will receive a password reset link shortly.
@@ -49,9 +50,10 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthLayout 
-      title="Reset Password" 
-      subtitle="Enter your email to receive reset instructions"
+    <AuthLayout
+      compact
+      title="Reset your password"
+      subtitle="Enter your account email and we’ll send a secure reset link."
     >
       <form onSubmit={handleReset} className="space-y-6">
         {error && (
@@ -60,20 +62,7 @@ export default function ForgotPassword() {
           </div>
         )}
         
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2" htmlFor="email">
-            Email address
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            className="w-full px-4 py-2 rounded-xl border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-foreground"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
+        <FormField id="email" label="Email" type="email" autoComplete="email" required placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
 
         <Button 
           type="submit" 

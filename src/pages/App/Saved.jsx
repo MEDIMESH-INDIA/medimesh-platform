@@ -1,10 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Search, Loader2, Bookmark, GitCompare, AlertCircle } from 'lucide-react';
+import { Search, Bookmark, GitCompare, AlertCircle } from 'lucide-react';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import { motion } from 'framer-motion';
+import PageHeader from '../../components/common/PageHeader';
+import EmptyState from '../../components/common/EmptyState';
+import LoadingState from '../../components/common/LoadingState';
+import Button from '../../components/common/Button';
+import FrostedPanel from '../../components/common/FrostedPanel';
 
 export default function Saved() {
   const { savedSlugs, loading, error, toggleSave } = useSavedHospitals();
@@ -16,60 +21,27 @@ export default function Saved() {
   return (
     <AppPageContainer>
       {/* Header - Always visible */}
-      <header className="mb-10 space-y-4">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">YOUR SHORTLIST</p>
-            <h1 className="text-3xl font-serif font-bold text-foreground">Saved hospitals</h1>
-            <p className="text-muted-foreground mt-2 max-w-2xl">
-              Keep healthcare options together and compare them when you&apos;re ready.
-            </p>
-          </div>
-          <div className="shrink-0 flex items-center gap-2 text-sm font-semibold text-primary bg-primary/5 border border-primary/20 px-5 py-2.5 rounded-xl">
-            <Bookmark className="w-4 h-4 fill-primary/20" />
-            {loading ? '...' : `${savedHospitalsList.length} saved`}
-          </div>
-        </div>
-      </header>
+      <PageHeader eyebrow="Your shortlist" title="Saved hospitals" description="Keep healthcare options together and compare them when you’re ready." actions={<div className="flex items-center gap-2 rounded-[12px] border border-primary/15 bg-white/65 px-4 py-2 text-sm font-semibold text-primary backdrop-blur-lg"><Bookmark className="h-4 w-4 fill-primary/20" />{loading ? '…' : `${savedHospitalsList.length} saved`}</div>} />
 
       {/* Loading State */}
       {loading && (
-        <div className="py-16 text-center flex flex-col items-center justify-center space-y-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading your saved shortlist...</p>
-        </div>
+        <LoadingState label="Loading your saved shortlist…" />
       )}
 
       {/* Error State */}
       {!loading && error && (
-        <div className="p-8 rounded-2xl bg-red-50/70 border border-red-200 text-center max-w-xl mx-auto space-y-4">
+        <FrostedPanel className="p-8 rounded-[24px] text-center max-w-xl mx-auto space-y-4">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
           <div>
             <h3 className="text-lg font-semibold text-red-800">Unable to load saved hospitals</h3>
             <p className="text-sm text-red-600/80 mt-1">Please check your connection and refresh the page.</p>
           </div>
-        </div>
+        </FrostedPanel>
       )}
 
       {/* Empty State */}
       {!loading && !error && savedHospitalsList.length === 0 && (
-        <div className="text-center py-16 px-4 max-w-xl mx-auto space-y-6 bg-white rounded-2xl border border-dashed border-border/80 p-8 shadow-sm">
-          <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mx-auto border border-border text-muted-foreground/60">
-            <Bookmark className="w-8 h-8" />
-          </div>
-          <div>
-            <h3 className="text-2xl font-serif font-bold text-foreground">No hospitals saved yet</h3>
-            <p className="text-muted-foreground mt-2">
-              Save hospitals while exploring to quickly access them later and run side-by-side comparisons.
-            </p>
-          </div>
-          <Link
-            to="/app/discover"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors shadow-sm text-sm"
-          >
-            <Search className="w-4 h-4" /> Discover hospitals
-          </Link>
-        </div>
+        <EmptyState icon={Bookmark} title="No hospitals saved yet" description="Save hospitals while exploring to quickly access them later and run side-by-side comparisons." action={<Button as={Link} to="/app/discover" className="gap-2"><Search className="h-4 w-4" /> Discover hospitals</Button>} />
       )}
 
       {/* Content Grid */}
@@ -98,7 +70,7 @@ export default function Saved() {
 
           {/* Side Panel */}
           <aside className="lg:w-[300px] shrink-0">
-            <div className="sticky top-24 bg-surface/50 border border-border p-6 rounded-2xl">
+            <FrostedPanel className="sticky top-24 p-6 rounded-[22px]">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Your Next Step</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -114,11 +86,10 @@ export default function Saved() {
                   Go to Compare
                 </Link>
               </div>
-            </div>
+            </FrostedPanel>
           </aside>
         </div>
       )}
     </AppPageContainer>
   );
 }
-

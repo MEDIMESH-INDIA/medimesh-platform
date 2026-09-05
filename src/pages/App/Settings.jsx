@@ -1,79 +1,61 @@
 import { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { supabase } from '../../lib/supabase/client';
+import { CheckCircle2, KeyRound, Loader2, Mail } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import Button from '../../components/common/Button';
+import FrostedPanel from '../../components/common/FrostedPanel';
+import PageHeader from '../../components/common/PageHeader';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Settings() {
-  const { user } = useAuth();
-  const [resetStatus, setResetStatus] = useState('idle'); // idle, loading, sent, error
+  const { user, resetPassword } = useAuth();
+  const [resetStatus, setResetStatus] = useState('idle');
 
   const handlePasswordReset = async () => {
     if (!user?.email) return;
     setResetStatus('loading');
-    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) {
-      console.error(error);
-      setResetStatus('error');
-    } else {
-      setResetStatus('sent');
-    }
+    const { error } = await resetPassword(user.email);
+    setResetStatus(error ? 'error' : 'sent');
   };
-  
+
   return (
     <AppPageContainer>
-      <div className="max-w-[900px] space-y-8">
-        <div>
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">ACCOUNT CONTROL</p>
-          <h1 className="text-3xl font-serif font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your account preferences and security.</p>
-        </div>
+      <div className="max-w-[900px]">
+        <PageHeader eyebrow="Account control" title="Settings" description="Review your account identity and access security." />
 
-        <div className="bg-white p-8 rounded-2xl border border-border shadow-sm space-y-8">
-          <div>
-            <h3 className="text-lg font-bold mb-4 font-serif">Account Information</h3>
-            <div className="p-4 bg-surface/50 rounded-xl border border-border flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-foreground uppercase tracking-wider">Email Address</p>
-                <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+        <div className="space-y-5">
+          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-primary/10 text-primary"><Mail className="h-5 w-5" /></span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">Account</p>
+                <h2 className="mt-1 font-serif text-xl font-semibold">Email address</h2>
+                <p className="mt-2 break-all text-sm text-muted-foreground">{user?.email || 'Not provided'}</p>
               </div>
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Verified</div>
+              <span className={`rounded-[10px] px-2.5 py-1 text-xs font-semibold ${user?.email_confirmed_at ? 'bg-primary/10 text-primary' : 'bg-amber/15 text-amber-700'}`}>
+                {user?.email_confirmed_at ? 'Confirmed' : 'Not confirmed'}
+              </span>
             </div>
-          </div>
+          </FrostedPanel>
 
-          <div>
-            <h3 className="text-lg font-bold mb-4 font-serif">Security</h3>
-            <div className="p-4 bg-surface/50 rounded-xl border border-border flex justify-between items-center">
-              <div>
-                <p className="text-sm font-semibold text-foreground uppercase tracking-wider">Password</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {resetStatus === 'sent' 
-                    ? 'A password reset email has been sent.' 
-                    : resetStatus === 'error' 
-                      ? 'Error sending reset email. Please try again.'
-                      : 'Update your account password'}
-                </p>
+          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-primary/10 text-primary"><KeyRound className="h-5 w-5" /></span>
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">Security</p>
+                  <h2 className="mt-1 font-serif text-xl font-semibold">Password</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {resetStatus === 'sent' ? 'A password reset email has been sent.' : resetStatus === 'error' ? 'The reset email could not be sent. Please try again.' : 'Send a secure password reset link to your email.'}
+                  </p>
+                </div>
               </div>
-              <button 
-                onClick={handlePasswordReset}
-                disabled={resetStatus === 'loading' || resetStatus === 'sent'}
-                className="flex items-center gap-2 text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
-              >
-                {resetStatus === 'loading' && <Loader2 className="w-4 h-4 animate-spin" />}
-                {resetStatus === 'sent' && <CheckCircle2 className="w-4 h-4" />}
-                {resetStatus === 'sent' ? 'Sent' : 'Change'}
-              </button>
+              <Button type="button" variant="outline" onClick={handlePasswordReset} disabled={resetStatus === 'loading' || resetStatus === 'sent'} className="shrink-0 gap-2">
+                {resetStatus === 'loading' && <Loader2 className="h-4 w-4 animate-spin" />}
+                {resetStatus === 'sent' && <CheckCircle2 className="h-4 w-4" />}
+                {resetStatus === 'sent' ? 'Email sent' : 'Change password'}
+              </Button>
             </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-bold mb-4 font-serif">Notifications</h3>
-            <div className="text-center py-8 bg-surface/50 rounded-xl border border-dashed border-border/60 opacity-60 pointer-events-none">
-              <p className="text-muted-foreground text-sm font-medium">Notification preferences coming soon.</p>
-            </div>
-          </div>
+          </FrostedPanel>
         </div>
       </div>
     </AppPageContainer>

@@ -79,7 +79,7 @@ export default function PatientDashboard() {
               </div>
               <input
                 type="text"
-                className="block w-full pl-14 pr-32 py-5 rounded-2xl border border-border bg-white text-foreground shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-lg placeholder:text-muted-foreground/60 focus:-translate-y-0.5"
+                className="block w-full pl-14 pr-32 py-5 rounded-[20px] border border-white/80 bg-white/75 backdrop-blur-xl text-foreground shadow-[0_16px_44px_rgba(15,40,35,0.07)] focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-lg placeholder:text-muted-foreground/60 focus:-translate-y-0.5 outline-none"
                 placeholder="Search hospitals, specialties..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -137,8 +137,8 @@ export default function PatientDashboard() {
                   <CheckCircle2 className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-foreground">3 Facilities Matched</div>
-                  <div className="text-xs text-muted-foreground">in Navi Mumbai</div>
+                  <div className="text-sm font-bold text-foreground">Hospital options</div>
+                  <div className="text-xs text-muted-foreground">Demonstration dataset</div>
                 </div>
               </div>
             </motion.div>
@@ -164,7 +164,7 @@ export default function PatientDashboard() {
       </section>
 
       {/* Discovery Journey Strip */}
-      <section className="bg-white border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
+      <section className="overflow-hidden rounded-[24px] border border-white/80 bg-white/68 p-6 shadow-[0_14px_40px_rgba(15,40,35,0.055)] backdrop-blur-xl">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 max-w-4xl mx-auto relative">
           <div className="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-border to-transparent -z-0"></div>
           
@@ -261,7 +261,7 @@ export default function PatientDashboard() {
       {/* Featured / Demo Hospitals */}
       <section>
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-foreground font-serif">Recently explored</h2>
+          <h2 className="text-2xl font-bold text-foreground font-serif">Demonstration hospitals</h2>
           <Link to="/app/discover" className="text-sm font-semibold text-primary hover:underline">
             View all
           </Link>

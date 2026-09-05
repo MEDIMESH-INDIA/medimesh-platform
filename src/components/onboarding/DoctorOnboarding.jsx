@@ -78,15 +78,15 @@ export default function DoctorOnboarding() {
 
       await refreshProfile();
       navigate('/doctor');
-    } catch (err) {
-      setError(err.message || 'Failed to save profile information. Please try again.');
+    } catch {
+      setError('We could not save your professional information. Please review the required fields and try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6">
+    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 relative z-10">
       <div className="mb-8">
         <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Doctor Verification</h1>
         <p className="text-muted-foreground">
@@ -113,22 +113,22 @@ export default function DoctorOnboarding() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
+      <div className="rounded-[24px] border border-white/80 bg-white/75 p-6 shadow-[0_18px_50px_rgba(15,40,35,0.07)] backdrop-blur-xl">
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-semibold mb-4">Qualifications & Registration</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium mb-1">Medical Registration Number *</label>
-                <input required type="text" className="w-full p-2 border rounded-xl" value={regNumber} onChange={e => setRegNumber(e.target.value)} />
+                <input required type="text" className="medimesh-field" value={regNumber} onChange={e => setRegNumber(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Medical Council *</label>
-                <input required type="text" className="w-full p-2 border rounded-xl" value={council} onChange={e => setCouncil(e.target.value)} />
+                <input required type="text" className="medimesh-field" value={council} onChange={e => setCouncil(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Years of Experience</label>
-                <input type="number" className="w-full p-2 border rounded-xl" value={experience} onChange={e => setExperience(e.target.value)} />
+                <input type="number" className="medimesh-field" value={experience} onChange={e => setExperience(e.target.value)} />
               </div>
             </div>
           </div>
@@ -140,15 +140,15 @@ export default function DoctorOnboarding() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Primary Specialization *</label>
-                <input required type="text" className="w-full p-2 border rounded-xl" value={primarySpec} onChange={e => setPrimarySpec(e.target.value)} placeholder="e.g. Cardiology" />
+                <input required type="text" className="medimesh-field" value={primarySpec} onChange={e => setPrimarySpec(e.target.value)} placeholder="e.g. Cardiology" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Areas of Expertise</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={expertise} onChange={e => setExpertise(e.target.value)} placeholder="e.g. Interventional Cardiology, Echocardiography" />
+                <input type="text" className="medimesh-field" value={expertise} onChange={e => setExpertise(e.target.value)} placeholder="e.g. Interventional Cardiology, Echocardiography" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Languages Spoken</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={languages} onChange={e => setLanguages(e.target.value)} />
+                <input type="text" className="medimesh-field" value={languages} onChange={e => setLanguages(e.target.value)} />
               </div>
             </div>
           </div>
@@ -157,10 +157,10 @@ export default function DoctorOnboarding() {
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-semibold mb-4">Current Practice</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2">
                 <label className="block text-sm font-medium mb-1">Organization Type *</label>
-                <select className="w-full p-2 border rounded-xl bg-white" value={orgType} onChange={e => setOrgType(e.target.value)}>
+                <select className="medimesh-field" value={orgType} onChange={e => setOrgType(e.target.value)}>
                   <option value="Private Clinic">Private Clinic</option>
                   <option value="Hospital">Hospital</option>
                   <option value="Both">Both</option>
@@ -169,11 +169,11 @@ export default function DoctorOnboarding() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Organization Name *</label>
-                <input required type="text" className="w-full p-2 border rounded-xl" value={orgName} onChange={e => setOrgName(e.target.value)} />
+                <input required type="text" className="medimesh-field" value={orgName} onChange={e => setOrgName(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">City</label>
-                <input type="text" className="w-full p-2 border rounded-xl" value={orgCity} onChange={e => setOrgCity(e.target.value)} />
+                <input type="text" className="medimesh-field" value={orgCity} onChange={e => setOrgCity(e.target.value)} />
               </div>
             </div>
           </div>
