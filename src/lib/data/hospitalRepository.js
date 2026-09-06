@@ -2,7 +2,8 @@ import { demoHospitals } from '../../data/sihDemoHospitals';
 import { supabase } from '../supabase/client';
 
 const BASE_SELECT = `
-  id, slug, name, locality, city, state, hospital_type,
+  id, slug, name, locality, city, state, country, hospital_type,
+  address_line_1, address_line_2, pin_code, public_phone, public_email, website, year_established,
   total_beds, icu_beds, emergency_department, ambulance_available,
   hospital_evidence(checked_at, review_status, data_sources(name, source_type))
 `;
@@ -43,7 +44,15 @@ export function normalizeHospital(record, recordType = 'canonical') {
     id: hospital.id,
     slug: hospital.slug,
     name: hospital.name,
-    location: { locality: hospital.locality, city: hospital.city, state: hospital.state },
+    location: {
+      addressLine1: hospital.address_line_1,
+      addressLine2: hospital.address_line_2,
+      locality: hospital.locality,
+      city: hospital.city,
+      state: hospital.state,
+      country: hospital.country,
+      pinCode: hospital.pin_code,
+    },
     type: hospital.hospital_type,
     specialties,
     facilities,
@@ -54,6 +63,12 @@ export function normalizeHospital(record, recordType = 'canonical') {
       icuBeds: hospital.icu_beds ?? null,
     },
     provenance,
+    contact: {
+      phone: hospital.public_phone,
+      email: hospital.public_email,
+      website: hospital.website,
+    },
+    yearEstablished: hospital.year_established ?? null,
     recordType,
   };
 }
@@ -63,7 +78,7 @@ export function normalizeDemoHospital(hospital) {
     id: hospital.id || hospital.slug,
     slug: hospital.slug,
     name: hospital.name,
-    location: { locality: hospital.location, city: null, state: null },
+    location: { addressLine1: null, addressLine2: null, locality: hospital.location, city: null, state: null, country: null, pinCode: null },
     type: hospital.type,
     specialties: hospital.specialties || [],
     facilities: hospital.facilities || [],
@@ -74,6 +89,8 @@ export function normalizeDemoHospital(hospital) {
       reviewStatus: 'demonstration',
       checkedAt: null,
     } : null,
+    contact: { phone: null, email: null, website: null },
+    yearEstablished: null,
     recordType: 'demo',
   };
 }
@@ -144,4 +161,21 @@ export async function getHospitalFacets({ mode = 'canonical' } = {}) {
     specialties: [...new Set(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name)).filter(Boolean))].sort(),
     facilities: [...new Set(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name)).filter(Boolean))].sort(),
   };
+}
+
+export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
+  if (!slug) return null;
+  if (mode === 'demo') {
+    const hospital = demoHospitals.find(item => item.slug === slug);
+    return hospital ? normalizeDemoHospital(hospital) : null;
+  }
+
+  const { data, error } = await supabase
+    .from('hospitals')
+    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))`)
+    .eq('slug', slug)
+    .eq('publication_status', 'published')
+    .maybeSingle();
+  if (error) throw error;
+  return data ? normalizeHospital(data, 'canonical') : null;
 }
