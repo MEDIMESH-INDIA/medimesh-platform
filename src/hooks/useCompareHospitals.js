@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getHospitalsBySlugs } from '../lib/data/hospitalRepository';
 
-export function useCompareHospitals(compareList) {
+export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
   const slugs = compareList.map(item => item.slug);
   const key = slugs.join('|');
   const [hospitals, setHospitals] = useState([]);
@@ -18,7 +18,7 @@ export function useCompareHospitals(compareList) {
     }
     setLoading(true);
     setError(null);
-    getHospitalsBySlugs(key.split('|'))
+    getHospitalsBySlugs(key.split('|'), { mode })
       .then(data => { if (active) setHospitals(data); })
       .catch(nextError => {
         console.error('Error loading hospitals for comparison:', nextError);
@@ -26,7 +26,7 @@ export function useCompareHospitals(compareList) {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [key]);
+  }, [key, mode]);
 
   return { hospitals, loading, error };
 }
