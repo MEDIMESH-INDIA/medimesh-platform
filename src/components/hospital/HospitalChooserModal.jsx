@@ -5,11 +5,11 @@ import { useCompare } from '../../hooks/useCompare';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { formatHospitalType } from '../../lib/utils/formatters';
 
-export default function HospitalChooserModal({ isOpen, onClose, replaceSlug = null }) {
+export default function HospitalChooserModal({ isOpen, onClose, replaceSlug = null, mode = 'canonical' }) {
   const [query, setQuery] = useState('');
   const searchRef = useRef(null);
   const { isCompared, addHospital, replaceHospital, canAdd } = useCompare();
-  const { hospitals, loading, error } = useHospitalSearch({ filters: { q: query }, pageSize: 50 });
+  const { hospitals, loading, error } = useHospitalSearch({ mode, filters: { q: query }, pageSize: 50 });
 
   useEffect(() => {
     if (!isOpen) return undefined;
