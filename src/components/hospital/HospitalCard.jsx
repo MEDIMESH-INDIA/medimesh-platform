@@ -21,7 +21,7 @@ function FactBox({ label, value, highlight }) {
   );
 }
 
-export default function HospitalCard({ hospital, isSaved, onSave }) {
+export default function HospitalCard({ hospital, isSaved, onSave, showSaveLabel = false }) {
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
   const locationPath = useLocation().pathname;
   const basePath = locationPath.startsWith('/app') ? '/app' : '';
@@ -63,7 +63,7 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
         
         <button 
           onClick={onSave}
-          className={`shrink-0 p-2 rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:-translate-y-[1px] active:translate-y-0 active:scale-95 ${
+          className={`shrink-0 ${showSaveLabel ? 'flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl' : 'p-2 rounded-full'} transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:-translate-y-[1px] active:translate-y-0 active:scale-95 ${
             isSaved 
               ? 'bg-primary/10 text-primary hover:bg-primary/20' 
               : 'bg-surface border border-border/50 hover:bg-surface/80 text-muted-foreground hover:text-foreground'
@@ -72,6 +72,7 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
           aria-label={isSaved ? "Remove from saved" : "Save hospital"}
         >
           <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+          {showSaveLabel && <span>{isSaved ? 'Remove' : 'Save'}</span>}
         </button>
       </div>
 

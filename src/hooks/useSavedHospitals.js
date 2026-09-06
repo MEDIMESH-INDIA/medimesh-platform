@@ -76,5 +76,5 @@ export function useSavedHospitals() {
     }
   };
 
-  return { savedSlugs, loading, error, toggleSave };
+  return { savedSlugs, loading, error, toggleSave, refreshSaved: fetchSaved };
 }
