@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { demoHospitals } from '../data/sihDemoHospitals';
 
-export function useHospitalFacets({ mode = 'canonical' }) {
+export function useHospitalFacets({ mode = 'canonical' } = {}) {
   const [facets, setFacets] = useState({
     locations: [],
     specialties: [],

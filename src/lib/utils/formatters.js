@@ -1,5 +1,5 @@
 export function formatHospitalType(type) {
-  if (!type) return 'Type not provided';
+  if (!type || typeof type !== 'string') return 'Type not provided';
   const mapping = {
     'general_hospital': 'General Hospital',
     'speciality_hospital': 'Speciality Hospital',
@@ -12,10 +12,10 @@ export function formatHospitalType(type) {
 }
 
 export function formatReviewStatus(status) {
-  if (!status) return 'Unreviewed';
+  if (!status || typeof status !== 'string') return 'Unreviewed';
   const mapping = {
     'source_matched': 'Source matched',
-    'manually_reviewed': 'Verified',
+    'manually_reviewed': 'Manually reviewed',
     'demonstration': 'Demonstration',
     'self_reported': 'Self reported'
   };

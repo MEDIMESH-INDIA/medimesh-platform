@@ -12,9 +12,9 @@ import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import { formatHospitalType } from '../../lib/utils/formatters';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export default function DiscoverExperience({ requireAuth, activeMode, setActiveMode }) {
+export default function DiscoverExperience({ mode = 'canonical' }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { savedSlugs, toggleSave } = useSavedHospitals(requireAuth);
+  const { savedSlugs, toggleSave } = useSavedHospitals();
   
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -31,11 +31,11 @@ export default function DiscoverExperience({ requireAuth, activeMode, setActiveM
   const { hospitals, loading, error, hasMore, loadMore } = useHospitalSearch({
     filters,
     sort,
-    mode: activeMode,
+    mode,
     pageSize: 12
   });
 
-  const { facets } = useHospitalFacets(activeMode);
+  const { facets } = useHospitalFacets({ mode });
 
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -74,7 +74,7 @@ export default function DiscoverExperience({ requireAuth, activeMode, setActiveM
           Explore Healthcare
         </h1>
         <p className="text-muted-foreground text-center lg:text-left text-sm md:text-base max-w-2xl mb-6">
-          Find and compare structured healthcare information from verified sources across supported regions.
+          Explore hospitals across Navi Mumbai with structured information and transparent sources.
         </p>
         
         <div className="max-w-2xl">
@@ -259,15 +259,15 @@ export default function DiscoverExperience({ requireAuth, activeMode, setActiveM
             </div>
           </div>
           
-          {error && activeMode === 'canonical' ? (
+          {error ? (
             <div className="mb-6 py-6 px-4 text-center bg-red-50/50 rounded-2xl border border-red-200">
-              <h3 className="text-lg font-semibold text-red-800 mb-1">Database Unavailable</h3>
-              <p className="text-red-600/80 text-sm mb-4">Unable to reach the canonical hospital catalog.</p>
+              <h3 className="text-lg font-semibold text-red-800 mb-1">We couldn’t load the hospitals.</h3>
+              <p className="text-red-600/80 text-sm mb-4">Please try again in a moment.</p>
               <button 
-                onClick={() => setActiveMode('demo')}
+                onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-700 hover:bg-red-50 transition-colors"
               >
-                Switch to Demo Mode
+                Try again
               </button>
             </div>
           ) : null}

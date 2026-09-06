@@ -97,7 +97,7 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
 
       {/* Fact Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 mt-auto">
-        <FactBox label="Emergency" value={metrics?.emergency === true ? '24/7' : metrics?.emergency} highlight={metrics?.emergency === true} />
+        <FactBox label="Emergency" value={metrics?.emergency} highlight={metrics?.emergency === true} />
         <FactBox label="ICU Beds" value={metrics?.icuBeds} />
         <FactBox label="Ambulance" value={metrics?.ambulance} />
         <FactBox label="Beds" value={metrics?.totalBeds} />

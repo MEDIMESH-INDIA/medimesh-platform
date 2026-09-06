@@ -1,13 +1,15 @@
 // Shared normalizer for MEDIMESH hospital data
-export function normalizeHospital(h, recordType = 'canonical') {
-  const specs = h.hospital_specialties?.map(s => s.specialties?.name).filter(Boolean) || [];
-  const facs = h.hospital_facilities?.map(f => f.facilities?.name).filter(Boolean) || [];
+export function normalizeHospital(record, recordType = 'canonical') {
+  const h = record ?? {};
+  const rows = value => Array.isArray(value) ? value.filter(Boolean) : [];
+  const specs = rows(h.hospital_specialties).map(s => s.specialties?.name).filter(name => typeof name === 'string');
+  const facs = rows(h.hospital_facilities).map(f => f.facilities?.name).filter(name => typeof name === 'string');
   
   // Provenance extraction rule:
   // 1. manually_reviewed, 2. source_matched, 3. self_reported, 4. unreviewed
   let source = null;
-  if (h.hospital_evidence && h.hospital_evidence.length > 0) {
-    const sorted = [...h.hospital_evidence].sort((a, b) => {
+  if (rows(h.hospital_evidence).length > 0) {
+    const sorted = rows(h.hospital_evidence).sort((a, b) => {
       const order = { manually_reviewed: 1, source_matched: 2, self_reported: 3, unreviewed: 4 };
       const rankA = order[a.review_status] || 99;
       const rankB = order[b.review_status] || 99;
@@ -43,7 +45,7 @@ export function normalizeHospital(h, recordType = 'canonical') {
       emergency: h.emergency_department ?? null,
       ambulance: h.ambulance_available ?? null,
       totalBeds: h.total_beds ?? null,
-      icuBeds: h.icu_beds === null ? null : (h.icu_beds > 0)
+      icuBeds: h.icu_beds ?? null
     },
     provenance: source,
     recordType

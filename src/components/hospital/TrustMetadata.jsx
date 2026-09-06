@@ -3,6 +3,13 @@ import { motion } from 'framer-motion';
 import FrostedPanel from '../common/FrostedPanel';
 import { formatReviewStatus } from '../../lib/utils/formatters';
 
+const safeFormatDate = (dateString, options) => {
+  if (!dateString) return null;
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-GB', options);
+};
+
 export default function TrustMetadata({ provenance, compact = false }) {
   if (compact) {
     if (!provenance) {
@@ -16,9 +23,11 @@ export default function TrustMetadata({ provenance, compact = false }) {
 
     let badgeText = 'Public source';
     if (provenance.reviewStatus === 'demonstration') badgeText = 'Demo Data';
-    else if (provenance.reviewStatus === 'manually_reviewed') badgeText = 'Verified';
+    else if (provenance.reviewStatus === 'manually_reviewed') badgeText = 'Manually reviewed';
     else if (provenance.reviewStatus === 'source_matched') badgeText = 'Public source';
     
+    const formattedDate = safeFormatDate(provenance.checkedAt, { day: '2-digit', month: 'short', year: 'numeric'});
+
     return (
       <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground group relative">
         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-surface/50 border border-border/50 rounded-md cursor-help" title={provenance.sourceName || 'Unknown Source'}>
@@ -26,9 +35,9 @@ export default function TrustMetadata({ provenance, compact = false }) {
           <span className="font-medium text-[11px] uppercase tracking-wider">{badgeText}</span>
         </div>
         
-        {provenance.checkedAt && (
+        {formattedDate && (
           <span className="text-[11.5px]">
-            · Checked {new Date(provenance.checkedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric'})}
+            · Checked {formattedDate}
           </span>
         )}
       </div>
@@ -36,6 +45,8 @@ export default function TrustMetadata({ provenance, compact = false }) {
   }
 
   // Full detail (for Hospital Detail page)
+  const formattedDetailDate = safeFormatDate(provenance?.checkedAt) || 'Not provided';
+
   const steps = [
     {
       icon: Database,
@@ -46,13 +57,13 @@ export default function TrustMetadata({ provenance, compact = false }) {
     {
       icon: ShieldCheck,
       label: 'Review Status',
-      value: formatReviewStatus(provenance?.reviewStatus) || 'Unverified',
+      value: formatReviewStatus(provenance?.reviewStatus),
       color: 'text-amber-500'
     },
     {
       icon: Clock,
       label: 'Last Checked',
-      value: provenance?.checkedAt ? new Date(provenance.checkedAt).toLocaleDateString() : 'Not provided',
+      value: formattedDetailDate,
       color: 'text-primary'
     }
   ];
