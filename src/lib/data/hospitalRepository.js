@@ -179,3 +179,23 @@ export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
   if (error) throw error;
   return data ? normalizeHospital(data, 'canonical') : null;
 }
+
+export async function getHospitalsBySlugs(slugs, { mode = 'canonical' } = {}) {
+  const uniqueSlugs = [...new Set((slugs || []).filter(Boolean))];
+  if (uniqueSlugs.length === 0) return [];
+  if (mode === 'demo') {
+    return uniqueSlugs
+      .map(slug => demoHospitals.find(item => item.slug === slug))
+      .filter(Boolean)
+      .map(normalizeDemoHospital);
+  }
+
+  const { data, error } = await supabase
+    .from('hospitals')
+    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))`)
+    .in('slug', uniqueSlugs)
+    .eq('publication_status', 'published');
+  if (error) throw error;
+  const bySlug = new Map((data || []).map(record => [record.slug, normalizeHospital(record, 'canonical')]));
+  return uniqueSlugs.map(slug => bySlug.get(slug)).filter(Boolean);
+}
