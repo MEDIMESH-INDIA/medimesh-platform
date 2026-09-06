@@ -49,6 +49,7 @@ export default function CollapsibleFilter({ title, icon: Icon, options, value, o
                     <button 
                       onClick={() => setSearch('')}
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-border/50"
+                      aria-label={`Clear ${title.toLowerCase()} search`}
                     >
                       <X className="w-3 h-3" />
                     </button>

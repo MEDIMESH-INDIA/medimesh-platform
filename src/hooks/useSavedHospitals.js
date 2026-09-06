@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from './useAuth';
 
 export function useSavedHospitals() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const [savedSlugs, setSavedSlugs] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,10 +36,7 @@ export function useSavedHospitals() {
 
   const toggleSave = async (slug) => {
     if (!user) {
-      if (confirm('Sign in to save this hospital.')) {
-        navigate('/login?redirect=' + encodeURIComponent(location.pathname));
-      }
-      return;
+      return { requiresAuth: true };
     }
     const isCurrentlySaved = savedSlugs.has(slug);
 
@@ -68,6 +62,7 @@ export function useSavedHospitals() {
         // Ignore unique constraint violation (duplicate save)
         if (error && error.code !== '23505') throw error;
       }
+      return { saved: !isCurrentlySaved };
     } catch (err) {
       console.error('Error toggling save state:', err);
       // Revert on failure
@@ -77,7 +72,7 @@ export function useSavedHospitals() {
         else next.delete(slug);
         return next;
       });
-      alert('Failed to update saved hospital. Please try again.');
+      return { error: true };
     }
   };
 

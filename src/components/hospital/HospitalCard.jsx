@@ -12,9 +12,9 @@ function FactBox({ label, value, highlight }) {
   else if (value !== null && value !== undefined && value !== '') displayValue = value;
 
   return (
-    <div className="flex flex-col border border-border/40 rounded-xl p-2.5 bg-surface/30 min-w-0">
-      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-0.5 truncate">{label}</span>
-      <span className={`text-[13px] font-medium leading-tight truncate ${highlight ? 'text-primary' : 'text-foreground'}`}>
+    <div className="flex min-h-16 flex-col justify-center rounded-xl border border-border/40 bg-surface/30 p-3 min-w-0">
+      <span className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className={`text-[13px] font-medium leading-tight ${highlight ? 'text-primary' : 'text-foreground'}`}>
         {displayValue}
       </span>
     </div>
@@ -96,7 +96,7 @@ export default function HospitalCard({ hospital, isSaved, onSave }) {
       </div>
 
       {/* Fact Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 mt-auto">
+      <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
         <FactBox label="Emergency" value={metrics?.emergency} highlight={metrics?.emergency === true} />
         <FactBox label="ICU Beds" value={metrics?.icuBeds} />
         <FactBox label="Ambulance" value={metrics?.ambulance} />

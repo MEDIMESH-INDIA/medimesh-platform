@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Building2, X, Filter, Activity, ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
+import { Activity, BedDouble, Building2, ChevronDown, Filter, MapPin, Search, X } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import HospitalCardSkeleton from '../../components/hospital/HospitalCardSkeleton';
@@ -11,24 +11,30 @@ import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import { formatHospitalType } from '../../lib/utils/formatters';
 import { AnimatePresence, motion } from 'framer-motion';
+import SignInPromptDialog from '../../components/common/SignInPromptDialog';
+import Toast from '../../components/common/Toast';
 
 export default function DiscoverExperience({ mode = 'canonical' }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const { savedSlugs, toggleSave } = useSavedHospitals();
   
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   
   const [sort, setSort] = useState('name_asc');
+  const [signInPromptOpen, setSignInPromptOpen] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const filters = {
     q: searchParams.get('q') || '',
     location: searchParams.get('location') || '',
     specialty: searchParams.get('specialty') || '',
-    type: searchParams.get('type') || ''
+    type: searchParams.get('type') || '',
+    facility: searchParams.get('facility') || '',
   };
 
-  const { hospitals, loading, error, hasMore, loadMore } = useHospitalSearch({
+  const { hospitals, loading, error, hasMore, totalCount, loadMore } = useHospitalSearch({
     filters,
     sort,
     mode,
@@ -36,6 +42,18 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   });
 
   const { facets } = useHospitalFacets({ mode });
+
+  useEffect(() => {
+    if (!isMobileFiltersOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = event => { if (event.key === 'Escape') setIsMobileFiltersOpen(false); };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isMobileFiltersOpen]);
 
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
@@ -60,11 +78,23 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
   const hasActiveFilters = Object.values(filters).some(v => v !== '');
 
+  const handleSave = async hospital => {
+    const result = await toggleSave(hospital.slug);
+    if (result?.requiresAuth) {
+      setSignInPromptOpen(true);
+    } else if (result?.error) {
+      setToast({ message: 'We couldn’t update your saved hospitals. Please try again.', tone: 'error' });
+    } else if (typeof result?.saved === 'boolean') {
+      setToast({ message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`, tone: 'success' });
+    }
+  };
+
   // Build Results Header chips logic
   const activeChips = [];
   if (filters.location) activeChips.push({ key: 'location', label: filters.location });
   if (filters.specialty) activeChips.push({ key: 'specialty', label: filters.specialty });
   if (filters.type) activeChips.push({ key: 'type', label: formatHospitalType(filters.type) });
+  if (filters.facility) activeChips.push({ key: 'facility', label: filters.facility });
 
   return (
     <AppPageContainer className="!max-w-[1240px]">
@@ -112,6 +142,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         <button 
           onClick={() => setIsMobileFiltersOpen(true)}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground"
+          aria-expanded={isMobileFiltersOpen}
         >
           <Filter className="w-4 h-4" /> Filters
           {hasActiveFilters && (
@@ -123,6 +154,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             className="w-full pl-3 pr-8 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+            aria-label="Sort hospitals"
           >
             <option value="name_asc">Name A-Z</option>
             <option value="name_desc">Name Z-A</option>
@@ -133,7 +165,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Sidebar Filters */}
-        <aside className={`
+        <aside role={isMobileFiltersOpen ? 'dialog' : undefined} aria-modal={isMobileFiltersOpen ? 'true' : undefined} aria-label="Hospital filters" className={`
           fixed lg:static inset-y-0 left-0 z-40 lg:z-0
           w-full sm:w-[320px] lg:w-[260px] 
           bg-background lg:bg-transparent
@@ -146,7 +178,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         `}>
           <div className="flex items-center justify-between lg:hidden mb-6 shrink-0">
             <h2 className="text-lg font-bold text-foreground">Filters</h2>
-            <button onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg">
+            <button type="button" onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg" aria-label="Close filters">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
@@ -180,6 +212,13 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 defaultOpen={true}
                 formatOption={formatHospitalType}
               />
+              <CollapsibleFilter
+                title="Facilities"
+                icon={BedDouble}
+                options={facets.facilities}
+                value={filters.facility}
+                onChange={(val) => updateFilter('facility', val)}
+              />
             </div>
             
             {/* Mobile apply button */}
@@ -203,17 +242,17 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 w-full flex flex-col pb-24 lg:pb-32">
+        <section className="flex-1 min-w-0 w-full flex flex-col pb-24 lg:pb-32" aria-labelledby="hospital-results-heading">
           {/* Results Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex flex-col gap-1.5">
-              <h2 className="text-lg font-semibold text-foreground">
+              <h2 id="hospital-results-heading" className="text-lg font-semibold text-foreground">
                 {loading && hospitals.length === 0 ? 'Searching...' : 
-                 `${hospitals.length} hospital${hospitals.length !== 1 ? 's' : ''} found`}
+                 `${totalCount ?? hospitals.length} hospital${(totalCount ?? hospitals.length) !== 1 ? 's' : ''} found`}
               </h2>
               {/* Active Filter Chips */}
               <AnimatePresence>
-                {activeChips.length > 0 && (
+                {hasActiveFilters && (
                   <motion.div 
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -223,13 +262,13 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                     {filters.q && (
                       <span className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
                         Search: &quot;{filters.q}&quot;
-                        <button onClick={() => { setQuery(''); updateFilter('q', ''); }} className="p-0.5 hover:bg-border/60 rounded-full"><X className="w-3 h-3" /></button>
+                        <button type="button" onClick={() => { setQuery(''); updateFilter('q', ''); }} className="p-0.5 hover:bg-border/60 rounded-full" aria-label="Remove search filter"><X className="w-3 h-3" /></button>
                       </span>
                     )}
                     {activeChips.map(chip => (
                       <span key={chip.key} className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
                         {chip.label}
-                        <button onClick={() => updateFilter(chip.key, '')} className="p-0.5 hover:bg-border/60 rounded-full"><X className="w-3 h-3" /></button>
+                        <button type="button" onClick={() => updateFilter(chip.key, '')} className="p-0.5 hover:bg-border/60 rounded-full" aria-label={`Remove ${chip.key} filter`}><X className="w-3 h-3" /></button>
                       </span>
                     ))}
                     <button 
@@ -250,6 +289,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                   className="pl-3 pr-8 py-2 bg-surface/50 hover:bg-surface border border-border/80 rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/50 outline-none appearance-none cursor-pointer transition-colors"
+                  aria-label="Sort hospitals"
                 >
                   <option value="name_asc">Name A–Z</option>
                   <option value="name_desc">Name Z–A</option>
@@ -285,7 +325,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                   key={hospital.id} 
                   hospital={hospital}
                   isSaved={savedSlugs.has(hospital.slug)}
-                  onSave={() => toggleSave(hospital.slug)}
+                  onSave={() => void handleSave(hospital)}
                 />
               ))
             ) : (
@@ -318,9 +358,11 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               </button>
             </div>
           )}
-        </main>
+        </section>
       </div>
       <CompareTray />
+      <SignInPromptDialog open={signInPromptOpen} onClose={() => setSignInPromptOpen(false)} returnTo={`${location.pathname}${location.search}`} />
+      <Toast message={toast?.message} tone={toast?.tone} onClose={() => setToast(null)} />
     </AppPageContainer>
   );
 }
