@@ -7,30 +7,34 @@ import TrustMetadata from "./TrustMetadata";
 
 function FactBox({ label, value, highlight }) {
   let displayValue = 'Not provided';
-  if (value === true) displayValue = 'Available';
+  if (value === true) displayValue = label === 'Emergency' ? '24/7' : 'Available';
   else if (value === false) displayValue = 'No';
-  else if (value !== null && value !== undefined && value !== '') displayValue = value;
+  else if (typeof value === 'number') displayValue = String(value);
+  else if (typeof value === 'string' && value.trim() !== '') displayValue = value;
 
   return (
-    <div className="flex min-h-16 flex-col justify-center rounded-xl border border-border/40 bg-surface/30 p-3 min-w-0">
-      <span className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span className={`text-[13px] font-medium leading-tight ${highlight ? 'text-primary' : 'text-foreground'}`}>
+    <div className="flex min-h-16 flex-col justify-center rounded-xl border border-border/40 bg-surface/30 p-2.5 sm:p-3 min-w-0">
+      <span className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate">{label}</span>
+      <span className={`text-[13px] font-medium leading-tight truncate ${highlight ? 'text-primary' : 'text-foreground'}`}>
         {displayValue}
       </span>
     </div>
   );
 }
 
-export default function HospitalCard({ hospital, isSaved, onSave, showSaveLabel = false }) {
+export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveLabel = false }) {
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
   const locationPath = useLocation().pathname;
   const basePath = locationPath.startsWith('/app') ? '/app' : '';
   
-  const { slug, name, location, type, specialties, metrics, provenance } = hospital;
+  const { slug, name = 'Hospital', location, type, specialties, metrics, provenance } = hospital || {};
   
-  const locString = location.locality && location.city 
-    ? `${location.locality}, ${location.city}` 
-    : location.locality || location.city || 'Location not provided';
+  const safeLocation = location || {};
+  const locString = safeLocation.locality && safeLocation.city 
+    ? `${safeLocation.locality}, ${safeLocation.city}` 
+    : safeLocation.locality || safeLocation.city || 'Location not provided';
+
+  const safeSpecialties = Array.isArray(specialties) ? specialties : [];
 
   return (
     <FrostedPanel 
@@ -78,16 +82,16 @@ export default function HospitalCard({ hospital, isSaved, onSave, showSaveLabel 
 
       {/* Specialties Inline */}
       <div className="mb-6 flex flex-wrap gap-1.5">
-        {specialties?.length > 0 ? (
+        {safeSpecialties.length > 0 ? (
           <>
-            {specialties.slice(0, 3).map(s => (
+            {safeSpecialties.slice(0, 3).map(s => (
               <span key={s} className="px-2.5 py-0.5 text-xs font-medium bg-surface/80 text-foreground rounded border border-border/50 whitespace-nowrap">
                 {s}
               </span>
             ))}
-            {specialties.length > 3 && (
+            {safeSpecialties.length > 3 && (
               <span className="px-2.5 py-0.5 text-xs font-medium bg-surface/30 text-muted-foreground rounded whitespace-nowrap border border-border/30">
-                +{specialties.length - 3}
+                +{safeSpecialties.length - 3}
               </span>
             )}
           </>
@@ -97,7 +101,7 @@ export default function HospitalCard({ hospital, isSaved, onSave, showSaveLabel 
       </div>
 
       {/* Fact Grid */}
-      <div className="grid grid-cols-2 gap-2 mb-6 mt-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6 mt-auto">
         <FactBox label="Emergency" value={metrics?.emergency} highlight={metrics?.emergency === true} />
         <FactBox label="ICU Beds" value={metrics?.icuBeds} />
         <FactBox label="Ambulance" value={metrics?.ambulance} />

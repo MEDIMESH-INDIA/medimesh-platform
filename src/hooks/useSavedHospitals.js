@@ -21,7 +21,7 @@ export function useSavedHospitals() {
         .select('hospital_slug');
 
       if (error) throw error;
-      setSavedSlugs(new Set(data.map(d => d.hospital_slug)));
+      setSavedSlugs(new Set((data || []).map(d => d.hospital_slug).filter(Boolean)));
     } catch (err) {
       console.error('Error fetching saved hospitals:', err);
       setError(err);

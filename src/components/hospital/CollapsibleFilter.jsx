@@ -2,16 +2,21 @@ import { useState, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function CollapsibleFilter({ title, icon: Icon, options, value, onChange, defaultOpen = false, formatOption = (opt) => opt }) {
+export default function CollapsibleFilter({ title, icon: Icon, options = [], value, onChange, defaultOpen = false, formatOption = (opt) => opt }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [search, setSearch] = useState('');
   
-  const showSearch = options.length > 8;
+  const safeOptions = useMemo(() => (Array.isArray(options) ? options.filter(Boolean) : []), [options]);
+  const showSearch = safeOptions.length > 8;
   
   const filteredOptions = useMemo(() => {
-    if (!search) return options;
-    return options.filter(opt => formatOption(opt).toLowerCase().includes(search.toLowerCase()));
-  }, [options, search, formatOption]);
+    if (!search) return safeOptions;
+    const cleanSearch = String(search).toLowerCase();
+    return safeOptions.filter(opt => {
+      const formatted = String(formatOption(opt) ?? '');
+      return formatted.toLowerCase().includes(cleanSearch);
+    });
+  }, [safeOptions, search, formatOption]);
 
   return (
     <div className="border-b border-border/50 last:border-0 pb-4">
