@@ -4,8 +4,9 @@ import Container from "../common/Container";
 
 const footerLinks = [
   { name: "Discover", href: "/discover" },
+  { name: "Doctors", href: "/doctors" },
   { name: "Compare", href: "/compare" },
-  { name: "For Doctors", href: "/doctors" },
+  { name: "For Doctors", href: "/for-doctors" },
   { name: "For Hospitals", href: "/hospitals" },
   { name: "About", href: "/about" },
 ];

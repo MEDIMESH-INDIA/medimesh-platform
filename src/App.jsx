@@ -25,6 +25,7 @@ import PublicDoctors from "./pages/PublicDoctors";
 import PatientDoctors from "./pages/App/PatientDoctors";
 import PublicDoctorDetail from "./pages/PublicDoctorDetail";
 import PatientDoctorDetail from "./pages/App/PatientDoctorDetail";
+import PublicForDoctors from "./pages/PublicForDoctors";
 import Compare from "./pages/App/Compare";
 import Saved from "./pages/App/Saved";
 import DoctorDashboard from "./pages/App/DoctorDashboard";
@@ -57,6 +58,7 @@ function App() {
         <Route path="/compare" element={<Compare />} />
         <Route path="/doctors" element={<PublicDoctors />} />
         <Route path="/doctors/:slug" element={<PublicDoctorDetail />} />
+        <Route path="/for-doctors" element={<PublicForDoctors />} />
         <Route path="/hospitals" element={<PlaceholderPage title="For Hospitals" />} />
         <Route path="/hospitals/:slug" element={<PublicHospitalDetail />} />
         <Route path="/about" element={<PlaceholderPage title="About MEDIMESH" />} />
