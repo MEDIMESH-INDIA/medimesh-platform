@@ -27,6 +27,7 @@ import PublicDoctorDetail from "./pages/PublicDoctorDetail";
 import PatientDoctorDetail from "./pages/App/PatientDoctorDetail";
 import PublicForDoctors from "./pages/PublicForDoctors";
 import PublicForHospitals from "./pages/PublicForHospitals";
+import PublicAbout from "./pages/PublicAbout";
 import Compare from "./pages/App/Compare";
 import Saved from "./pages/App/Saved";
 import DoctorDashboard from "./pages/App/DoctorDashboard";
@@ -35,19 +36,6 @@ import AdminDashboard from "./pages/App/AdminDashboard";
 import Profile from "./pages/App/Profile";
 import Settings from "./pages/App/Settings";
 import Onboarding from "./pages/App/Onboarding";
-
-// Placeholder components for new routes
-const PlaceholderPage = ({ title }) => (
-  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-    <div className="text-center">
-      <h1 className="text-4xl font-serif font-bold text-primary mb-4">{title}</h1>
-      <p className="text-muted-foreground">This page is under construction.</p>
-      <a href="/" className="mt-8 inline-block text-sm font-semibold text-primary hover:underline">
-        &larr; Back to Home
-      </a>
-    </div>
-  </div>
-);
 
 function App() {
   return (
@@ -63,7 +51,7 @@ function App() {
         <Route path="/for-hospitals" element={<PublicForHospitals />} />
         <Route path="/hospitals" element={<PublicForHospitals />} />
         <Route path="/hospitals/:slug" element={<PublicHospitalDetail />} />
-        <Route path="/about" element={<PlaceholderPage title="About MEDIMESH" />} />
+        <Route path="/about" element={<PublicAbout />} />
       </Route>
       
       {/* Auth Routes */}
