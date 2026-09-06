@@ -31,6 +31,8 @@ export default [
       'react/prop-types': 'off',
       'react/jsx-no-target-blank': 'off',
       'no-duplicate-imports': 'error',
+      'no-redeclare': 'error',
+      'no-dupe-keys': 'error',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
