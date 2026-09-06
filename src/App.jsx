@@ -21,6 +21,8 @@ import PublicDiscover from "./pages/PublicDiscover";
 import PatientDiscover from "./pages/App/PatientDiscover";
 import PublicHospitalDetail from "./pages/PublicHospitalDetail";
 import PatientHospitalDetail from "./pages/App/PatientHospitalDetail";
+import PublicDoctors from "./pages/PublicDoctors";
+import PatientDoctors from "./pages/App/PatientDoctors";
 import Compare from "./pages/App/Compare";
 import Saved from "./pages/App/Saved";
 import DoctorDashboard from "./pages/App/DoctorDashboard";
@@ -51,7 +53,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/discover" element={<PublicDiscover />} />
         <Route path="/compare" element={<Compare />} />
-        <Route path="/doctors" element={<PlaceholderPage title="For Doctors" />} />
+        <Route path="/doctors" element={<PublicDoctors />} />
         <Route path="/hospitals" element={<PlaceholderPage title="For Hospitals" />} />
         <Route path="/hospitals/:slug" element={<PublicHospitalDetail />} />
         <Route path="/about" element={<PlaceholderPage title="About MEDIMESH" />} />
@@ -95,6 +97,11 @@ function App() {
         <Route path="/app/saved" element={
           <RoleRoute allowedRoles={['patient']}>
             <Saved />
+          </RoleRoute>
+        } />
+        <Route path="/app/doctors" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientDoctors />
           </RoleRoute>
         } />
         
