@@ -39,6 +39,8 @@ import DoctorSpecializations from "./pages/App/Doctor/Specializations";
 import DoctorAffiliations from "./pages/App/Doctor/Affiliations";
 import DoctorVerification from "./pages/App/Doctor/Verification";
 import DoctorHomeVisits from "./pages/App/Doctor/HomeVisits";
+import DoctorHomeVisitRequests from "./pages/App/Doctor/HomeVisitRequests";
+import DoctorHomeVisitRequestDetail from "./pages/App/Doctor/HomeVisitRequestDetail";
 import DoctorSettings from "./pages/App/Doctor/Settings";
 import HospitalDashboard from "./pages/App/HospitalDashboard";
 import HospitalProfile from "./pages/App/Hospital/Profile";
@@ -52,6 +54,9 @@ import AdminDashboard from "./pages/App/AdminDashboard";
 import Profile from "./pages/App/Profile";
 import Settings from "./pages/App/Settings";
 import Onboarding from "./pages/App/Onboarding";
+import HomeVisitBooking from "./pages/App/Patient/HomeVisitBooking";
+import PatientHomeVisitBookings from "./pages/App/Patient/HomeVisitBookings";
+import PatientHomeVisitBookingDetail from "./pages/App/Patient/HomeVisitBookingDetail";
 
 function App() {
   return (
@@ -126,6 +131,21 @@ function App() {
             <PatientDoctorDetail />
           </RoleRoute>
         } />
+        <Route path="/app/doctors/:slug/book-home-visit" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <HomeVisitBooking />
+          </RoleRoute>
+        } />
+        <Route path="/app/home-visit-bookings" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientHomeVisitBookings />
+          </RoleRoute>
+        } />
+        <Route path="/app/home-visit-bookings/:id" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientHomeVisitBookingDetail />
+          </RoleRoute>
+        } />
         
         {/* Doctor Routes */}
         <Route path="/doctor" element={
@@ -161,6 +181,16 @@ function App() {
         <Route path="/doctor/home-visits" element={
           <RoleRoute allowedRoles={['doctor']}>
             <DoctorHomeVisits />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/home-visit-requests" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorHomeVisitRequests />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/home-visit-requests/:id" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorHomeVisitRequestDetail />
           </RoleRoute>
         } />
         <Route path="/doctor/settings" element={

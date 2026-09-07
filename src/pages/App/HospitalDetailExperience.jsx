@@ -22,6 +22,7 @@ import FrostedPanel from '../../components/common/FrostedPanel';
 import SignInPromptDialog from '../../components/common/SignInPromptDialog';
 import Toast from '../../components/common/Toast';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
+import HospitalLocationPanel from '../../components/hospital/HospitalLocationPanel';
 import { useCompare } from '../../hooks/useCompare';
 import { useHospitalDetail } from '../../hooks/useHospitalDetail';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
@@ -150,22 +151,23 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
             </div>
           </div>
 
-          <section aria-labelledby="provenance-heading">
-            <SectionTitle id="provenance-heading" icon={ShieldCheck}>Source transparency</SectionTitle>
-            <TrustMetadata provenance={provenance} />
-          </section>
+          <HospitalLocationPanel hospital={hospital} fullAddress={fullAddress} />
 
-          {(fullAddress || contact?.phone || contact?.email || contact?.website) && (
+          {(contact?.phone || contact?.email || contact?.website) && (
             <section aria-labelledby="contact-heading">
-              <SectionTitle id="contact-heading" icon={MapPin}>Contact and location</SectionTitle>
+              <SectionTitle id="contact-heading" icon={Phone}>Public contact</SectionTitle>
               <div className="grid gap-3 sm:grid-cols-2">
-                {fullAddress && <ContactItem icon={MapPin} label="Address" value={fullAddress} />}
                 {contact?.phone && <ContactItem icon={Phone} label="Public phone" value={contact.phone} href={`tel:${contact.phone}`} />}
                 {contact?.email && <ContactItem icon={Mail} label="Public email" value={contact.email} href={`mailto:${contact.email}`} />}
                 {contact?.website && <ContactItem icon={Building2} label="Website" value={contact.website} href={safeWebsiteUrl(contact.website)} external />}
               </div>
             </section>
           )}
+
+          <section aria-labelledby="provenance-heading">
+            <SectionTitle id="provenance-heading" icon={ShieldCheck}>Source transparency</SectionTitle>
+            <TrustMetadata provenance={provenance} />
+          </section>
         </div>
       </FrostedPanel>
 

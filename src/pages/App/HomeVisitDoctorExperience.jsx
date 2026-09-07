@@ -1,7 +1,7 @@
 import FilterPanel from '../../components/hospital/FilterPanel';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Stethoscope, Activity, X, Filter, ChevronDown, Globe } from 'lucide-react';
+import { Search, MapPin, Stethoscope, ShieldCheck, X, Filter, ChevronDown, Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import DoctorCard from '../../components/doctor/DoctorCard';
@@ -73,11 +73,13 @@ export default function HomeVisitDoctorExperience() {
     <AppPageContainer className="discovery-page">
       {/* Hero Header & Search */}
       <div className="discovery-header mb-8">
+        <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-primary">Home care</p>
         <h1 className="text-[30px] md:text-[36px] lg:text-[42px] leading-tight font-serif font-bold text-foreground mb-3 text-left flex items-center justify-start gap-3">
           Home Visit Doctors
         </h1>
-        <div className="flex w-fit items-center gap-2 px-3 py-2 bg-amber-50/70 text-amber-800 text-xs font-medium rounded-xl mb-3 border border-amber-200/50">
-          <Activity className="w-3.5 h-3.5" /> Home visits are intended for non-emergency care.
+        <div className="flex max-w-2xl items-start gap-2 rounded-xl border border-primary/10 bg-primary/[0.055] px-3 py-2.5 text-xs leading-5 text-foreground mb-3">
+          <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+          <span><strong>Home visits are for scheduled non-emergency care.</strong> Seek appropriate emergency care for urgent medical emergencies.</span>
         </div>
         <p className="text-muted-foreground text-left text-[16px] md:text-[18px] max-w-[700px] mb-6 leading-relaxed mx-0">
           Find doctors who offer non-emergency home consultations across supported areas.

@@ -8,6 +8,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCompare } from '../../hooks/useCompare';
 import { useHospitalsBySlugs } from '../../hooks/useHospitalsBySlugs';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+import { useHomeVisitBookings } from '../../hooks/useHomeVisitBookings';
+import BookingCard from '../../components/booking/BookingCard';
 
 const quickActions = [
   { label: 'Discover hospitals', description: 'Search the published catalog', href: '/app/discover', icon: Search },
@@ -29,6 +31,8 @@ export default function PatientDashboard() {
   const completedFields = profileFields.filter(Boolean).length;
   const completion = Math.round((completedFields / profileFields.length) * 100);
   const firstName = profile?.first_name || profile?.display_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
+  const { bookings: visitBookings, loading: visitsLoading } = useHomeVisitBookings();
+  const activeVisits = visitBookings.filter(item => ['pending', 'confirmed'].includes(item.status) && new Date(`${item.date}T${item.startTime}`) >= new Date()).slice(0, 2);
 
   const submitSearch = event => {
     event.preventDefault();
@@ -67,6 +71,11 @@ export default function PatientDashboard() {
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {quickActions.map(action => <Link key={action.label} to={action.href} className="group relative rounded-[18px] border border-border/60 bg-white/68 p-4 shadow-sm backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-white"><span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary"><action.icon className="h-5 w-5" /></span><h3 className="mt-3 font-sans text-sm font-semibold text-foreground group-hover:text-primary">{action.label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{action.description}</p><ArrowRight className="absolute right-4 top-5 h-4 w-4 text-primary transition-transform duration-200 group-hover:translate-x-1" /></Link>)}
         </div>
+      </section>
+
+      <section aria-labelledby="home-visits-preview-heading">
+        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Scheduled care</p><h2 id="home-visits-preview-heading" className="mt-2 font-serif text-2xl font-semibold">Home visit activity</h2></div><Link to="/app/home-visit-bookings" className="text-sm font-semibold text-primary hover:underline">View all</Link></div>
+        {visitsLoading ? <div className="h-28 animate-pulse rounded-[20px] bg-muted/30" /> : activeVisits.length ? <div className="grid gap-4 lg:grid-cols-2">{activeVisits.map(item => <BookingCard key={item.id} booking={item} to={`/app/home-visit-bookings/${item.id}`} />)}</div> : <FrostedPanel className="rounded-[20px] p-5"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="font-semibold text-foreground">No active home visits</p><p className="mt-1 text-sm text-muted-foreground">Request a non-emergency consultation from a doctor with a published schedule.</p></div><Button as={Link} to="/app/home-visits" variant="secondary">Find a doctor</Button></div></FrostedPanel>}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.45fr_.55fr]">

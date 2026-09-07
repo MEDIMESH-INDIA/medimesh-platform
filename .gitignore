@@ -27,3 +27,12 @@ dist-ssr
 
 # Supabase temp
 supabase/.temp/
+
+# API Keys and Secrets
+*.pem
+*.key
+*.cert
+*.crt
+secrets.json
+.secret
+*.key.json

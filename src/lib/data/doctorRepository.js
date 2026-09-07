@@ -14,7 +14,7 @@ export function normalizeCanonicalDoctor(doc) {
     department: item.department || 'Department not specified',
     position: item.position || 'Consultant',
     isCurrent: item.is_current ?? true,
-    
+
   }));
 
   const primaryAffiliation = affiliations[0];
@@ -25,19 +25,22 @@ export function normalizeCanonicalDoctor(doc) {
     slug: doc.slug,
     name: doc.full_name,
     qualifications: doc.qualifications_summary || null,
+    medicalRegistrationNumber: doc.medical_registration_number || null,
+    medicalCouncil: doc.medical_council || null,
+    registrationYear: doc.registration_year || null,
     specialization,
     yearsOfExperience: doc.experience_years ?? null,
     location: {
-      city: doc.city || 'Navi Mumbai',
-      locality: primaryAffiliation?.hospitals?.locality || doc.city || null,
-      state: doc.state || 'Maharashtra',
+      city: doc.city || null,
+      locality: primaryAffiliation?.hospitals?.locality || doc.locality || null,
+      state: doc.state || null,
     },
     affiliations,
-    languages: Array.isArray(doc.languages_spoken) ? doc.languages_spoken : ['English', 'Hindi', 'Marathi'],
-    consultationModes: Array.isArray(doc.consultation_modes) ? doc.consultation_modes : ['In-person'],
+    languages: Array.isArray(doc.languages_spoken) && doc.languages_spoken.length ? doc.languages_spoken : null,
+    consultationModes: Array.isArray(doc.consultation_modes) && doc.consultation_modes.length ? doc.consultation_modes : null,
     summary: null,
     source: {
-      name: 'MEDIMESH Provider Registry',
+      name: doc.source_dataset || 'Directory Indexed',
       type: 'provider_verified',
       reviewStatus: doc.verification_status || 'unreviewed',
       checkedAt: doc.created_at || null,
@@ -93,7 +96,7 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
     if (filters.serviceArea) {
       query = query.contains('home_visit_service_areas', [filters.serviceArea]);
     }
-    
+
     // hospital filter is tricky because it's a joined table. We'll fetch all and filter in JS if hospital filter is present.
     // For simplicity, we can do it in JS since there's 50 doctors total right now. But proper way is using referenced table filters.
     // supabase allows: doctor_affiliations_directory!inner(hospital_name) but our select is complex.
@@ -118,8 +121,8 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
       // In-memory filter for relations since PostgREST nested filtering is limited
       const hospQ = (filters.hospital || '').toLowerCase();
       finalData = data.filter(doc => {
-        const hospMatch = !hospQ || doc.doctor_affiliations_directory?.some(a => 
-          (a.hospital_name || '').toLowerCase().includes(hospQ) || 
+        const hospMatch = !hospQ || doc.doctor_affiliations_directory?.some(a =>
+          (a.hospital_name || '').toLowerCase().includes(hospQ) ||
           (a.hospitals?.name || '').toLowerCase().includes(hospQ)
         );
         return hospMatch;
@@ -130,7 +133,7 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
 
     if (error) {
       console.error('Supabase doctor query error details:', error);
-    
+
       console.error('Supabase doctor query error:', error);
     } else if (Array.isArray(finalData)) {
       const canonical = finalData.map(normalizeCanonicalDoctor);
@@ -190,7 +193,7 @@ export async function getDoctorBySlug(slug) {
       .from('doctors')
       .select(`
         id, slug, full_name, experience_years, specialization, locality,
-        city, state, medical_registration_number, publication_status, verification_status, created_at,
+        city, state, medical_registration_number, medical_council, registration_year, source_dataset, publication_status, verification_status, created_at,
         offers_home_visits, professional_phone, whatsapp_number,
         home_visit_contact_public, home_visit_service_areas, home_visit_days,
         home_visit_start_time, home_visit_end_time, home_visit_fee, home_visit_note,
@@ -205,7 +208,7 @@ export async function getDoctorBySlug(slug) {
 
     if (error) {
       console.error('Supabase doctor query error details:', error);
-    
+
       console.error('Supabase getDoctorBySlug error:', error);
     } else if (data) {
       return normalizeCanonicalDoctor(data);
@@ -226,16 +229,16 @@ export async function getDoctorFacets() {
         .from('doctors')
         .select('locality, city, specialization, home_visit_service_areas, doctor_affiliations_directory(hospital_name, hospitals(name))')
         .eq('publication_status', 'published');
-        
+
       if (!error && data) {
         const locations = [...new Set(data.flatMap(d => [d.locality, d.city]).filter(Boolean))].sort();
         const specializations = [...new Set(data.map(d => d.specialization).filter(Boolean))].sort();
         const serviceAreas = [...new Set(data.flatMap(d => d.home_visit_service_areas || []).filter(Boolean))].sort();
-        
-        const hospitals = [...new Set(data.flatMap(d => 
+
+        const hospitals = [...new Set(data.flatMap(d =>
           d.doctor_affiliations_directory?.map(a => a.hospital_name || a.hospitals?.name) || []
         ).filter(Boolean))].sort();
-        
+
         return { locations, specializations, hospitals, languages: ['English', 'Hindi', 'Marathi'], serviceAreas };
       }
     } catch (err) {

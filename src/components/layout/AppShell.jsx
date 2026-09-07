@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck } from 'lucide-react';
+import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck, CalendarCheck2, Inbox } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
@@ -57,6 +57,7 @@ export default function AppShell() {
       { name: 'Discover', href: '/app/discover', icon: Search },
       { name: 'Doctors', href: '/app/doctors', icon: Stethoscope },
       { name: 'Home Visits', href: '/app/home-visits', icon: Home },
+      { name: 'Bookings', href: '/app/home-visit-bookings', icon: CalendarCheck2 },
       { name: 'Compare', href: '/app/compare', icon: GitCompare },
       { name: 'Saved', href: '/app/saved', icon: Heart }
     );
@@ -67,6 +68,7 @@ export default function AppShell() {
       { name: 'Specializations', href: '/doctor/specializations', icon: Stethoscope },
       { name: 'Affiliations', href: '/doctor/affiliations', icon: Building2 },
       { name: 'Home Visits', href: '/doctor/home-visits', icon: Home },
+      { name: 'Requests', href: '/doctor/home-visit-requests', icon: Inbox },
       { name: 'Verification', href: '/doctor/verification', icon: ShieldCheck }
     );
   } else if (role === 'hospital') {

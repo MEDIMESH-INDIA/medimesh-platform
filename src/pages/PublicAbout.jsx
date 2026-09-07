@@ -211,17 +211,17 @@ export default function PublicAbout() {
             </FrostedPanel>
           </div>
 
-          {/* Hackathon Project Callout */}
+          {/* Product mission callout */}
           <FrostedPanel variant="elevated" className="rounded-[28px] p-8 border-border/80 bg-gradient-to-br from-primary/5 via-surface to-surface text-center space-y-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Smart India Hackathon 2026
+              Source-aware public infrastructure
             </div>
             <h2 className="text-2xl font-serif font-bold text-foreground">
               Open Digital Public Good
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              MEDIMESH is being developed as a civic prototype demonstrating how verified public healthcare data can transform citizen access, disaster response coordination, and healthcare accountability across India.
+              MEDIMESH is a healthcare information product exploring how traceable public data can improve citizen access, care navigation, and institutional accountability across India.
             </p>
             <div className="pt-2 flex justify-center gap-4">
               <Button as={Link} to="/discover" className="gap-2 text-sm font-semibold px-6 py-3">

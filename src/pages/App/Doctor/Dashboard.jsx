@@ -6,6 +6,8 @@ import FrostedPanel from '../../../components/common/FrostedPanel';
 import LoadingState from '../../../components/common/LoadingState';
 import { useDoctorPortal } from '../../../hooks/useDoctorPortal';
 import { useAuth } from '../../../hooks/useAuth';
+import { useHomeVisitBookings } from '../../../hooks/useHomeVisitBookings';
+import BookingCard from '../../../components/booking/BookingCard';
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -18,6 +20,7 @@ export default function DoctorDashboard() {
     affiliations: [],
   });
   const [loading, setLoading] = useState(true);
+  const { bookings: visitBookings, loading: visitsLoading } = useHomeVisitBookings({ audience: 'doctor' });
 
   useEffect(() => {
     async function load() {
@@ -109,6 +112,11 @@ export default function DoctorDashboard() {
           <span className="text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">Not Linked</span>
         )}
       </FrostedPanel>
+
+      <section aria-labelledby="visit-requests-heading">
+        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Care queue</p><h2 id="visit-requests-heading" className="mt-2 font-serif text-2xl font-semibold">Home visit requests</h2></div><Link to="/doctor/home-visit-requests" className="text-sm font-semibold text-primary hover:underline">Open request desk</Link></div>
+        {visitsLoading ? <div className="h-28 animate-pulse rounded-[20px] bg-muted/30" /> : visitBookings.filter(item => item.status === 'pending').length ? <div className="grid gap-4 lg:grid-cols-2">{visitBookings.filter(item => item.status === 'pending').slice(0, 2).map(item => <BookingCard key={item.id} booking={item} audience="doctor" to={`/doctor/home-visit-requests/${item.id}`} />)}</div> : <FrostedPanel className="rounded-[20px] p-5 text-sm text-muted-foreground">No patient requests are waiting for review.</FrostedPanel>}
+      </section>
     </AppPageContainer>
   );
 }

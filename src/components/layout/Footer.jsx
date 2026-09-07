@@ -23,7 +23,7 @@ export default function Footer() {
               <span className="text-xl font-extrabold tracking-[-0.045em]">MEDI<span className="text-[#8fd0c5]">MESH</span></span>
             </div>
             <p className="mt-3 max-w-lg text-sm leading-6 text-white/60">Healthcare discovery, comparison, and source-aware navigation—designed to make complex information easier to understand.</p>
-            <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">Smart India Hackathon 2026 · MVP demonstration</p>
+            <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">Source-aware healthcare information platform</p>
           </div>
           <Link to="/register" className="group flex min-h-12 w-fit items-center gap-3 rounded-[13px] border border-white/15 bg-white/[0.06] px-4 text-sm font-bold transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#8fd0c5]">
             Get started <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -38,7 +38,7 @@ export default function Footer() {
           </nav>
           <div className="flex flex-col gap-2 text-[10px] font-medium text-white/55 sm:flex-row sm:gap-5">
             <span>© {new Date().getFullYear()} MEDIMESH INDIA</span>
-            <span>Demonstration product · No medical advice</span>
+            <span>Healthcare information only · Not medical advice</span>
           </div>
         </div>
       </Container>

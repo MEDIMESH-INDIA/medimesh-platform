@@ -1,4 +1,4 @@
-import { MapPin, Building2, Stethoscope, ShieldCheck, ArrowRight, Award, Home, Phone, MessageCircle } from 'lucide-react';
+import { MapPin, Building2, Stethoscope, ShieldCheck, ArrowRight, Award, Home, CalendarDays } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import FrostedPanel from '../common/FrostedPanel';
 
@@ -24,6 +24,10 @@ export default function DoctorCard({ doctor = {} }) {
     : safeLocation.locality || safeLocation.city || 'Navi Mumbai';
 
   const primaryAffiliation = affiliations[0];
+  const isBookable = Boolean(homeVisit.enabled && homeVisit.days?.length && homeVisit.startTime && homeVisit.endTime);
+  const bookingPath = basePath
+    ? `/app/doctors/${slug}/book-home-visit`
+    : `/login?redirect=${encodeURIComponent(`/app/doctors/${slug}/book-home-visit`)}`;
 
   return (
     <FrostedPanel
@@ -109,44 +113,8 @@ export default function DoctorCard({ doctor = {} }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 w-full">
-          {homeVisit?.enabled && (!homeVisit?.contactPublic || (!homeVisit?.professionalPhone && !homeVisit?.whatsappNumber)) && (
-            <span className="text-xs text-muted-foreground ">Contact information not provided</span>
-          )}
-          {homeVisit?.enabled && homeVisit?.contactPublic && (homeVisit?.professionalPhone || homeVisit?.whatsappNumber) && (
-            <div className="flex items-center gap-2">
-              {homeVisit.professionalPhone && <button
-                type="button"
-                className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors border border-emerald-200"
-                aria-label="Call Doctor"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (doctor?.recordType === 'demo') {
-                    alert('Demo contact — calling disabled');
-                  } else if (homeVisit.professionalPhone) {
-                    window.location.href = `tel:${homeVisit.professionalPhone}`;
-                  }
-                }}
-              >
-                <Phone className="w-4 h-4" />
-              </button>}
-              {homeVisit.whatsappNumber && <button
-                type="button"
-                className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors border border-green-200"
-                aria-label="WhatsApp Doctor"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (doctor?.recordType === 'demo') {
-                    alert('Demo contact — WhatsApp disabled');
-                  } else if (homeVisit.whatsappNumber) {
-                    const text = encodeURIComponent(`Hello Dr. ${name}, I found your home visit profile on MEDIMESH. I would like to ask about a non-emergency home consultation.`);
-                    window.open(`https://wa.me/${homeVisit.whatsappNumber.replace(/[^0-9]/g, '')}?text=${text}`, '_blank');
-                  }
-                }}
-              >
-                <MessageCircle className="w-4 h-4" />
-              </button>}
-            </div>
-          )}
+          {homeVisit?.enabled && !isBookable && <span className="text-xs text-muted-foreground">Online schedule not provided</span>}
+          {isBookable && <Link to={bookingPath} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-3.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary-hover"><CalendarDays className="h-4 w-4" />Book home visit</Link>}
           <Link
             to={`${basePath}/doctors/${slug}`}
             className="ml-auto inline-flex min-h-10 items-center gap-2 rounded-xl border border-primary/15 bg-primary/5 px-3 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors shrink-0"
