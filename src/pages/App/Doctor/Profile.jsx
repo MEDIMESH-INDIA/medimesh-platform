@@ -9,35 +9,37 @@ import Toast from '../../../components/common/Toast';
 import { useDoctorPortal } from '../../../hooks/useDoctorPortal';
 
 export default function DoctorProfile() {
-  const { getProfile, updateProfile, loading: saving } = useDoctorPortal();
+  const { getCanonicalProfile, updateCanonicalProfile, loading: saving } = useDoctorPortal();
+  const [canonicalId, setCanonicalId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    public_display_name: '',
-    professional_summary: '',
-    years_of_experience: '',
+    full_name: '',
+    specialization: '',
+    experience_years: '',
+    locality: '',
     city: '',
     state: '',
-    slug: '',
   });
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
     async function load() {
-      const p = await getProfile();
+      const p = await getCanonicalProfile();
       if (p) {
+        setCanonicalId(p.id);
         setFormData({
-          public_display_name: p.public_display_name || '',
-          professional_summary: p.professional_summary || '',
-          years_of_experience: p.years_of_experience || '',
+          full_name: p.full_name || '',
+          specialization: p.specialization || '',
+          experience_years: p.experience_years || '',
+          locality: p.locality || '',
           city: p.city || '',
           state: p.state || '',
-          slug: p.slug || '',
         });
       }
       setLoading(false);
     }
     load();
-  }, [getProfile]);
+  }, [getCanonicalProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,10 +48,11 @@ export default function DoctorProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await updateProfile({
+    if (!canonicalId) return;
+    const result = await updateCanonicalProfile(canonicalId, {
       ...formData,
-      years_of_experience: formData.years_of_experience ? parseInt(formData.years_of_experience) : null,
-      slug: formData.slug || formData.public_display_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      experience_years: formData.experience_years ? parseInt(formData.experience_years) : null,
+      locality: formData.locality || formData.full_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     });
     
     if (result) {
@@ -60,6 +63,23 @@ export default function DoctorProfile() {
   };
 
   if (loading) return <AppPageContainer><LoadingState message="Loading profile..." /></AppPageContainer>;
+
+  if (!canonicalId) {
+    return (
+      <AppPageContainer className="!max-w-[700px] space-y-8">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-foreground mb-2 flex items-center gap-3">
+            <User className="w-8 h-8 text-primary" />
+            Professional Profile
+          </h1>
+        </div>
+        <FrostedPanel className="p-8 rounded-[24px] text-center border-amber-200 bg-amber-50/50">
+          <h2 className="text-xl font-semibold text-amber-800 mb-2">Profile Not Linked</h2>
+          <p className="text-amber-700">Your public MEDIMESH directory profile has not been linked yet.</p>
+        </FrostedPanel>
+      </AppPageContainer>
+    );
+  }
 
   return (
     <AppPageContainer className="!max-w-[800px] space-y-8">
@@ -76,36 +96,35 @@ export default function DoctorProfile() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid sm:grid-cols-2 gap-5">
             <FormField
-              id="public_display_name"
-              name="public_display_name"
+              id="full_name"
+              name="full_name"
               label="Public Display Name"
-              value={formData.public_display_name}
+              value={formData.full_name}
               onChange={handleChange}
               placeholder="e.g. Dr. Jane Smith"
               required
             />
             <FormField
-              id="years_of_experience"
-              name="years_of_experience"
+              id="experience_years"
+              name="experience_years"
               label="Years of Experience"
               type="number"
               min="0"
               max="100"
-              value={formData.years_of_experience}
+              value={formData.experience_years}
               onChange={handleChange}
               placeholder="e.g. 15"
             />
           </div>
           
           <FormField
-            id="professional_summary"
-            name="professional_summary"
-            label="Professional Summary / Bio"
-            as="textarea"
-            rows={4}
-            value={formData.professional_summary}
+            id="specialization"
+            name="specialization"
+            label="Primary Specialization"
+            
+            value={formData.specialization}
             onChange={handleChange}
-            placeholder="Write a brief professional bio..."
+            placeholder="e.g. Cardiologist"
           />
 
           <div className="grid sm:grid-cols-2 gap-5">

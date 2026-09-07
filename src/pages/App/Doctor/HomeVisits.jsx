@@ -16,15 +16,16 @@ const SERVICE_AREAS = [
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function DoctorHomeVisits() {
-  const { getProfile, updateProfile, loading: saving } = useDoctorPortal();
+  const { getCanonicalProfile, updateCanonicalProfile, loading: saving } = useDoctorPortal();
+  const [canonicalId, setCanonicalId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   
   const [formData, setFormData] = useState({
     offers_home_visits: false,
     home_visit_contact_public: false,
-    professional_contact_phone: '',
-    whatsapp_contact: '',
+    professional_phone: '',
+    whatsapp_number: '',
     home_visit_service_areas: [],
     home_visit_days: [],
     home_visit_start_time: '',
@@ -35,13 +36,14 @@ export default function DoctorHomeVisits() {
 
   useEffect(() => {
     async function load() {
-      const data = await getProfile();
+      const data = await getCanonicalProfile();
       if (data) {
+        setCanonicalId(data.id);
         setFormData({
           offers_home_visits: data.offers_home_visits || false,
           home_visit_contact_public: data.home_visit_contact_public || false,
-          professional_contact_phone: data.professional_contact_phone || '',
-          whatsapp_contact: data.whatsapp_contact || '',
+          professional_phone: data.professional_phone || '',
+          whatsapp_number: data.whatsapp_number || '',
           home_visit_service_areas: data.home_visit_service_areas || [],
           home_visit_days: data.home_visit_days || [],
           home_visit_start_time: data.home_visit_start_time || '',
@@ -53,7 +55,7 @@ export default function DoctorHomeVisits() {
       setLoading(false);
     }
     load();
-  }, [getProfile]);
+  }, [getCanonicalProfile]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -75,7 +77,8 @@ export default function DoctorHomeVisits() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await updateProfile({
+    if (!canonicalId) return;
+    const result = await updateCanonicalProfile(canonicalId, {
       ...formData,
       home_visit_fee: formData.home_visit_fee ? parseFloat(formData.home_visit_fee) : null
     });
@@ -228,20 +231,20 @@ export default function DoctorHomeVisits() {
               {formData.home_visit_contact_public && (
                 <div className="grid sm:grid-cols-2 gap-5 pt-2 border-t border-border/60">
                   <FormField
-                    id="professional_contact_phone"
-                    name="professional_contact_phone"
+                    id="professional_phone"
+                    name="professional_phone"
                     label="Professional Phone (Calling)"
                     type="tel"
-                    value={formData.professional_contact_phone}
+                    value={formData.professional_phone}
                     onChange={handleChange}
                     placeholder="+91..."
                   />
                   <FormField
-                    id="whatsapp_contact"
-                    name="whatsapp_contact"
+                    id="whatsapp_number"
+                    name="whatsapp_number"
                     label="Professional WhatsApp"
                     type="tel"
-                    value={formData.whatsapp_contact}
+                    value={formData.whatsapp_number}
                     onChange={handleChange}
                     placeholder="+91..."
                   />

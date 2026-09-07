@@ -16,7 +16,8 @@ const CANONICAL_SPECIALIZATIONS = [
 ];
 
 export default function DoctorSpecializations() {
-  const { getSpecializations, updateSpecializations, loading: saving } = useDoctorPortal();
+  const { getSpecializations, updateSpecializations, getCanonicalProfile, updateCanonicalProfile, loading: saving } = useDoctorPortal();
+  const [canonicalId, setCanonicalId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     primary_specialization: '',
@@ -27,7 +28,8 @@ export default function DoctorSpecializations() {
 
   useEffect(() => {
     async function load() {
-      const data = await getSpecializations();
+      const [data, canonicalProfile] = await Promise.all([getSpecializations(), getCanonicalProfile()]);
+      if (canonicalProfile) setCanonicalId(canonicalProfile.id);
       if (data) {
         setFormData({
           primary_specialization: data.primary_specialization || '',
@@ -38,7 +40,7 @@ export default function DoctorSpecializations() {
       setLoading(false);
     }
     load();
-  }, [getSpecializations]);
+  }, [getSpecializations, getCanonicalProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,6 +50,9 @@ export default function DoctorSpecializations() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const result = await updateSpecializations(formData);
+    if (result && canonicalId) {
+      await updateCanonicalProfile(canonicalId, { specialization: formData.primary_specialization });
+    }
     if (result) {
       setToast({ type: 'success', message: 'Specializations updated' });
     } else {

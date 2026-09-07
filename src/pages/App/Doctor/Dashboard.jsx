@@ -9,10 +9,10 @@ import { useAuth } from '../../../hooks/useAuth';
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
-  const { getProfile, getQualifications, getSpecializations, getAffiliations } = useDoctorPortal();
+  const { getProfile, getCanonicalProfile, getQualifications, getSpecializations, getAffiliations } = useDoctorPortal();
   
   const [data, setData] = useState({
-    docProfile: null,
+    docProfile: null, canonicalProfile: null,
     qualifications: [],
     specialization: null,
     affiliations: [],
@@ -22,23 +22,24 @@ export default function DoctorDashboard() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [docProfile, qualifications, specialization, affiliations] = await Promise.all([
+      const [docProfile, canonicalProfile, qualifications, specialization, affiliations] = await Promise.all([
         getProfile(),
+        getCanonicalProfile(),
         getQualifications(),
         getSpecializations(),
         getAffiliations()
       ]);
-      setData({ docProfile, qualifications, specialization, affiliations });
+      setData({ docProfile, canonicalProfile, qualifications, specialization, affiliations });
       setLoading(false);
     }
     load();
-  }, [getProfile, getQualifications, getSpecializations, getAffiliations]);
+  }, [getProfile, getCanonicalProfile, getQualifications, getSpecializations, getAffiliations]);
 
   if (loading) return <AppPageContainer><LoadingState message="Loading dashboard..." /></AppPageContainer>;
 
-  const { docProfile, qualifications, specialization, affiliations } = data;
+  const { docProfile, canonicalProfile, qualifications, specialization, affiliations } = data;
   
-  const profileComplete = docProfile?.public_display_name && docProfile?.years_of_experience && docProfile?.city;
+  const profileComplete = docProfile?.public_display_name && docProfile?.city;
   const hasSpec = specialization?.primary_specialization ? true : false;
   
   let completePoints = 0;
@@ -54,8 +55,8 @@ export default function DoctorDashboard() {
     { label: 'Qualifications', status: `${qualifications.length} records`, icon: Award, href: '/doctor/qualifications' },
     { label: 'Specializations', status: hasSpec ? specialization.primary_specialization : 'None set', icon: Stethoscope, href: '/doctor/specializations' },
     { label: 'Affiliations', status: `${affiliations.length} hospitals`, icon: Building2, href: '/doctor/affiliations' },
-    { label: 'Home Visits', status: docProfile?.offers_home_visits ? 'Enabled' : 'Disabled', icon: Home, href: '/doctor/home-visits' },
-    { label: 'Verification', status: profile?.verification_status || 'Pending', icon: ShieldCheck, href: '/doctor/verification' },
+    { label: 'Home Visits', status: canonicalProfile ? (canonicalProfile.offers_home_visits ? 'Enabled' : 'Disabled') : 'Not Linked', icon: Home, href: '/doctor/home-visits' },
+    { label: 'Verification', status: canonicalProfile ? (canonicalProfile.verification_status || 'Pending') : (profile?.verification_status || 'Pending'), icon: ShieldCheck, href: '/doctor/verification' },
   ];
 
   return (
@@ -97,12 +98,16 @@ export default function DoctorDashboard() {
           <h3 className="font-semibold text-foreground mb-1">Public Profile</h3>
           <p className="text-sm text-muted-foreground">See how patients view your profile in the directory.</p>
         </div>
-        <Link 
-          to={docProfile?.slug ? `/doctors/${docProfile.slug}` : '/doctors'}
-          className="px-5 py-2.5 rounded-xl bg-white text-primary font-semibold text-sm border border-primary/20 shadow-sm hover:shadow-md transition-all whitespace-nowrap"
-        >
-          View Profile
-        </Link>
+        {canonicalProfile ? (
+          <Link 
+            to={`/doctors/${canonicalProfile.slug}`}
+            className="px-5 py-2.5 rounded-xl bg-white text-primary font-semibold text-sm border border-primary/20 shadow-sm hover:shadow-md transition-all whitespace-nowrap"
+          >
+            View Profile
+          </Link>
+        ) : (
+          <span className="text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">Not Linked</span>
+        )}
       </FrostedPanel>
     </AppPageContainer>
   );

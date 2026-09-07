@@ -4,21 +4,26 @@ import AppPageContainer from '../../../components/layout/AppPageContainer';
 import FrostedPanel from '../../../components/common/FrostedPanel';
 import LoadingState from '../../../components/common/LoadingState';
 import { useAuth } from '../../../hooks/useAuth';
+import { useDoctorPortal } from '../../../hooks/useDoctorPortal';
 
 export default function DoctorVerification() {
   const { profile } = useAuth();
+  const { getCanonicalProfile } = useDoctorPortal();
   const [loading, setLoading] = useState(true);
+  const [canonicalData, setCanonicalData] = useState(null);
 
   useEffect(() => {
-    // In a real app we'd fetch verification_requests here.
-    // For now, we simulate network loading and rely on profile.verification_status
-    const timer = setTimeout(() => setLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
+    async function load() {
+      const p = await getCanonicalProfile();
+      setCanonicalData(p);
+      setLoading(false);
+    }
+    load();
+  }, [getCanonicalProfile]);
 
   if (loading) return <AppPageContainer><LoadingState message="Loading verification status..." /></AppPageContainer>;
 
-  const status = profile?.verification_status || 'unreviewed';
+  const status = canonicalData ? canonicalData.verification_status : (profile?.verification_status || 'unreviewed');
   
   const statusConfig = {
     verified: { icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'Verified Practitioner' },
@@ -48,6 +53,27 @@ export default function DoctorVerification() {
             <span>{current.text}</span>
           </div>
         </div>
+
+        
+        {canonicalData && (
+          <div className="py-6 border-b border-border/60">
+            <h3 className="font-semibold text-foreground mb-4">Registration Details</h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="p-3 bg-surface/50 border border-border/60 rounded-xl">
+                <span className="block text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Registration Number</span>
+                <span className="font-medium text-foreground">{canonicalData.medical_registration_number || 'Not provided'}</span>
+              </div>
+              <div className="p-3 bg-surface/50 border border-border/60 rounded-xl">
+                <span className="block text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Medical Council</span>
+                <span className="font-medium text-foreground">{canonicalData.medical_council || 'Not provided'}</span>
+              </div>
+              <div className="p-3 bg-surface/50 border border-border/60 rounded-xl">
+                <span className="block text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Registration Year</span>
+                <span className="font-medium text-foreground">{canonicalData.registration_year || 'Not provided'}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4 text-sm text-muted-foreground">
           <div className="p-4 rounded-xl bg-surface/50 border border-border/60 flex items-start gap-3">

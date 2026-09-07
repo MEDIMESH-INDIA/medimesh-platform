@@ -1,4 +1,8 @@
-import { useState, useCallback } from 'react';
+import fs from 'fs';
+
+let content = fs.readFileSync('src/hooks/useDoctorPortal.js', 'utf8');
+
+const replacement = `import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -215,4 +219,6 @@ export function useDoctorPortal() {
     addAffiliation,
     deleteAffiliation
   };
-}
+}`;
+
+fs.writeFileSync('src/hooks/useDoctorPortal.js', replacement);
