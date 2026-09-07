@@ -43,6 +43,18 @@ export function normalizeCanonicalDoctor(doc) {
       checkedAt: doc.created_at || null,
     },
     recordType: 'canonical',
+    homeVisit: {
+      enabled: !!doc.offers_home_visits,
+      contactPublic: !!doc.home_visit_contact_public,
+      serviceAreas: Array.isArray(doc.home_visit_service_areas) ? doc.home_visit_service_areas : [],
+      days: Array.isArray(doc.home_visit_days) ? doc.home_visit_days : [],
+      startTime: doc.home_visit_start_time || null,
+      endTime: doc.home_visit_end_time || null,
+      fee: doc.home_visit_fee || null,
+      note: doc.home_visit_note || null,
+      professionalPhone: doc.professional_contact_phone || null,
+      whatsappNumber: doc.whatsapp_contact || null,
+    }
   };
 }
 
@@ -56,6 +68,9 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
       .select(`
         doctor_id, slug, public_display_name, professional_summary, years_of_experience,
         city, state, consultation_modes, publication_status, data_status, created_at,
+        offers_home_visits, professional_contact_phone, whatsapp_contact,
+        home_visit_contact_public, home_visit_service_areas, home_visit_days,
+        home_visit_start_time, home_visit_end_time, home_visit_fee, home_visit_note,
         doctor_hospital_affiliations(
           id, department, position, is_current, verification_status,
           hospitals(id, slug, name, city, locality)
@@ -84,14 +99,20 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
   const specFilter = (filters.specialization || '').toLowerCase();
   const hospitalFilter = (filters.hospital || '').toLowerCase();
   const languageFilter = (filters.language || '').toLowerCase();
+  const serviceAreaFilter = (filters.serviceArea || '').toLowerCase();
+  const homeVisitsOnly = !!filters.homeVisitsOnly;
 
   const filtered = starterDoctors.filter(doc => {
-    const nameMatch = !q || doc.name.toLowerCase().includes(q) || doc.specialization.toLowerCase().includes(q);
+    if (homeVisitsOnly && !doc.homeVisit?.enabled) return false;
+
+    const nameMatch = !q || doc.name.toLowerCase().includes(q) || doc.specialization.toLowerCase().includes(q) || (doc.homeVisit?.serviceAreas || []).some(a => a.toLowerCase().includes(q));
     const locMatch = !locationFilter || (doc.location.city || '').toLowerCase().includes(locationFilter) || (doc.location.locality || '').toLowerCase().includes(locationFilter);
     const specMatch = !specFilter || doc.specialization.toLowerCase().includes(specFilter);
     const hospMatch = !hospitalFilter || doc.affiliations.some(a => (a.hospitalName || '').toLowerCase().includes(hospitalFilter));
     const langMatch = !languageFilter || (doc.languages || []).some(l => l.toLowerCase().includes(languageFilter));
-    return nameMatch && locMatch && specMatch && hospMatch && langMatch;
+    const areaMatch = !serviceAreaFilter || (doc.homeVisit?.serviceAreas || []).some(a => a.toLowerCase().includes(serviceAreaFilter));
+
+    return nameMatch && locMatch && specMatch && hospMatch && langMatch && areaMatch;
   });
 
   if (sort === 'name_desc') {
@@ -119,6 +140,9 @@ export async function getDoctorBySlug(slug) {
       .select(`
         doctor_id, slug, public_display_name, professional_summary, years_of_experience,
         city, state, consultation_modes, publication_status, data_status, created_at,
+        offers_home_visits, professional_contact_phone, whatsapp_contact,
+        home_visit_contact_public, home_visit_service_areas, home_visit_days,
+        home_visit_start_time, home_visit_end_time, home_visit_fee, home_visit_note,
         doctor_hospital_affiliations(
           id, department, position, is_current, verification_status,
           hospitals(id, slug, name, city, locality)
@@ -144,20 +168,20 @@ export async function getDoctorBySlug(slug) {
 
 export async function getDoctorFacets() {
   if (!USE_DEMO_FALLBACK) {
-    // In canonical-only mode, we'd normally query the DB for unique specializations/localities.
-    // Since there are 0 records in DB, returning empty for now.
-    return { locations: [], specializations: [], hospitals: [], languages: [] };
+    return { locations: [], specializations: [], hospitals: [], languages: [], serviceAreas: [] };
   }
 
   const locations = [...new Set(starterDoctors.flatMap(d => [d.location.locality, d.location.city]).filter(Boolean))].sort();
   const specializations = [...new Set(starterDoctors.map(d => d.specialization).filter(Boolean))].sort();
   const hospitals = [...new Set(starterDoctors.flatMap(d => d.affiliations.map(a => a.hospitalName)).filter(Boolean))].sort();
   const languages = [...new Set(starterDoctors.flatMap(d => d.languages || []).filter(Boolean))].sort();
+  const serviceAreas = [...new Set(starterDoctors.flatMap(d => d.homeVisit?.serviceAreas || []).filter(Boolean))].sort();
 
   return {
     locations,
     specializations,
     hospitals,
     languages,
+    serviceAreas,
   };
 }

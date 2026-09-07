@@ -23,6 +23,8 @@ import PublicHospitalDetail from "./pages/PublicHospitalDetail";
 import PatientHospitalDetail from "./pages/App/PatientHospitalDetail";
 import PublicDoctors from "./pages/PublicDoctors";
 import PatientDoctors from "./pages/App/PatientDoctors";
+import PublicHomeVisits from "./pages/PublicHomeVisits";
+import PatientHomeVisits from "./pages/App/PatientHomeVisits";
 import PublicDoctorDetail from "./pages/PublicDoctorDetail";
 import PatientDoctorDetail from "./pages/App/PatientDoctorDetail";
 import PublicForDoctors from "./pages/PublicForDoctors";
@@ -46,6 +48,7 @@ function App() {
         <Route path="/discover" element={<PublicDiscover />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/doctors" element={<PublicDoctors />} />
+        <Route path="/home-visits" element={<PublicHomeVisits />} />
         <Route path="/doctors/:slug" element={<PublicDoctorDetail />} />
         <Route path="/for-doctors" element={<PublicForDoctors />} />
         <Route path="/for-hospitals" element={<PublicForHospitals />} />
@@ -97,6 +100,11 @@ function App() {
         <Route path="/app/doctors" element={
           <RoleRoute allowedRoles={['patient']}>
             <PatientDoctors />
+          </RoleRoute>
+        } />
+        <Route path="/app/home-visits" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientHomeVisits />
           </RoleRoute>
         } />
         <Route path="/app/doctors/:slug" element={

@@ -1,4 +1,4 @@
-import { MapPin, Building2, Stethoscope, ShieldCheck, ArrowRight, Award } from 'lucide-react';
+import { MapPin, Building2, Stethoscope, ShieldCheck, ArrowRight, Award, Home, Phone, MessageCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import FrostedPanel from '../common/FrostedPanel';
 
@@ -17,6 +17,7 @@ export default function DoctorCard({ doctor = {} }) {
     languages = [],
     consultationModes = [],
     source = {},
+    homeVisit = {},
   } = doctor || {};
 
   const safeLocation = location || {};
@@ -48,11 +49,19 @@ export default function DoctorCard({ doctor = {} }) {
           </div>
         </div>
 
-        {yearsOfExperience && (
-          <span className="shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
-            {yearsOfExperience} yrs exp
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1.5 shrink-0">
+          {yearsOfExperience && (
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
+              {yearsOfExperience} yrs exp
+            </span>
+          )}
+          {homeVisit?.enabled && (
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200/60 whitespace-nowrap flex items-center gap-1">
+              <Home className="w-3 h-3" />
+              Home Visits
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Qualifications & Location */}
@@ -120,7 +129,6 @@ export default function DoctorCard({ doctor = {} }) {
       <div className="pt-4 border-t border-border/60 flex items-center justify-between gap-3 mt-auto">
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground truncate">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span className="truncate">{source?.reviewStatus === 'verified' ? 'Verified Practitioner' : 'Public Directory'}</span>
           <span className="truncate">
             {doctor?.recordType === 'demo' || source?.name?.includes('Demonstration')
               ? 'Demonstration Profile'
@@ -128,13 +136,50 @@ export default function DoctorCard({ doctor = {} }) {
           </span>
         </div>
 
-        <Link
-          to={`${basePath}/doctors/${slug}`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
-        >
-          <span>View profile</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex items-center gap-3 shrink-0">
+          {homeVisit?.enabled && homeVisit?.contactPublic && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors border border-emerald-200"
+                aria-label="Call Doctor"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (doctor?.recordType === 'demo') {
+                    alert('Demo contact — calling disabled');
+                  } else if (homeVisit.professionalPhone) {
+                    window.location.href = `tel:${homeVisit.professionalPhone}`;
+                  }
+                }}
+              >
+                <Phone className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors border border-green-200"
+                aria-label="WhatsApp Doctor"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (doctor?.recordType === 'demo') {
+                    alert('Demo contact — WhatsApp disabled');
+                  } else if (homeVisit.whatsappNumber) {
+                    const text = encodeURIComponent(`Hello Dr. ${name}, I found your home visit profile on MEDIMESH. I would like to ask about a non-emergency home consultation.`);
+                    window.open(`https://wa.me/${homeVisit.whatsappNumber.replace(/[^0-9]/g, '')}?text=${text}`, '_blank');
+                  }
+                }}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          <Link
+            to={`${basePath}/doctors/${slug}`}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors shrink-0"
+          >
+            <span>View</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     </FrostedPanel>
   );

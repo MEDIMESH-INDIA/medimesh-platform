@@ -64,6 +64,18 @@ export const starterDoctors = [
       checkedAt: '2026-09-01T00:00:00Z',
     },
     recordType: 'demo',
+    homeVisit: {
+      enabled: true,
+      contactPublic: true,
+      serviceAreas: ['Vashi', 'Nerul', 'Koparkhairane'],
+      days: ['Mon', 'Wed', 'Fri'],
+      startTime: '18:00',
+      endTime: '21:00',
+      fee: 1500,
+      note: 'Available for post-operative care and elderly patients.',
+      professionalPhone: '+919999999991',
+      whatsappNumber: '+919999999991'
+    }
   },
   {
     id: 'doc-003',
@@ -163,6 +175,18 @@ export const starterDoctors = [
       checkedAt: '2026-09-01T00:00:00Z',
     },
     recordType: 'demo',
+    homeVisit: {
+      enabled: true,
+      contactPublic: true,
+      serviceAreas: ['Kharghar', 'CBD Belapur'],
+      days: ['Tue', 'Thu', 'Sat'],
+      startTime: '17:00',
+      endTime: '20:00',
+      fee: 2000,
+      note: 'Ante-natal home checkups and post-partum care.',
+      professionalPhone: '+919999999992',
+      whatsappNumber: '+919999999992'
+    }
   },
   {
     id: 'doc-006',

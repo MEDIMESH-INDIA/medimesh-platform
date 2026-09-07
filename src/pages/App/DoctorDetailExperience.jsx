@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Stethoscope, Award, MapPin, Building2, ShieldCheck, Clock, CheckCircle2, ChevronRight, Share2, AlertCircle, Database } from 'lucide-react';
+import { ArrowLeft, Stethoscope, Award, MapPin, Building2, ShieldCheck, Clock, CheckCircle2, ChevronRight, Share2, AlertCircle, Database, Home, Phone, MessageCircle, Calendar } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import FrostedPanel from '../../components/common/FrostedPanel';
 import EmptyState from '../../components/common/EmptyState';
@@ -191,6 +191,100 @@ export default function DoctorDetailExperience() {
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {summary}
               </p>
+            </FrostedPanel>
+          )}
+
+          {/* Home Visits Section */}
+          {doctor.homeVisit?.enabled && (
+            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-5 border-emerald-100/50 bg-emerald-50/10">
+              <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <h2 className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
+                  <Home className="w-5 h-5 text-emerald-600" />
+                  <span>Home Consultations</span>
+                </h2>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Available
+                </span>
+              </div>
+              
+              <div className="grid sm:grid-cols-2 gap-5">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-[11px] font-bold tracking-wider uppercase text-muted-foreground mb-1.5 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Service Areas</h4>
+                    <p className="text-sm font-medium text-foreground">{doctor.homeVisit.serviceAreas?.join(', ') || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] font-bold tracking-wider uppercase text-muted-foreground mb-1.5 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> Available Days</h4>
+                    <p className="text-sm font-medium text-foreground">{doctor.homeVisit.days?.join(', ') || 'Contact for schedule'}</p>
+                  </div>
+                  {(doctor.homeVisit.startTime || doctor.homeVisit.endTime) && (
+                    <div>
+                      <h4 className="text-[11px] font-bold tracking-wider uppercase text-muted-foreground mb-1.5 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Time Window</h4>
+                      <p className="text-sm font-medium text-foreground">
+                        {doctor.homeVisit.startTime ? doctor.homeVisit.startTime.substring(0, 5) : ''} 
+                        {doctor.homeVisit.startTime && doctor.homeVisit.endTime ? ' - ' : ''}
+                        {doctor.homeVisit.endTime ? doctor.homeVisit.endTime.substring(0, 5) : ''}
+                      </p>
+                    </div>
+                  )}
+                  {doctor.homeVisit.fee && (
+                    <div>
+                      <h4 className="text-[11px] font-bold tracking-wider uppercase text-muted-foreground mb-1.5">Consultation Fee</h4>
+                      <p className="text-sm font-medium text-foreground">₹{doctor.homeVisit.fee}</p>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-4">
+                  {doctor.homeVisit.note && (
+                    <div className="bg-white rounded-xl p-4 border border-border/60 shadow-sm text-sm text-muted-foreground leading-relaxed">
+                      {doctor.homeVisit.note}
+                    </div>
+                  )}
+                  
+                  {doctor.homeVisit.contactPublic && (
+                    <div className="pt-2 flex flex-col gap-2.5">
+                      {doctor.homeVisit.professionalPhone && (
+                        <button
+                          type="button"
+                          className="w-full py-2.5 bg-emerald-50 text-emerald-700 font-semibold text-sm rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-200 flex items-center justify-center gap-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (doctor?.recordType === 'demo') {
+                              alert('Demo contact — calling disabled');
+                            } else {
+                              window.location.href = `tel:${doctor.homeVisit.professionalPhone}`;
+                            }
+                          }}
+                        >
+                          <Phone className="w-4 h-4" />
+                          Call to Request Visit
+                        </button>
+                      )}
+                      
+                      {doctor.homeVisit.whatsappNumber && (
+                        <button
+                          type="button"
+                          className="w-full py-2.5 bg-green-50 text-green-700 font-semibold text-sm rounded-xl hover:bg-green-100 transition-colors border border-green-200 flex items-center justify-center gap-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (doctor?.recordType === 'demo') {
+                              alert('Demo contact — WhatsApp disabled');
+                            } else {
+                              const text = encodeURIComponent(`Hello Dr. ${doctor.name}, I found your home visit profile on MEDIMESH. I would like to ask about a non-emergency home consultation.`);
+                              window.open(`https://wa.me/${doctor.homeVisit.whatsappNumber.replace(/[^0-9]/g, '')}?text=${text}`, '_blank');
+                            }
+                          }}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          WhatsApp
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </FrostedPanel>
           )}
 
