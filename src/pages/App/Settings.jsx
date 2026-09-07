@@ -55,7 +55,7 @@ export default function Settings() {
 
   return (
     <AppPageContainer>
-      <div className="max-w-[920px] space-y-8">
+      <div className="space-y-7">
         <PageHeader
           eyebrow="Account control"
           title="Account Settings"
@@ -64,7 +64,7 @@ export default function Settings() {
 
         <div className="space-y-6">
           {/* 1. Account Identity */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3 pb-4 border-b border-border/60">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                 <Mail className="h-5 w-5" />
@@ -121,7 +121,7 @@ export default function Settings() {
           </FrostedPanel>
 
           {/* 2. Security */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3 pb-4 border-b border-border/60">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                 <Shield className="h-5 w-5" />
@@ -169,7 +169,7 @@ export default function Settings() {
           </FrostedPanel>
 
           {/* 3. Platform Preferences */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3 pb-4 border-b border-border/60">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                 <Sliders className="h-5 w-5" />
@@ -214,7 +214,7 @@ export default function Settings() {
           </FrostedPanel>
 
           {/* 4. Session & Sign Out */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 border-red-200/50 bg-red-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 border-red-200/50 bg-red-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
             <div className="flex items-start gap-3">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-100 text-red-700 shrink-0">
                 <LogOut className="h-5 w-5" />

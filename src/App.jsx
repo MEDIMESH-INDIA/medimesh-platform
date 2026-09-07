@@ -39,12 +39,24 @@ import DoctorSpecializations from "./pages/App/Doctor/Specializations";
 import DoctorAffiliations from "./pages/App/Doctor/Affiliations";
 import DoctorVerification from "./pages/App/Doctor/Verification";
 import DoctorHomeVisits from "./pages/App/Doctor/HomeVisits";
+import DoctorHomeVisitRequests from "./pages/App/Doctor/HomeVisitRequests";
+import DoctorHomeVisitRequestDetail from "./pages/App/Doctor/HomeVisitRequestDetail";
 import DoctorSettings from "./pages/App/Doctor/Settings";
 import HospitalDashboard from "./pages/App/HospitalDashboard";
+import HospitalProfile from "./pages/App/Hospital/Profile";
+import HospitalSpecialties from "./pages/App/Hospital/Specialties";
+import HospitalFacilities from "./pages/App/Hospital/Facilities";
+import HospitalServices from "./pages/App/Hospital/Services";
+import HospitalDoctors from "./pages/App/Hospital/Doctors";
+import HospitalVerification from "./pages/App/Hospital/Verification";
+import HospitalSettings from "./pages/App/Hospital/Settings";
 import AdminDashboard from "./pages/App/AdminDashboard";
 import Profile from "./pages/App/Profile";
 import Settings from "./pages/App/Settings";
 import Onboarding from "./pages/App/Onboarding";
+import HomeVisitBooking from "./pages/App/Patient/HomeVisitBooking";
+import PatientHomeVisitBookings from "./pages/App/Patient/HomeVisitBookings";
+import PatientHomeVisitBookingDetail from "./pages/App/Patient/HomeVisitBookingDetail";
 
 function App() {
   return (
@@ -119,6 +131,21 @@ function App() {
             <PatientDoctorDetail />
           </RoleRoute>
         } />
+        <Route path="/app/doctors/:slug/book-home-visit" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <HomeVisitBooking />
+          </RoleRoute>
+        } />
+        <Route path="/app/home-visit-bookings" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientHomeVisitBookings />
+          </RoleRoute>
+        } />
+        <Route path="/app/home-visit-bookings/:id" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientHomeVisitBookingDetail />
+          </RoleRoute>
+        } />
         
         {/* Doctor Routes */}
         <Route path="/doctor" element={
@@ -156,6 +183,16 @@ function App() {
             <DoctorHomeVisits />
           </RoleRoute>
         } />
+        <Route path="/doctor/home-visit-requests" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorHomeVisitRequests />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/home-visit-requests/:id" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorHomeVisitRequestDetail />
+          </RoleRoute>
+        } />
         <Route path="/doctor/settings" element={
           <RoleRoute allowedRoles={['doctor']}>
             <DoctorSettings />
@@ -166,6 +203,41 @@ function App() {
         <Route path="/hospital" element={
           <RoleRoute allowedRoles={['hospital']}>
             <HospitalDashboard />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/profile" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalProfile />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/specialties" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalSpecialties />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/facilities" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalFacilities />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/services" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalServices />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/doctors" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalDoctors />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/verification" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalVerification />
+          </RoleRoute>
+        } />
+        <Route path="/hospital/settings" element={
+          <RoleRoute allowedRoles={['hospital']}>
+            <HospitalSettings />
           </RoleRoute>
         } />
         

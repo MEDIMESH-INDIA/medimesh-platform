@@ -4,9 +4,12 @@ import { supabase } from '../supabase/client';
 const BASE_SELECT = `
   id, slug, name, locality, city, state, country, hospital_type,
   address_line_1, address_line_2, pin_code, public_phone, public_email, website, year_established,
+  latitude, longitude, google_place_id,
   total_beds, icu_beds, emergency_department, ambulance_available,
   hospital_evidence(checked_at, review_status, data_sources(name, source_type))
 `;
+const LEGACY_BASE_SELECT = BASE_SELECT.replace(', google_place_id', '');
+const isMissingPlaceIdColumn = error => error?.code === '42703' || String(error?.message || '').includes('google_place_id');
 
 const rowsFrom = value => Array.isArray(value) ? value.filter(Boolean) : [];
 const cleanSearchValue = value => String(value ?? '').replace(/[,().%*]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -19,6 +22,9 @@ export function normalizeHospital(record, recordType = 'canonical') {
     .filter(name => typeof name === 'string');
   const facilities = rowsFrom(hospital.hospital_facilities)
     .map(item => item.facilities?.name)
+    .filter(name => typeof name === 'string');
+  const services = rowsFrom(hospital.hospital_services_catalog)
+    .map(item => item.services?.name)
     .filter(name => typeof name === 'string');
 
   let provenance = null;
@@ -56,6 +62,7 @@ export function normalizeHospital(record, recordType = 'canonical') {
     type: hospital.hospital_type,
     specialties,
     facilities,
+    services,
     metrics: {
       emergency: hospital.emergency_department ?? null,
       ambulance: hospital.ambulance_available ?? null,
@@ -69,6 +76,11 @@ export function normalizeHospital(record, recordType = 'canonical') {
       website: hospital.website,
     },
     yearEstablished: hospital.year_established ?? null,
+    map: {
+      latitude: hospital.latitude ?? null,
+      longitude: hospital.longitude ?? null,
+      placeId: hospital.google_place_id || null,
+    },
     recordType,
   };
 }
@@ -82,6 +94,7 @@ export function normalizeDemoHospital(hospital) {
     type: hospital.type,
     specialties: hospital.specialties || [],
     facilities: hospital.facilities || [],
+    services: [],
     metrics: { emergency: null, ambulance: null, totalBeds: null, icuBeds: null },
     provenance: hospital.trustMetadata ? {
       sourceType: 'demonstration',
@@ -91,6 +104,7 @@ export function normalizeDemoHospital(hospital) {
     } : null,
     contact: { phone: null, email: null, website: null },
     yearEstablished: null,
+    map: { latitude: null, longitude: null, placeId: null },
     recordType: 'demo',
   };
 }
@@ -117,21 +131,22 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
   const facilityRelation = filters.facility
     ? 'hospital_facilities!inner(facilities!inner(name))'
     : 'hospital_facilities(facilities(name))';
-  let query = supabase
-    .from('hospitals')
-    .select(`${BASE_SELECT}, ${specialtyRelation}, ${facilityRelation}`, { count: 'exact' })
-    .eq('publication_status', 'published');
-
   const search = cleanSearchValue(filters.q);
-  if (search) query = query.or(`name.ilike.%${search}%,locality.ilike.%${search}%,city.ilike.%${search}%`);
-  if (filters.location) query = query.or(`locality.eq.${filters.location},city.eq.${filters.location}`);
-  if (filters.type) query = query.eq('hospital_type', filters.type);
-  if (filters.specialty) query = query.eq('hospital_specialties.specialties.name', filters.specialty);
-  if (filters.facility) query = query.eq('hospital_facilities.facilities.name', filters.facility);
-
-  const { data, error, count } = await query
-    .order('name', { ascending: sort !== 'name_desc' })
-    .range(offset, offset + pageSize - 1);
+  const execute = selectFields => {
+    let query = supabase
+      .from('hospitals')
+      .select(`${selectFields}, ${specialtyRelation}, ${facilityRelation}, hospital_services_catalog(services(name))`, { count: 'exact' })
+      .eq('publication_status', 'published');
+    if (search) query = query.or(`name.ilike.%${search}%,locality.ilike.%${search}%,city.ilike.%${search}%`);
+    if (filters.location) query = query.or(`locality.eq.${filters.location},city.eq.${filters.location}`);
+    if (filters.type) query = query.eq('hospital_type', filters.type);
+    if (filters.specialty) query = query.eq('hospital_specialties.specialties.name', filters.specialty);
+    if (filters.facility) query = query.eq('hospital_facilities.facilities.name', filters.facility);
+    return query.order('name', { ascending: sort !== 'name_desc' }).range(offset, offset + pageSize - 1);
+  };
+  let response = await execute(BASE_SELECT);
+  if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
+  const { data, error, count } = response;
   if (error) throw error;
 
   const hospitals = (data || []).map(record => normalizeHospital(record, 'canonical'));
@@ -170,12 +185,15 @@ export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
     return hospital ? normalizeDemoHospital(hospital) : null;
   }
 
-  const { data, error } = await supabase
-    .from('hospitals')
-    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))`)
-    .eq('slug', slug)
-    .eq('publication_status', 'published')
-    .maybeSingle();
+  const execute = selectFields => supabase
+      .from('hospitals')
+      .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
+      .eq('slug', slug)
+      .eq('publication_status', 'published')
+      .maybeSingle();
+  let response = await execute(BASE_SELECT);
+  if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
+  const { data, error } = response;
   if (error) throw error;
   return data ? normalizeHospital(data, 'canonical') : null;
 }
@@ -190,11 +208,14 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical' } = {}) {
       .map(normalizeDemoHospital);
   }
 
-  const { data, error } = await supabase
-    .from('hospitals')
-    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))`)
-    .in('slug', uniqueSlugs)
-    .eq('publication_status', 'published');
+  const execute = selectFields => supabase
+      .from('hospitals')
+      .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
+      .in('slug', uniqueSlugs)
+      .eq('publication_status', 'published');
+  let response = await execute(BASE_SELECT);
+  if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
+  const { data, error } = response;
   if (error) throw error;
   const bySlug = new Map((data || []).map(record => [record.slug, normalizeHospital(record, 'canonical')]));
   return uniqueSlugs.map(slug => bySlug.get(slug)).filter(Boolean);

@@ -69,7 +69,7 @@ export default function DoctorQualifications() {
   if (loading && qualifications.length === 0) return <AppPageContainer><LoadingState message="Loading qualifications..." /></AppPageContainer>;
 
   return (
-    <AppPageContainer className="!max-w-[800px] space-y-8">
+    <AppPageContainer className="space-y-8">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
       <div className="flex items-center justify-between gap-4">
@@ -85,7 +85,7 @@ export default function DoctorQualifications() {
       </div>
 
       {adding && (
-        <FrostedPanel className="p-6 rounded-[24px] bg-surface/50 border-primary/20">
+        <FrostedPanel className="p-6 rounded-[20px] bg-surface/50 border-primary/20">
           <form onSubmit={handleAdd} className="space-y-5">
             <h3 className="font-semibold text-foreground mb-2">New Qualification Entry</h3>
             <div className="grid sm:grid-cols-2 gap-5">
@@ -125,7 +125,7 @@ export default function DoctorQualifications() {
         </FrostedPanel>
       )}
 
-      <FrostedPanel className="p-6 sm:p-8 rounded-[24px]">
+      <FrostedPanel className="p-6 sm:p-8 rounded-[20px]">
         {qualifications.length > 0 ? (
           <div className="space-y-4">
             {qualifications.map(q => (

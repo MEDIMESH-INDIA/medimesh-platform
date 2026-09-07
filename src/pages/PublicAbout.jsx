@@ -58,16 +58,16 @@ export default function PublicAbout() {
   ];
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-8 sm:py-10">
       <Container>
-        <div className="max-w-4xl mx-auto space-y-16">
+        <div className="space-y-8">
           {/* Header */}
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="space-y-3 max-w-[720px]">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
               <Sparkles className="w-3.5 h-3.5" />
               Civic Digital Healthcare Infrastructure
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-[42px] font-serif font-bold text-foreground tracking-tight">
               Rebuilding Trust in Healthcare Discovery
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -76,7 +76,7 @@ export default function PublicAbout() {
           </div>
 
           {/* Problem & Solution Statement */}
-          <FrostedPanel variant="elevated" className="rounded-[28px] p-8 sm:p-10 border-border/80 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-5 sm:p-7 border-border/80 space-y-6">
             <div className="space-y-3">
               <h2 className="text-2xl font-serif font-bold text-foreground">
                 The Healthcare Information Gap in India
@@ -128,7 +128,7 @@ export default function PublicAbout() {
 
             <div className="grid sm:grid-cols-2 gap-6">
               {pillars.map(pillar => (
-                <FrostedPanel key={pillar.title} variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-3 border-border/80">
+                <FrostedPanel key={pillar.title} variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-3 border-border/80">
                   <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
                     <pillar.icon className="w-5 h-5" />
                   </div>
@@ -142,7 +142,7 @@ export default function PublicAbout() {
           </div>
 
           {/* Regional Scope & Roadmap */}
-          <FrostedPanel variant="elevated" className="rounded-[28px] p-8 sm:p-10 border-border/80 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-5 sm:p-7 border-border/80 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-serif font-bold text-foreground">
@@ -177,7 +177,7 @@ export default function PublicAbout() {
 
           {/* Stakeholder Network Section */}
           <div className="grid sm:grid-cols-3 gap-6">
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 border-border/80 space-y-3">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 border-border/80 space-y-3">
               <HeartPulse className="w-8 h-8 text-primary" />
               <h3 className="font-serif font-semibold text-base text-foreground">For Patients</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -188,7 +188,7 @@ export default function PublicAbout() {
               </Link>
             </FrostedPanel>
 
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 border-border/80 space-y-3">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 border-border/80 space-y-3">
               <Stethoscope className="w-8 h-8 text-primary" />
               <h3 className="font-serif font-semibold text-base text-foreground">For Doctors</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -199,7 +199,7 @@ export default function PublicAbout() {
               </Link>
             </FrostedPanel>
 
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 border-border/80 space-y-3">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 border-border/80 space-y-3">
               <Building2 className="w-8 h-8 text-primary" />
               <h3 className="font-serif font-semibold text-base text-foreground">For Hospitals</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -211,17 +211,17 @@ export default function PublicAbout() {
             </FrostedPanel>
           </div>
 
-          {/* Hackathon Project Callout */}
+          {/* Product mission callout */}
           <FrostedPanel variant="elevated" className="rounded-[28px] p-8 border-border/80 bg-gradient-to-br from-primary/5 via-surface to-surface text-center space-y-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Smart India Hackathon 2026
+              Source-aware public infrastructure
             </div>
             <h2 className="text-2xl font-serif font-bold text-foreground">
               Open Digital Public Good
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              MEDIMESH is being developed as a civic prototype demonstrating how verified public healthcare data can transform citizen access, disaster response coordination, and healthcare accountability across India.
+              MEDIMESH is a healthcare information product exploring how traceable public data can improve citizen access, care navigation, and institutional accountability across India.
             </p>
             <div className="pt-2 flex justify-center gap-4">
               <Button as={Link} to="/discover" className="gap-2 text-sm font-semibold px-6 py-3">

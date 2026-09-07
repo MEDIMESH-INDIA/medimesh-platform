@@ -1,3 +1,4 @@
+import FilterPanel from '../../components/hospital/FilterPanel';
 import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Activity, BedDouble, Building2, ChevronDown, Filter, MapPin, Search, X } from 'lucide-react';
@@ -18,10 +19,10 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { savedSlugs, toggleSave } = useSavedHospitals();
-  
+
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
-  
+
   const [sort, setSort] = useState('name_asc');
   const [signInPromptOpen, setSignInPromptOpen] = useState(false);
   const [toast, setToast] = useState(null);
@@ -97,49 +98,54 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   if (filters.facility) activeChips.push({ key: 'facility', label: filters.facility });
 
   return (
-    <AppPageContainer className="!max-w-[1240px]">
+    <AppPageContainer className="discovery-page">
       {/* Hero Search Area */}
-      <div className="mb-6 lg:mb-8 pt-4">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3 text-center lg:text-left">
+      <div className="discovery-header mb-8">
+        <h1 className="text-[30px] md:text-[36px] lg:text-[42px] leading-tight font-serif font-bold text-foreground mb-3 text-left">
           Explore Healthcare
         </h1>
-        <p className="text-muted-foreground text-center lg:text-left text-sm md:text-base max-w-2xl mb-6">
+        <p className="text-muted-foreground text-left text-[16px] md:text-[18px] max-w-[700px] mb-6 leading-relaxed mx-0">
           Explore hospitals across Navi Mumbai with structured information and transparent sources.
         </p>
-        
-        <div className="max-w-2xl">
-          <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
-            <Search className="absolute left-4 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <input 
-              type="text"
+
+        <div className="w-full">
+          <form onSubmit={handleSearchSubmit} className="discovery-search relative flex items-center group w-full bg-white border border-border/80 hover:border-primary/30 rounded-[16px] shadow-[0_2px_12px_rgba(18,49,43,0.04)] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 h-[56px]">
+            <div className="pl-4 pr-3 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center justify-center">
+              <Search className="w-5 h-5" />
+            </div>
+            <input
+              type="search"
+              aria-label="Search healthcare directory"
               placeholder="Search by hospital name, city, or locality..."
-              className="w-full pl-12 pr-[140px] py-3.5 bg-white border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all shadow-sm"
+              className="flex-1 h-full bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:outline-none text-[15px] min-w-0"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            {query && (
+            <div className="flex items-center pr-2 shrink-0 gap-1">
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(''); updateFilter('q', ''); }}
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <button
-                type="button"
-                onClick={() => { setQuery(''); updateFilter('q', ''); }}
-                className="absolute right-[130px] p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors"
-                aria-label="Clear search"
+                type="submit"
+                className="ml-1 px-5 h-[40px] bg-primary text-white font-semibold text-[14px] rounded-[10px] hover:bg-primary/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shadow-sm active:scale-[0.98] transition-all duration-150 whitespace-nowrap"
               >
-                <X className="w-4 h-4" />
+                Search
               </button>
-            )}
-            <button 
-              type="submit"
-              className="absolute right-2 px-5 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:shadow-sm active:scale-95 transition-all duration-150"
-            >
-              Search
-            </button>
+            </div>
           </form>
         </div>
       </div>
 
       {/* Mobile Controls */}
       <div className="flex items-center gap-3 mb-6 lg:hidden">
-        <button 
+        <button
           onClick={() => setIsMobileFiltersOpen(true)}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground"
           aria-expanded={isMobileFiltersOpen}
@@ -150,7 +156,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
           )}
         </button>
         <div className="flex-1 relative">
-          <select 
+          <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             className="w-full pl-3 pr-8 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -165,17 +171,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Sidebar Filters */}
-        <aside role={isMobileFiltersOpen ? 'dialog' : undefined} aria-modal={isMobileFiltersOpen ? 'true' : undefined} aria-label="Hospital filters" className={`
-          fixed lg:static inset-y-0 left-0 z-40 lg:z-0
-          w-full sm:w-[320px] lg:w-[260px] 
-          bg-background lg:bg-transparent
-          border-r border-border lg:border-none
-          p-6 lg:p-0
-          overflow-y-auto lg:overflow-visible
-          transition-transform duration-300 ease-in-out
-          ${isMobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          flex flex-col
-        `}>
+        <FilterPanel open={isMobileFiltersOpen} onClose={() => setIsMobileFiltersOpen(false)} label="Healthcare filters">
           <div className="flex items-center justify-between lg:hidden mb-6 shrink-0">
             <h2 className="text-lg font-bold text-foreground">Filters</h2>
             <button type="button" onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg" aria-label="Close filters">
@@ -185,8 +181,8 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
           <div className="flex-1">
             <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 hidden lg:block">Filter by</h2>
-            
-            <div className="space-y-4">
+
+            <div className="space-y-3">
               <CollapsibleFilter
                 title="Location"
                 icon={MapPin}
@@ -220,10 +216,10 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 onChange={(val) => updateFilter('facility', val)}
               />
             </div>
-            
+
             {/* Mobile apply button */}
             <div className="mt-8 pt-6 border-t border-border lg:hidden pb-safe">
-              <button 
+              <button
                 onClick={() => setIsMobileFiltersOpen(false)}
                 className="w-full py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors"
               >
@@ -231,47 +227,43 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               </button>
             </div>
           </div>
-        </aside>
+        </FilterPanel>
 
         {/* Mobile Filter Backdrop */}
-        {isMobileFiltersOpen && (
-          <div 
-            className="fixed inset-0 bg-black/20 z-30 lg:hidden backdrop-blur-sm"
-            onClick={() => setIsMobileFiltersOpen(false)}
-          />
-        )}
+
 
         {/* Main Content */}
-        <section className="flex-1 min-w-0 w-full flex flex-col pb-24 lg:pb-32" aria-labelledby="hospital-results-heading">
+        <section className="discovery-results flex-1 min-w-0 w-full flex flex-col" aria-labelledby="hospital-results-heading">
           {/* Results Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="results-toolbar">
             <div className="flex flex-col gap-1.5">
-              <h2 id="hospital-results-heading" className="text-lg font-semibold text-foreground">
-                {loading && hospitals.length === 0 ? 'Searching...' : 
+              <h2 id="hospital-results-heading" className="text-sm font-semibold text-foreground">
+                {loading && hospitals.length === 0 ? 'Searching...' :
                  `${totalCount ?? hospitals.length} hospital${(totalCount ?? hospitals.length) !== 1 ? 's' : ''} found`}
               </h2>
               {/* Active Filter Chips */}
-              <AnimatePresence>
+              </div>
+            <AnimatePresence>
                 {hasActiveFilters && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     className="flex flex-wrap items-center gap-1.5"
                   >
                     {filters.q && (
-                      <span className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
+                      <span className="flex items-center gap-1.5 pl-3 pr-1 py-1 bg-primary/5 text-primary border border-primary/10 rounded-full text-[13px] font-medium">
                         Search: &quot;{filters.q}&quot;
                         <button type="button" onClick={() => { setQuery(''); updateFilter('q', ''); }} className="p-0.5 hover:bg-border/60 rounded-full" aria-label="Remove search filter"><X className="w-3 h-3" /></button>
                       </span>
                     )}
                     {activeChips.map(chip => (
-                      <span key={chip.key} className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
+                      <span key={chip.key} className="flex items-center gap-1.5 pl-3 pr-1 py-1 bg-primary/5 text-primary border border-primary/10 rounded-full text-[13px] font-medium">
                         {chip.label}
                         <button type="button" onClick={() => updateFilter(chip.key, '')} className="p-0.5 hover:bg-border/60 rounded-full" aria-label={`Remove ${chip.key} filter`}><X className="w-3 h-3" /></button>
                       </span>
                     ))}
-                    <button 
+                    <button
                       onClick={clearAllFilters}
                       className="text-[12px] font-medium text-primary hover:underline ml-1"
                     >
@@ -280,12 +272,10 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
-            
-            <div className="hidden lg:flex items-center gap-2 shrink-0 self-start">
+            <div className="desktop-sort hidden lg:flex items-center gap-2 shrink-0">
               <span className="text-sm text-muted-foreground font-medium">Sort by:</span>
               <div className="relative">
-                <select 
+                <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                   className="pl-3 pr-8 py-2 bg-surface/50 hover:bg-surface border border-border/80 rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/50 outline-none appearance-none cursor-pointer transition-colors"
@@ -298,12 +288,12 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               </div>
             </div>
           </div>
-          
+
           {error ? (
             <div className="mb-6 py-6 px-4 text-center bg-red-50/50 rounded-2xl border border-red-200">
               <h3 className="text-lg font-semibold text-red-800 mb-1">We couldn’t load the hospitals.</h3>
               <p className="text-red-600/80 text-sm mb-4">Please try again in a moment.</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-700 hover:bg-red-50 transition-colors"
               >
@@ -313,7 +303,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
           ) : null}
 
           {/* Grid setup based on rules: Desktop (lg): 2 cols, Medium/Tablet: 1 col, Mobile: 1 col */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 lg:gap-6 mb-8">
+          <div className="hospital-grid mb-8">
             {loading && hospitals.length === 0 ? (
               // Skeletons
               Array.from({ length: 6 }).map((_, i) => (
@@ -321,15 +311,15 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               ))
             ) : hospitals.length > 0 ? (
               hospitals.map(hospital => (
-                <HospitalCard 
-                  key={hospital.id} 
+                <HospitalCard
+                  key={hospital.id}
                   hospital={hospital}
                   isSaved={savedSlugs.has(hospital.slug)}
                   onSave={() => void handleSave(hospital)}
                 />
               ))
             ) : (
-              <div className="col-span-full py-16 text-center bg-surface/30 rounded-[24px] border border-dashed border-border/60">
+              <div className="col-span-full py-10 text-center bg-surface/30 rounded-[20px] border border-dashed border-border/60">
                 <div className="w-14 h-14 bg-surface rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-sm">
                   <Search className="w-6 h-6 text-muted-foreground/60" />
                 </div>
@@ -337,7 +327,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                   {filters.q ? `No hospitals found for "${filters.q}".` : 'No hospitals match these filters.'}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-6">Try expanding your location or clearing specific requirements.</p>
-                <button 
+                <button
                   onClick={clearAllFilters}
                   className="px-5 py-2 bg-white border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface hover:border-border transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
@@ -346,10 +336,10 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               </div>
             )}
           </div>
-          
+
           {hasMore && (
             <div className="flex justify-center pt-2">
-              <button 
+              <button
                 onClick={loadMore}
                 disabled={loading}
                 className="px-6 py-2.5 bg-surface border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface/80 hover:border-border transition-all shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"

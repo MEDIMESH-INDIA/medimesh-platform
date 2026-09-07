@@ -6,6 +6,8 @@ import FrostedPanel from '../../../components/common/FrostedPanel';
 import LoadingState from '../../../components/common/LoadingState';
 import { useDoctorPortal } from '../../../hooks/useDoctorPortal';
 import { useAuth } from '../../../hooks/useAuth';
+import { useHomeVisitBookings } from '../../../hooks/useHomeVisitBookings';
+import BookingCard from '../../../components/booking/BookingCard';
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
@@ -18,6 +20,7 @@ export default function DoctorDashboard() {
     affiliations: [],
   });
   const [loading, setLoading] = useState(true);
+  const { bookings: visitBookings, loading: visitsLoading } = useHomeVisitBookings({ audience: 'doctor' });
 
   useEffect(() => {
     async function load() {
@@ -60,13 +63,13 @@ export default function DoctorDashboard() {
   ];
 
   return (
-    <AppPageContainer className="!max-w-[1000px] space-y-8">
+    <AppPageContainer className="space-y-8">
       <div>
         <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Doctor Portal</h1>
         <p className="text-muted-foreground">Manage your professional profile, credentials, and settings.</p>
       </div>
 
-      <FrostedPanel className="p-6 rounded-[24px]">
+      <FrostedPanel className="p-6 rounded-[20px]">
         <div className="flex items-center justify-between gap-4 mb-4">
           <h2 className="text-lg font-semibold text-foreground">Profile Completeness</h2>
           <span className="text-primary font-bold">{completion}%</span>
@@ -75,7 +78,7 @@ export default function DoctorDashboard() {
           <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${completion}%` }} />
         </div>
         
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {stats.map(stat => (
             <Link key={stat.label} to={stat.href} className="p-4 rounded-xl border border-border/60 bg-surface/40 hover:bg-surface hover:border-primary/20 transition-all group flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -93,7 +96,7 @@ export default function DoctorDashboard() {
         </div>
       </FrostedPanel>
 
-      <FrostedPanel className="p-6 rounded-[24px] bg-primary/5 border-primary/10 flex items-center justify-between gap-4">
+      <FrostedPanel className="p-6 rounded-[20px] bg-primary/5 border-primary/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h3 className="font-semibold text-foreground mb-1">Public Profile</h3>
           <p className="text-sm text-muted-foreground">See how patients view your profile in the directory.</p>
@@ -109,6 +112,11 @@ export default function DoctorDashboard() {
           <span className="text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">Not Linked</span>
         )}
       </FrostedPanel>
+
+      <section aria-labelledby="visit-requests-heading">
+        <div className="mb-4 flex items-end justify-between gap-4"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Care queue</p><h2 id="visit-requests-heading" className="mt-2 font-serif text-2xl font-semibold">Home visit requests</h2></div><Link to="/doctor/home-visit-requests" className="text-sm font-semibold text-primary hover:underline">Open request desk</Link></div>
+        {visitsLoading ? <div className="h-28 animate-pulse rounded-[20px] bg-muted/30" /> : visitBookings.filter(item => item.status === 'pending').length ? <div className="grid gap-4 lg:grid-cols-2">{visitBookings.filter(item => item.status === 'pending').slice(0, 2).map(item => <BookingCard key={item.id} booking={item} audience="doctor" to={`/doctor/home-visit-requests/${item.id}`} />)}</div> : <FrostedPanel className="rounded-[20px] p-5 text-sm text-muted-foreground">No patient requests are waiting for review.</FrostedPanel>}
+      </section>
     </AppPageContainer>
   );
 }

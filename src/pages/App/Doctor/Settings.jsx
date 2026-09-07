@@ -8,7 +8,7 @@ export default function DoctorSettings() {
   const { user, signOut } = useAuth();
 
   return (
-    <AppPageContainer className="!max-w-[800px] space-y-8">
+    <AppPageContainer className="space-y-8">
       <div>
         <h1 className="text-2xl font-serif font-bold text-foreground mb-2 flex items-center gap-2">
           <SettingsIcon className="w-6 h-6 text-primary" /> Settings
@@ -16,7 +16,7 @@ export default function DoctorSettings() {
         <p className="text-muted-foreground">Manage your account and security.</p>
       </div>
 
-      <FrostedPanel className="p-6 sm:p-8 rounded-[24px] space-y-6">
+      <FrostedPanel className="p-6 sm:p-8 rounded-[20px] space-y-6">
         <h2 className="font-semibold text-foreground border-b border-border/60 pb-3">Account</h2>
         
         <div className="space-y-4">

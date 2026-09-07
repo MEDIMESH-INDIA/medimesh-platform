@@ -9,16 +9,16 @@ const FrostedPanel = forwardRef(({
   ...props
 }, ref) => {
   const variants = {
-    subtle: "bg-white/65 border-white/70 shadow-[0_8px_30px_rgba(15,40,35,0.045)]",
-    elevated: "bg-white/78 border-white/80 shadow-[0_18px_50px_rgba(15,40,35,0.07)]",
-    floating: "bg-white/82 border-white/90 shadow-[0_24px_70px_rgba(15,40,35,0.1)]",
+    subtle: "bg-white/65 border-border/70 shadow-[0_2px_8px_rgba(15,40,35,0.025)]",
+    elevated: "bg-white/78 border-border/75 shadow-[0_3px_14px_rgba(15,40,35,0.035)]",
+    floating: "bg-white/82 border-white/90 shadow-[0_8px_28px_rgba(15,40,35,0.08)]",
   };
 
   return (
     <Component
       ref={ref}
       className={cn(
-        "border backdrop-blur-xl supports-[backdrop-filter]:bg-white/70",
+        "min-w-0 rounded-[20px] border backdrop-blur-xl supports-[backdrop-filter]:bg-white/70",
         variants[variant],
         className,
       )}

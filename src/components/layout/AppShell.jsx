@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ChevronUp, LogOut, User, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, Building2, ShieldCheck } from 'lucide-react';
+import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck, CalendarCheck2, Inbox } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
@@ -57,6 +57,7 @@ export default function AppShell() {
       { name: 'Discover', href: '/app/discover', icon: Search },
       { name: 'Doctors', href: '/app/doctors', icon: Stethoscope },
       { name: 'Home Visits', href: '/app/home-visits', icon: Home },
+      { name: 'Bookings', href: '/app/home-visit-bookings', icon: CalendarCheck2 },
       { name: 'Compare', href: '/app/compare', icon: GitCompare },
       { name: 'Saved', href: '/app/saved', icon: Heart }
     );
@@ -67,12 +68,24 @@ export default function AppShell() {
       { name: 'Specializations', href: '/doctor/specializations', icon: Stethoscope },
       { name: 'Affiliations', href: '/doctor/affiliations', icon: Building2 },
       { name: 'Home Visits', href: '/doctor/home-visits', icon: Home },
+      { name: 'Requests', href: '/doctor/home-visit-requests', icon: Inbox },
       { name: 'Verification', href: '/doctor/verification', icon: ShieldCheck }
+    );
+  } else if (role === 'hospital') {
+    navLinks.push(
+      { name: 'Profile', href: '/hospital/profile', icon: Building2 },
+      { name: 'Specialties', href: '/hospital/specialties', icon: Stethoscope },
+      { name: 'Facilities', href: '/hospital/facilities', icon: BedDouble },
+      { name: 'Services', href: '/hospital/services', icon: ListChecks },
+      { name: 'Doctors', href: '/hospital/doctors', icon: Users },
+      { name: 'Verification', href: '/hospital/verification', icon: ShieldCheck },
+      { name: 'Settings', href: '/hospital/settings', icon: Settings }
     );
   }
 
   const secondaryLinks = role === 'doctor' ? [
     { name: 'Settings', href: '/doctor/settings', icon: Settings },
+  ] : role === 'hospital' ? [
   ] : [
     { name: 'Profile', href: '/app/profile', icon: User },
     { name: 'Settings', href: '/app/settings', icon: Settings },
@@ -99,17 +112,18 @@ export default function AppShell() {
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 transform flex-col border-r border-white/80 bg-[#FCFBF8]/88 shadow-[1px_0_18px_rgba(15,40,35,0.035)] backdrop-blur-2xl transition-transform duration-300 ease-out md:sticky md:top-0 md:z-30 md:h-screen md:translate-x-0
+        fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 transform flex-col border-r border-border/70 bg-[#FCFBF8]/88 shadow-[1px_0_18px_rgba(15,40,35,0.035)] backdrop-blur-2xl transition-transform duration-150 ease-out md:sticky md:top-0 md:z-30 md:h-screen md:translate-x-0
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="h-16 flex items-center px-6 md:h-20 mt-2">
+        <div className="h-16 flex items-center justify-between px-6 md:h-20 mt-2">
           <Link to="/" aria-label="MEDIMESH home" className="flex items-center">
             <MedimeshLogo variant="full" size="md" />
           </Link>
+          <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close navigation" className="rounded-lg p-2 hover:bg-surface md:hidden"><X className="h-5 w-5" /></button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-4 flex flex-col gap-6">
-          <nav className="space-y-1">
+        <div className="flex-1 overflow-y-auto py-3 px-4 flex flex-col gap-5">
+          <nav aria-label="Workspace navigation" className="space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.href;
               return (
@@ -117,6 +131,7 @@ export default function AppShell() {
                   key={link.name} 
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`
                     flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group
                     ${isActive 
@@ -124,7 +139,7 @@ export default function AppShell() {
                       : 'text-muted-foreground hover:bg-white hover:text-foreground border border-transparent hover:border-border/50 hover:shadow-sm'}
                   `}
                 >
-                  <link.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <link.icon className={`w-5 h-5 transition-transform group-hover:translate-x-px ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   {link.name}
                 </Link>
               );

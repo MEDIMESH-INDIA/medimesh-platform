@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GitCompare, X } from 'lucide-react';
 import { useCompare } from '../../hooks/useCompare';
@@ -15,18 +16,27 @@ export default function CompareTray() {
   
   const isAppRoute = location.pathname.startsWith('/app');
 
+    useEffect(() => {
+    if (compareList.length > 0 && location.pathname !== '/app/compare' && location.pathname !== '/compare') {
+      document.body.classList.add('has-compare-tray');
+    } else {
+      document.body.classList.remove('has-compare-tray');
+    }
+    return () => { document.body.classList.remove('has-compare-tray'); }
+  }, [compareList.length, location.pathname]);
+
   if (compareList.length === 0 || location.pathname === '/app/compare' || location.pathname === '/compare') return null;
 
   return (
     <AnimatePresence>
       <motion.div 
-        initial={{ y: '100%', opacity: 0 }}
+        initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        exit={{ y: '100%', opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className={`fixed bottom-4 md:bottom-8 z-40 pointer-events-none flex justify-center px-4 w-full ${isAppRoute ? 'md:pl-[256px]' : ''}`}
+        exit={{ y: 8, opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        className={`fixed inset-x-0 bottom-4 md:bottom-6 z-40 pointer-events-none flex justify-center px-4 w-full ${isAppRoute ? 'md:left-64 md:w-[calc(100%-256px)]' : ''}`}
       >
-        <div className="bg-white/95 backdrop-blur-md shadow-2xl shadow-primary/10 border border-border rounded-2xl p-3 md:p-3 w-full max-w-[860px] pointer-events-auto flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 transition-all">
+        <div className="compare-tray bg-white/90 backdrop-blur-xl shadow-[0_8px_32px_rgba(18,49,43,0.08)] border border-border/80 rounded-[16px] p-3 w-full max-w-[860px] pointer-events-auto flex flex-col sm:flex-row items-center justify-between gap-3 md:gap-4 transition-all">
           <div className="flex items-center justify-between w-full sm:w-auto sm:shrink-0 sm:pr-4 sm:border-r border-border">
             <h3 className="font-semibold text-sm sm:text-base text-foreground flex items-center gap-2">
               <GitCompare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -45,9 +55,9 @@ export default function CompareTray() {
                 return (
                   <motion.div 
                     key={slug}
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0, width: 0, marginRight: 0 }}
+                    exit={{ opacity: 0, width: 0, marginRight: 0 }}
                     className="flex items-center gap-1.5 bg-surface border border-border px-3 py-1.5 rounded-xl shrink-0 transition-colors hover:bg-surface/80"
                   >
                     <span className="text-xs sm:text-sm font-medium truncate max-w-[140px] sm:max-w-[180px]">
