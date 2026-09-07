@@ -14,6 +14,7 @@ export default function DoctorCard({ doctor = {} }) {
     yearsOfExperience,
     location = {},
     affiliations = [],
+    languages = [],
     consultationModes = [],
     source = {},
   } = doctor || {};
@@ -95,12 +96,36 @@ export default function DoctorCard({ doctor = {} }) {
           ))}
         </div>
       )}
+      {/* Consultation Modes & Languages */}
+      <div className="flex flex-col gap-2 mb-5 mt-auto">
+        {languages?.length > 0 && (
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 truncate">
+            <span className="font-semibold shrink-0">Speaks:</span>
+            <span className="truncate">{languages.join(', ')}</span>
+          </div>
+        )}
+
+        {consultationModes.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {consultationModes.map(mode => (
+              <span key={mode} className="px-2.5 py-0.5 text-[11px] font-medium bg-surface text-muted-foreground rounded-md border border-border/50">
+                {mode}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Footer / Provenance & Action */}
       <div className="pt-4 border-t border-border/60 flex items-center justify-between gap-3 mt-auto">
         <div className="flex items-center gap-1 text-[11px] text-muted-foreground truncate">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span className="truncate">{source?.reviewStatus === 'verified' ? 'Verified Practitioner' : 'Public Directory'}</span>
+          <span className="truncate">
+            {doctor?.recordType === 'demo' || source?.name?.includes('Demonstration')
+              ? 'Demonstration Profile'
+              : (source?.reviewStatus === 'verified' ? 'Verified Practitioner' : 'Public Directory')}
+          </span>
         </div>
 
         <Link
