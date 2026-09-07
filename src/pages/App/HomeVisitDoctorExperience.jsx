@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Building2, Stethoscope, X, Filter, ChevronDown, Globe } from 'lucide-react';
+import { Search, MapPin, Stethoscope, X, Filter, ChevronDown, Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import DoctorCard from '../../components/doctor/DoctorCard';
@@ -9,7 +9,7 @@ import CollapsibleFilter from '../../components/hospital/CollapsibleFilter';
 import { useDoctorSearch } from '../../hooks/useDoctorSearch';
 import { getDoctorFacets } from '../../lib/data/doctorRepository';
 
-export default function DoctorDiscoverExperience() {
+export default function HomeVisitDoctorExperience() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -22,7 +22,8 @@ export default function DoctorDiscoverExperience() {
     specialization: searchParams.get('specialization') || '',
     hospital: searchParams.get('hospital') || '',
     language: searchParams.get('language') || '',
-    homeVisitsOnly: searchParams.get('homeVisitsOnly') === 'true',
+    serviceArea: searchParams.get('serviceArea') || '',
+    homeVisitsOnly: true,
   };
 
   const { doctors, totalCount, loading, error, hasMore, loadMore } = useDoctorSearch({
@@ -60,32 +61,35 @@ export default function DoctorDiscoverExperience() {
     setQuery('');
   };
 
-  const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== false);
+  const hasActiveFilters = Object.entries(filters).some(([k, v]) => k !== 'homeVisitsOnly' && v !== '' && v !== false);
 
   const activeChips = [];
-  if (filters.location) activeChips.push({ key: 'location', label: filters.location });
+  if (filters.serviceArea) activeChips.push({ key: 'serviceArea', label: filters.serviceArea });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
-  if (filters.hospital) activeChips.push({ key: 'hospital', label: filters.hospital });
   if (filters.language) activeChips.push({ key: 'language', label: filters.language });
-  if (filters.homeVisitsOnly) activeChips.push({ key: 'homeVisitsOnly', label: 'Home Visits Only' });
 
   return (
     <AppPageContainer className="!max-w-[1240px]">
       {/* Hero Header & Search */}
       <div className="mb-6 lg:mb-8 pt-4">
         <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3 text-center lg:text-left">
-          Discover Medical Professionals
+          Doctors available for home visits
         </h1>
         <p className="text-muted-foreground text-center lg:text-left text-sm md:text-base max-w-2xl mb-6">
-          Find verified doctors, clinical specialists, and hospital affiliations across supported healthcare networks.
+          Find doctors who offer non-emergency home consultations across supported areas.
         </p>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-amber-900 text-sm">
+          <p className="font-semibold mb-1">Home visits are intended for non-emergency healthcare needs.</p>
+          <p>For medical emergencies, contact emergency services or visit the nearest appropriate emergency facility.</p>
+        </div>
 
         <div className="max-w-2xl">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
             <Search className="absolute left-4 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input
               type="text"
-              placeholder="Search by doctor name, specialty, or clinic..."
+              placeholder="Search by doctor name, specialty, or service area..."
               className="w-full pl-12 pr-[140px] py-3.5 bg-white border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all shadow-sm"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -159,22 +163,6 @@ export default function DoctorDiscoverExperience() {
             <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 hidden lg:block">Filter by</h2>
 
             <div className="space-y-4">
-              <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <Globe className="w-4 h-4" />
-                  <span className="text-sm font-semibold">Home Visits Only</span>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={filters.homeVisitsOnly === 'true'}
-                    onChange={(e) => updateFilter('homeVisitsOnly', e.target.checked ? 'true' : '')}
-                  />
-                  <div className="w-9 h-5 bg-emerald-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                </label>
-              </div>
-
               <CollapsibleFilter
                 title="Specialization"
                 icon={Stethoscope}
@@ -184,19 +172,11 @@ export default function DoctorDiscoverExperience() {
                 defaultOpen={true}
               />
               <CollapsibleFilter
-                title="Hospital"
-                icon={Building2}
-                options={facets.hospitals}
-                value={filters.hospital}
-                onChange={(val) => updateFilter('hospital', val)}
-                defaultOpen={true}
-              />
-              <CollapsibleFilter
-                title="Location"
+                title="Service Area"
                 icon={MapPin}
-                options={facets.locations}
-                value={filters.location}
-                onChange={(val) => updateFilter('location', val)}
+                options={facets.serviceAreas || []}
+                value={filters.serviceArea}
+                onChange={(val) => updateFilter('serviceArea', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter
@@ -320,16 +300,18 @@ export default function DoctorDiscoverExperience() {
                   <Stethoscope className="w-6 h-6 text-muted-foreground/60" />
                 </div>
                 <h3 className="text-base font-semibold text-foreground mb-1">
-                  {filters.q ? `No medical specialists found for "${filters.q}".` : 'No doctors match these filters.'}
+                  {filters.q ? `No home visit doctors found for "${filters.q}".` : 'No home visit doctors match these filters.'}
                 </h3>
-                <p className="text-sm text-muted-foreground mb-6">Try expanding your location or clearing specialization criteria.</p>
-                <button
-                  type="button"
-                  onClick={clearAllFilters}
-                  className="px-5 py-2 bg-white border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface hover:border-border transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                >
-                  Clear filters
-                </button>
+                <p className="text-sm text-muted-foreground mb-6">Try expanding your service area or clearing other criteria.</p>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="px-5 py-2 bg-white border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface hover:border-border transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  >
+                    Clear filters
+                  </button>
+                </div>
               </div>
             )}
           </div>

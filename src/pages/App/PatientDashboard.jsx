@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bookmark, CheckCircle2, GitCompare, Search, ShieldCheck, Stethoscope, UserRound } from 'lucide-react';
+import { ArrowRight, Bookmark, CheckCircle2, GitCompare, Search, ShieldCheck, Stethoscope, UserRound, Home } from 'lucide-react';
 import { useState } from 'react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import Button from '../../components/common/Button';
@@ -12,6 +12,7 @@ import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 const quickActions = [
   { label: 'Discover hospitals', description: 'Search the published catalog', href: '/app/discover', icon: Search },
   { label: 'Find doctors', description: 'Explore professional profiles', href: '/app/doctors', icon: Stethoscope },
+  { label: 'Find a Home Visit Doctor', description: 'Connect with doctors who provide non-emergency home consultations.', href: '/app/home-visits', icon: Home },
   { label: 'Compare', description: 'Review hospitals side by side', href: '/app/compare', icon: GitCompare },
   { label: 'Saved hospitals', description: 'Open your private shortlist', href: '/app/saved', icon: Bookmark },
 ];
