@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Building2, Stethoscope, X, Filter, ChevronDown } from 'lucide-react';
+import { Search, MapPin, Building2, Stethoscope, X, Filter, ChevronDown, Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import DoctorCard from '../../components/doctor/DoctorCard';
@@ -21,6 +21,7 @@ export default function DoctorDiscoverExperience() {
     location: searchParams.get('location') || '',
     specialization: searchParams.get('specialization') || '',
     hospital: searchParams.get('hospital') || '',
+    language: searchParams.get('language') || '',
   };
 
   const { doctors, totalCount, loading, error, hasMore, loadMore } = useDoctorSearch({
@@ -64,6 +65,7 @@ export default function DoctorDiscoverExperience() {
   if (filters.location) activeChips.push({ key: 'location', label: filters.location });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
   if (filters.hospital) activeChips.push({ key: 'hospital', label: filters.hospital });
+  if (filters.language) activeChips.push({ key: 'language', label: filters.language });
 
   return (
     <AppPageContainer className="!max-w-[1240px]">
@@ -177,6 +179,14 @@ export default function DoctorDiscoverExperience() {
                 options={facets.locations}
                 value={filters.location}
                 onChange={(val) => updateFilter('location', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
+                title="Language"
+                icon={Globe}
+                options={facets.languages || []}
+                value={filters.language}
+                onChange={(val) => updateFilter('language', val)}
                 defaultOpen={true}
               />
             </div>

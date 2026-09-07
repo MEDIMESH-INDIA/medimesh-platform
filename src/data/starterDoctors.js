@@ -6,6 +6,7 @@ export const starterDoctors = [
     qualifications: 'MBBS, MS (Orthopaedics)',
     specialization: 'Orthopaedic & Trauma Surgery',
     yearsOfExperience: 22,
+    languages: ["English", "Hindi", "Marathi"],
     location: {
       city: 'Navi Mumbai',
       locality: 'Koparkhairane',
@@ -24,12 +25,12 @@ export const starterDoctors = [
     consultationModes: ['In-person', 'Emergency consultation'],
     summary: 'Specialist in orthopaedic trauma, industrial injuries, joint preservation, and reconstructive surgery in Navi Mumbai.',
     source: {
-      name: 'MEDIMESH Verified Provider Directory',
+      name: 'MEDIMESH Demonstration Doctor Dataset',
       type: 'provider_verified',
       reviewStatus: 'verified',
       checkedAt: '2026-09-01T00:00:00Z',
     },
-    recordType: 'starter',
+    recordType: 'demo',
   },
   {
     id: 'doc-002',
@@ -38,6 +39,7 @@ export const starterDoctors = [
     qualifications: 'MBBS, MD (General Medicine)',
     specialization: 'Internal Medicine & Critical Care',
     yearsOfExperience: 18,
+    languages: ["English", "Hindi", "Marathi"],
     location: {
       city: 'Navi Mumbai',
       locality: 'Vashi',
@@ -56,12 +58,12 @@ export const starterDoctors = [
     consultationModes: ['In-person', 'Teleconsultation'],
     summary: 'Experienced physician managing complex adult medical disorders, infectious diseases, and post-operative intensive care.',
     source: {
-      name: 'Hospital Panel Directory 2024',
+      name: 'MEDIMESH Demonstration Doctor Dataset',
       type: 'hospital_roster',
       reviewStatus: 'source_matched',
       checkedAt: '2026-09-01T00:00:00Z',
     },
-    recordType: 'starter',
+    recordType: 'demo',
   },
   {
     id: 'doc-003',
@@ -70,6 +72,7 @@ export const starterDoctors = [
     qualifications: 'MBBS, DNB (Paediatrics)',
     specialization: 'Paediatrics & Neonatal Care',
     yearsOfExperience: 14,
+    languages: ["English", "Hindi", "Marathi"],
     location: {
       city: 'Navi Mumbai',
       locality: 'Nerul',
@@ -88,12 +91,12 @@ export const starterDoctors = [
     consultationModes: ['In-person'],
     summary: 'Paediatrician providing comprehensive neonatal screening, preventive child health, and paediatric inpatient care.',
     source: {
-      name: 'Institutional Faculty Directory',
+      name: 'MEDIMESH Demonstration Doctor Dataset',
       type: 'institutional_directory',
       reviewStatus: 'source_matched',
       checkedAt: '2026-09-01T00:00:00Z',
     },
-    recordType: 'starter',
+    recordType: 'demo',
   },
   {
     id: 'doc-004',
@@ -102,6 +105,7 @@ export const starterDoctors = [
     qualifications: 'MBBS, MS (General Surgery), MCh (Surgical Oncology)',
     specialization: 'Surgical Oncology',
     yearsOfExperience: 19,
+    languages: ["English", "Hindi", "Marathi"],
     location: {
       city: 'Navi Mumbai',
       locality: 'Kharghar',
@@ -120,12 +124,12 @@ export const starterDoctors = [
     consultationModes: ['In-person'],
     summary: 'Oncologic surgeon specialized in head & neck, gastrointestinal, and thoracic tumor resections.',
     source: {
-      name: 'Government Healthcare Registry 2024',
+      name: 'MEDIMESH Demonstration Doctor Dataset',
       type: 'official_registry',
       reviewStatus: 'verified',
       checkedAt: '2026-09-01T00:00:00Z',
     },
-    recordType: 'starter',
+    recordType: 'demo',
   },
   {
     id: 'doc-005',
@@ -134,6 +138,7 @@ export const starterDoctors = [
     qualifications: 'MBBS, MD (Obstetrics & Gynaecology)',
     specialization: 'Obstetrics & Gynaecology',
     yearsOfExperience: 16,
+    languages: ["English", "Hindi", "Marathi"],
     location: {
       city: 'Navi Mumbai',
       locality: 'CBD Belapur',
@@ -152,12 +157,12 @@ export const starterDoctors = [
     consultationModes: ['In-person', 'Teleconsultation'],
     summary: 'Obstetrician and gynaecologist specializing in maternal-foetal medicine, laparoscopic surgery, and high-risk deliveries.',
     source: {
-      name: 'MEDIMESH Verified Provider Directory',
+      name: 'MEDIMESH Demonstration Doctor Dataset',
       type: 'provider_verified',
       reviewStatus: 'verified',
       checkedAt: '2026-09-01T00:00:00Z',
     },
-    recordType: 'starter',
+    recordType: 'demo',
   },
   {
     id: 'doc-006',
@@ -166,6 +171,7 @@ export const starterDoctors = [
     qualifications: 'MBBS, MD (Cardiology), DM (Cardiology)',
     specialization: 'Cardiology',
     yearsOfExperience: 21,
+    languages: ["English", "Hindi", "Marathi"],
     location: {
       city: 'Navi Mumbai',
       locality: 'Panvel',
@@ -184,11 +190,11 @@ export const starterDoctors = [
     consultationModes: ['In-person'],
     summary: 'Interventional cardiologist performing coronary angiography, angioplasty, pacemaker implantations, and emergency cardiac interventions.',
     source: {
-      name: 'Hospital Panel Directory 2024',
+      name: 'MEDIMESH Demonstration Doctor Dataset',
       type: 'hospital_roster',
       reviewStatus: 'source_matched',
       checkedAt: '2026-09-01T00:00:00Z',
     },
-    recordType: 'starter',
+    recordType: 'demo',
   },
 ];

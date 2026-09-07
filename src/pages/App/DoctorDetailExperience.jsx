@@ -65,6 +65,7 @@ export default function DoctorDetailExperience() {
     yearsOfExperience,
     location: loc = {},
     affiliations = [],
+    languages = [],
     consultationModes = [],
     summary,
     source = {},
@@ -137,6 +138,11 @@ export default function DoctorDetailExperience() {
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>{source.reviewStatus === 'verified' ? 'Verified Practitioner' : 'Directory Indexed'}</span>
+              <span>
+                {doctor?.recordType === 'demo' || source?.name?.includes('Demonstration')
+                  ? 'Demonstration Profile'
+                  : (source?.reviewStatus === 'verified' ? 'Verified Practitioner' : 'Directory Indexed')}
+              </span>
             </div>
           </div>
         </div>
@@ -152,6 +158,25 @@ export default function DoctorDetailExperience() {
             ))}
           </div>
         )}
+        {/* Consultation modes & Languages */}
+        <div className="pt-6 mt-6 border-t border-border/60 space-y-4">
+          {consultationModes.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground mr-1">Consultation Modes:</span>
+              {consultationModes.map(mode => (
+                <span key={mode} className="px-3 py-1 text-xs font-medium bg-surface/80 text-foreground rounded-lg border border-border/60">
+                  {mode}
+                </span>
+              ))}
+            </div>
+          )}
+          {languages.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground mr-1">Languages Spoken:</span>
+              <span className="text-sm font-medium text-foreground">{languages.join(', ')}</span>
+            </div>
+          )}
+        </div>
       </FrostedPanel>
 
       <div className="grid md:grid-cols-3 gap-8">
