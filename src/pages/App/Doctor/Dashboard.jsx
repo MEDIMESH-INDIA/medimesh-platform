@@ -60,13 +60,13 @@ export default function DoctorDashboard() {
   ];
 
   return (
-    <AppPageContainer className="!max-w-[1000px] space-y-8">
+    <AppPageContainer className="space-y-8">
       <div>
         <h1 className="text-3xl font-serif font-bold text-foreground mb-2">Doctor Portal</h1>
         <p className="text-muted-foreground">Manage your professional profile, credentials, and settings.</p>
       </div>
 
-      <FrostedPanel className="p-6 rounded-[24px]">
+      <FrostedPanel className="p-6 rounded-[20px]">
         <div className="flex items-center justify-between gap-4 mb-4">
           <h2 className="text-lg font-semibold text-foreground">Profile Completeness</h2>
           <span className="text-primary font-bold">{completion}%</span>
@@ -75,7 +75,7 @@ export default function DoctorDashboard() {
           <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${completion}%` }} />
         </div>
         
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {stats.map(stat => (
             <Link key={stat.label} to={stat.href} className="p-4 rounded-xl border border-border/60 bg-surface/40 hover:bg-surface hover:border-primary/20 transition-all group flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -93,7 +93,7 @@ export default function DoctorDashboard() {
         </div>
       </FrostedPanel>
 
-      <FrostedPanel className="p-6 rounded-[24px] bg-primary/5 border-primary/10 flex items-center justify-between gap-4">
+      <FrostedPanel className="p-6 rounded-[20px] bg-primary/5 border-primary/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h3 className="font-semibold text-foreground mb-1">Public Profile</h3>
           <p className="text-sm text-muted-foreground">See how patients view your profile in the directory.</p>

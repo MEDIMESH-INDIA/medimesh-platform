@@ -66,14 +66,14 @@ export default function DoctorProfile() {
 
   if (!canonicalId) {
     return (
-      <AppPageContainer className="!max-w-[700px] space-y-8">
+      <AppPageContainer className="space-y-8">
         <div>
           <h1 className="text-3xl font-serif font-bold text-foreground mb-2 flex items-center gap-3">
             <User className="w-8 h-8 text-primary" />
             Professional Profile
           </h1>
         </div>
-        <FrostedPanel className="p-8 rounded-[24px] text-center border-amber-200 bg-amber-50/50">
+        <FrostedPanel className="p-8 rounded-[20px] text-center border-amber-200 bg-amber-50/50">
           <h2 className="text-xl font-semibold text-amber-800 mb-2">Profile Not Linked</h2>
           <p className="text-amber-700">Your public MEDIMESH directory profile has not been linked yet.</p>
         </FrostedPanel>
@@ -82,7 +82,7 @@ export default function DoctorProfile() {
   }
 
   return (
-    <AppPageContainer className="!max-w-[800px] space-y-8">
+    <AppPageContainer className="space-y-8">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
       <div>
@@ -92,7 +92,7 @@ export default function DoctorProfile() {
         <p className="text-muted-foreground">Manage your basic public information.</p>
       </div>
 
-      <FrostedPanel className="p-6 sm:p-8 rounded-[24px]">
+      <FrostedPanel className="p-6 sm:p-8 rounded-[20px]">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid sm:grid-cols-2 gap-5">
             <FormField

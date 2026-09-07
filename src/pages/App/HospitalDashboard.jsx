@@ -138,7 +138,7 @@ export default function HospitalDashboard() {
 
   return (
     <AppPageContainer>
-      <div className="max-w-[1060px] space-y-8">
+      <div className="space-y-7">
         <PageHeader
           eyebrow="Authorized Healthcare Organization"
           title="Hospital Provider Portal"
@@ -191,10 +191,10 @@ export default function HospitalDashboard() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Top Stat Strip */}
-            <div className="grid sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
               <FrostedPanel variant="elevated" className="p-5 rounded-[22px] space-y-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Completeness</span>
-                <div className="text-2xl font-serif font-bold text-foreground">{completenessPercent}%</div>
+                <div className="text-2xl font-sans font-bold text-foreground">{completenessPercent}%</div>
                 <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden border border-border/50">
                   <div className="h-full bg-primary rounded-full" style={{ width: `${completenessPercent}%` }} />
                 </div>
@@ -202,7 +202,7 @@ export default function HospitalDashboard() {
 
               <FrostedPanel variant="elevated" className="p-5 rounded-[22px] space-y-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Licensed Beds</span>
-                <div className="text-2xl font-serif font-bold text-foreground">
+                <div className="text-2xl font-sans font-bold text-foreground">
                   {hospitalDetails?.total_beds ?? 'Not provided'}
                 </div>
                 <p className="text-[11px] text-muted-foreground">ICU: {hospitalDetails?.icu_beds ?? 'Not provided'}</p>
@@ -210,7 +210,7 @@ export default function HospitalDashboard() {
 
               <FrostedPanel variant="elevated" className="p-5 rounded-[22px] space-y-1.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Active Services</span>
-                <div className="text-2xl font-serif font-bold text-foreground">{services.length}</div>
+                <div className="text-2xl font-sans font-bold text-foreground">{services.length}</div>
                 <p className="text-[11px] text-muted-foreground">Clinical offerings registered</p>
               </FrostedPanel>
 
@@ -218,7 +218,7 @@ export default function HospitalDashboard() {
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Registry Status</span>
                 <div className="flex items-center gap-1.5 pt-0.5">
                   <StatusIcon className={`w-4 h-4 ${isVerified ? 'text-emerald-600' : 'text-amber-600'}`} />
-                  <span className="text-base font-serif font-semibold text-foreground capitalize">
+                  <span className="text-base font-sans font-semibold text-foreground capitalize">
                     {profile?.verification_status || 'Pending'}
                   </span>
                 </div>
@@ -228,7 +228,7 @@ export default function HospitalDashboard() {
 
             {/* Main Organization Info */}
             <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-              <FrostedPanel variant="elevated" className="rounded-[26px] p-7 sm:p-8 space-y-6">
+              <FrostedPanel variant="elevated" className="rounded-[20px] p-7 sm:p-8 space-y-6">
                 <div className="flex items-start gap-4">
                   <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary font-serif font-bold text-xl border border-primary/20">
                     <Building2 className="h-6 w-6" />
@@ -262,7 +262,7 @@ export default function HospitalDashboard() {
                 </div>
               </FrostedPanel>
 
-              <FrostedPanel variant="elevated" className="rounded-[26px] p-7 sm:p-8 space-y-5">
+              <FrostedPanel variant="elevated" className="rounded-[20px] p-7 sm:p-8 space-y-5">
                 <h3 className="font-serif text-lg font-semibold text-foreground flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-primary" />
                   <span>Institutional Trust</span>
@@ -287,7 +287,7 @@ export default function HospitalDashboard() {
 
         {/* TAB 2: CAPACITY & FACILITIES */}
         {activeTab === 'capacity' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-border/60">
               <div>
                 <h2 className="font-serif text-xl font-semibold text-foreground flex items-center gap-2">
@@ -364,11 +364,11 @@ export default function HospitalDashboard() {
                   <div className="grid grid-cols-2 gap-4 pt-1">
                     <div>
                       <span className="text-xs text-muted-foreground">Total Beds</span>
-                      <p className="text-2xl font-serif font-bold text-foreground">{hospitalDetails?.total_beds ?? 'Not provided'}</p>
+                      <p className="text-2xl font-sans font-bold text-foreground">{hospitalDetails?.total_beds ?? 'Not provided'}</p>
                     </div>
                     <div>
                       <span className="text-xs text-muted-foreground">ICU Beds</span>
-                      <p className="text-2xl font-serif font-bold text-foreground">{hospitalDetails?.icu_beds ?? 'Not provided'}</p>
+                      <p className="text-2xl font-sans font-bold text-foreground">{hospitalDetails?.icu_beds ?? 'Not provided'}</p>
                     </div>
                   </div>
                 </div>
@@ -393,7 +393,7 @@ export default function HospitalDashboard() {
 
         {/* TAB 3: SERVICES CATALOG */}
         {activeTab === 'services' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-border/60">
               <div>
                 <h2 className="font-serif text-xl font-semibold text-foreground flex items-center gap-2">
@@ -461,7 +461,7 @@ export default function HospitalDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="py-10 text-center text-xs text-muted-foreground italic">
+              <div className="py-6 text-center text-xs text-muted-foreground italic">
                 No clinical services registered yet. Click &quot;Register Service&quot; to list available healthcare offerings.
               </div>
             )}
@@ -470,7 +470,7 @@ export default function HospitalDashboard() {
 
         {/* TAB 4: DOCTORS */}
         {activeTab === 'doctors' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="pb-4 border-b border-border/60">
               <h2 className="font-serif text-xl font-semibold text-foreground flex items-center gap-2">
                 <Stethoscope className="w-5 h-5 text-primary" />
@@ -494,7 +494,7 @@ export default function HospitalDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="py-10 text-center text-xs text-muted-foreground italic">
+              <div className="py-6 text-center text-xs text-muted-foreground italic">
                 Affiliated doctors will appear here when clinicians link their practice to this hospital.
               </div>
             )}
@@ -503,7 +503,7 @@ export default function HospitalDashboard() {
 
         {/* TAB 5: VERIFICATION */}
         {activeTab === 'verification' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="pb-4 border-b border-border/60">
               <h2 className="font-serif text-xl font-semibold text-foreground flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-primary" />

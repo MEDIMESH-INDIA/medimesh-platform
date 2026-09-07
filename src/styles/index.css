@@ -85,3 +85,98 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+}
+
+/* Shared presentation rails and responsive, content-sized discovery grids. */
+@layer components {
+
+  .medimesh-page h1 {
+    @apply font-serif font-semibold leading-tight tracking-[-0.035em];
+    font-size: clamp(1.875rem, 3.4vw, 2.625rem);
+    overflow-wrap: anywhere;
+  }
+
+  .hospital-grid, .doctor-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  }
+
+  .doctor-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+
+  .discovery-results {
+    container-type: inline-size;
+  }
+
+  .results-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid theme('colors.border');
+  }
+
+  .results-toolbar > :first-child { grid-column: 1; }
+  .results-toolbar > :not(:first-child):not(.desktop-sort) { grid-column: 1 / -1; }
+  .results-toolbar > .desktop-sort { grid-column: 2; grid-row: 1; }
+  .results-toolbar > :first-child { border: 0; padding-bottom: 0; }
+
+  .discovery-filters { scrollbar-width: thin; scrollbar-color: #c6d2cd transparent; }
+  .discovery-filters input[type='radio'] { flex-shrink: 0; }
+  .discovery-search input::-webkit-search-cancel-button { appearance: none; }
+  .discovery-search input:focus-visible { outline: none; }
+
+  .hospital-metrics > div + div { border-left: 1px solid theme('colors.border'); }
+  .hospital-metrics > div:nth-child(3) { border-left: 0; }
+  .hospital-metrics > div:nth-child(n+3) { border-top: 1px solid theme('colors.border'); }
+
+  .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #c6d2cd transparent; }
+  .medimesh-page input, .medimesh-page select, .medimesh-page textarea { max-width: 100%; }
+  .medimesh-page input:not([type='checkbox']):not([type='radio']), .medimesh-page select { min-height: 40px; }
+}
+
+@media (min-width: 1024px) {
+  .discovery-filters {
+    padding: 18px;
+    border: 1px solid rgba(26, 51, 47, .1);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .55);
+  }
+}
+
+/* The sidebar takes space inside portal routes; viewport breakpoints alone
+   would squeeze cards or leave them wider than the remaining content. */
+
+
+@container (min-width: 760px) {
+  .hospital-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hospital-metrics > div:nth-child(3) { border-left: 1px solid #e4e5df; }
+  .hospital-metrics > div:nth-child(n+3) { border-top: 0; }
+}
+
+body.has-compare-tray { padding-bottom: 116px; }
+@media (max-width: 639px) {
+  body.has-compare-tray { padding-bottom: 200px; }
+  .compare-tray { gap: 8px; }
+  .results-toolbar { grid-template-columns: minmax(0, 1fr); }
+}

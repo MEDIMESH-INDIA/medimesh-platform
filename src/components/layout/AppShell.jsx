@@ -99,17 +99,18 @@ export default function AppShell() {
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 transform flex-col border-r border-white/80 bg-[#FCFBF8]/88 shadow-[1px_0_18px_rgba(15,40,35,0.035)] backdrop-blur-2xl transition-transform duration-300 ease-out md:sticky md:top-0 md:z-30 md:h-screen md:translate-x-0
+        fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 transform flex-col border-r border-border/70 bg-[#FCFBF8]/88 shadow-[1px_0_18px_rgba(15,40,35,0.035)] backdrop-blur-2xl transition-transform duration-150 ease-out md:sticky md:top-0 md:z-30 md:h-screen md:translate-x-0
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="h-16 flex items-center px-6 md:h-20 mt-2">
+        <div className="h-16 flex items-center justify-between px-6 md:h-20 mt-2">
           <Link to="/" aria-label="MEDIMESH home" className="flex items-center">
             <MedimeshLogo variant="full" size="md" />
           </Link>
+          <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Close navigation" className="rounded-lg p-2 hover:bg-surface md:hidden"><X className="h-5 w-5" /></button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-4 flex flex-col gap-6">
-          <nav className="space-y-1">
+        <div className="flex-1 overflow-y-auto py-3 px-4 flex flex-col gap-5">
+          <nav aria-label="Workspace navigation" className="space-y-1">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.href;
               return (
@@ -117,6 +118,7 @@ export default function AppShell() {
                   key={link.name} 
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`
                     flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all group
                     ${isActive 
@@ -124,7 +126,7 @@ export default function AppShell() {
                       : 'text-muted-foreground hover:bg-white hover:text-foreground border border-transparent hover:border-border/50 hover:shadow-sm'}
                   `}
                 >
-                  <link.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <link.icon className={`w-5 h-5 transition-transform group-hover:translate-x-px ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   {link.name}
                 </Link>
               );

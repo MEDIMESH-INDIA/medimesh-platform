@@ -32,7 +32,7 @@ export default function Saved() {
         <div className="inline-flex w-fit items-center gap-2 rounded-xl border border-primary/15 bg-white/65 px-4 py-2 text-sm font-semibold text-primary backdrop-blur-lg"><Bookmark className="h-4 w-4 fill-primary/15" />{loading ? 'Loading…' : `${hospitals.length} saved`}</div>
       </header>
 
-      {loading && <div className="grid gap-6 md:grid-cols-2" role="status" aria-label="Loading saved hospitals">{Array.from({ length: 4 }).map((_, index) => <HospitalCardSkeleton key={index} />)}</div>}
+      {loading && <div className="hospital-grid" role="status" aria-label="Loading saved hospitals">{Array.from({ length: 4 }).map((_, index) => <HospitalCardSkeleton key={index} />)}</div>}
 
       {!loading && error && (
         <EmptyState icon={AlertCircle} title="We couldn’t load your saved hospitals" description="Your shortlist is still private. Try loading it again." action={<Button type="button" onClick={() => void refreshSaved()}>Try again</Button>} />
@@ -44,7 +44,7 @@ export default function Saved() {
 
       {!loading && !error && hospitals.length > 0 && (
         <div className="flex flex-col gap-8 xl:flex-row">
-          <div className="grid min-w-0 flex-1 gap-6 md:grid-cols-2">
+          <div className="hospital-grid min-w-0 flex-1">
             {hospitals.map(hospital => <HospitalCard key={hospital.id} hospital={hospital} isSaved onSave={() => void remove(hospital)} showSaveLabel />)}
           </div>
           <aside className="xl:w-[290px] xl:shrink-0">

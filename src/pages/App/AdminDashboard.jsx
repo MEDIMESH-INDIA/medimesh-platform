@@ -119,7 +119,7 @@ export default function AdminDashboard() {
 
   return (
     <AppPageContainer>
-      <div className="max-w-[1100px] space-y-8">
+      <div className="space-y-7">
         <PageHeader
           eyebrow="System Governance & Auditing"
           title="Administration Portal"
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Admin Identity Badge */}
-        <FrostedPanel variant="elevated" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[24px] p-6">
+        <FrostedPanel variant="elevated" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-[20px] p-6">
           <div className="flex items-center gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-foreground text-white font-serif font-bold text-lg">
               <ShieldCheck className="h-6 w-6 text-primary" />
@@ -182,13 +182,13 @@ export default function AdminDashboard() {
         {/* TAB 1: OVERVIEW METRICS */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <div className="grid sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
               <FrostedPanel variant="elevated" className="p-5 rounded-[22px] space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Indexed Hospitals</span>
                   <Building2 className="w-4 h-4 text-primary" />
                 </div>
-                <div className="text-3xl font-serif font-bold text-foreground">{hospitalCount}</div>
+                <div className="text-2xl font-sans font-bold text-foreground">{hospitalCount}</div>
                 <p className="text-[11px] text-muted-foreground">Navi Mumbai canonical records</p>
               </FrostedPanel>
 
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Doctor Profiles</span>
                   <Stethoscope className="w-4 h-4 text-primary" />
                 </div>
-                <div className="text-3xl font-serif font-bold text-foreground">{doctorCount}</div>
+                <div className="text-2xl font-sans font-bold text-foreground">{doctorCount}</div>
                 <p className="text-[11px] text-muted-foreground">Registered practitioners</p>
               </FrostedPanel>
 
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Data Sources</span>
                   <Database className="w-4 h-4 text-primary" />
                 </div>
-                <div className="text-3xl font-serif font-bold text-foreground">{sourceCount}</div>
+                <div className="text-2xl font-sans font-bold text-foreground">{sourceCount}</div>
                 <p className="text-[11px] text-muted-foreground">Authoritative registries</p>
               </FrostedPanel>
 
@@ -215,12 +215,12 @@ export default function AdminDashboard() {
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Audit Events</span>
                   <FileText className="w-4 h-4 text-primary" />
                 </div>
-                <div className="text-3xl font-serif font-bold text-foreground">{auditLogs.length}</div>
+                <div className="text-2xl font-sans font-bold text-foreground">{auditLogs.length}</div>
                 <p className="text-[11px] text-muted-foreground">Recent logged operations</p>
               </FrostedPanel>
             </div>
 
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-4">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-4">
               <h3 className="font-serif text-lg font-semibold text-foreground">Governance Principles</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 MEDIMESH enforces strict truth-in-data standards. Platform administrators audit public catalog publication status, verified claims, and official evidentiary sources without synthetic statistics, star ratings, or commercial sponsorship.
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
 
         {/* TAB 2: HOSPITAL CATALOG GOVERNANCE */}
         {activeTab === 'hospitals' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
               <div>
                 <h2 className="font-serif text-xl font-semibold text-foreground">Hospital Catalog Governance</h2>
@@ -281,7 +281,7 @@ export default function AdminDashboard() {
 
         {/* TAB 3: VERIFICATION QUEUE */}
         {activeTab === 'verifications' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="pb-4 border-b border-border/60">
               <h2 className="font-serif text-xl font-semibold text-foreground">Verification Review Queue</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Authoritative audit of provider and practitioner verification claims.</p>
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-muted-foreground italic">
+              <div className="py-6 text-center text-xs text-muted-foreground italic">
                 No pending provider verification requests in the queue.
               </div>
             )}
@@ -336,7 +336,7 @@ export default function AdminDashboard() {
 
         {/* TAB 4: DATA SOURCES & PROVENANCE */}
         {activeTab === 'sources' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="pb-4 border-b border-border/60">
               <h2 className="font-serif text-xl font-semibold text-foreground">Registered Public Data Sources</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Authoritative government and municipal registries feeding MEDIMESH catalogs.</p>
@@ -362,7 +362,7 @@ export default function AdminDashboard() {
 
         {/* TAB 5: AUDIT TRAIL */}
         {activeTab === 'audit' && (
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="pb-4 border-b border-border/60">
               <h2 className="font-serif text-xl font-semibold text-foreground">Administrative Activity Audit Logs</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Append-only security log recording governance actions and publication modifications.</p>
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-xs text-muted-foreground italic">
+              <div className="py-6 text-center text-xs text-muted-foreground italic">
                 No administrative audit actions logged in this session yet.
               </div>
             )}

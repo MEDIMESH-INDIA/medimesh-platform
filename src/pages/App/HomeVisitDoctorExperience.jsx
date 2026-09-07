@@ -1,6 +1,7 @@
+import FilterPanel from '../../components/hospital/FilterPanel';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Stethoscope, X, Filter, ChevronDown, Globe } from 'lucide-react';
+import { Search, MapPin, Stethoscope, Activity, X, Filter, ChevronDown, Globe } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import DoctorCard from '../../components/doctor/DoctorCard';
@@ -69,47 +70,51 @@ export default function HomeVisitDoctorExperience() {
   if (filters.language) activeChips.push({ key: 'language', label: filters.language });
 
   return (
-    <AppPageContainer className="!max-w-[1240px]">
+    <AppPageContainer className="discovery-page">
       {/* Hero Header & Search */}
-      <div className="mb-6 lg:mb-8 pt-4">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-3 text-center lg:text-left">
-          Doctors available for home visits
+      <div className="discovery-header mb-8">
+        <h1 className="text-[30px] md:text-[36px] lg:text-[42px] leading-tight font-serif font-bold text-foreground mb-3 text-left flex items-center justify-start gap-3">
+          Home Visit Doctors
         </h1>
-        <p className="text-muted-foreground text-center lg:text-left text-sm md:text-base max-w-2xl mb-6">
+        <div className="flex w-fit items-center gap-2 px-3 py-2 bg-amber-50/70 text-amber-800 text-xs font-medium rounded-xl mb-3 border border-amber-200/50">
+          <Activity className="w-3.5 h-3.5" /> Home visits are intended for non-emergency care.
+        </div>
+        <p className="text-muted-foreground text-left text-[16px] md:text-[18px] max-w-[700px] mb-6 leading-relaxed mx-0">
           Find doctors who offer non-emergency home consultations across supported areas.
         </p>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 text-amber-900 text-sm">
-          <p className="font-semibold mb-1">Home visits are intended for non-emergency healthcare needs.</p>
-          <p>For medical emergencies, contact emergency services or visit the nearest appropriate emergency facility.</p>
-        </div>
 
-        <div className="max-w-2xl">
-          <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
-            <Search className="absolute left-4 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <div className="w-full">
+          <form onSubmit={handleSearchSubmit} className="discovery-search relative flex items-center group w-full bg-white border border-border/80 hover:border-primary/30 rounded-[16px] shadow-[0_2px_12px_rgba(18,49,43,0.04)] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 h-[56px]">
+            <div className="pl-4 pr-3 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center justify-center">
+              <Search className="w-5 h-5" />
+            </div>
             <input
-              type="text"
-              placeholder="Search by doctor name, specialty, or service area..."
-              className="w-full pl-12 pr-[140px] py-3.5 bg-white border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all shadow-sm"
+              type="search"
+              aria-label="Search healthcare directory"
+              placeholder="Search home visit doctors by name, specialty, or area..."
+              className="flex-1 h-full bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:outline-none text-[15px] min-w-0"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            {query && (
+            <div className="flex items-center pr-2 shrink-0 gap-1">
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(''); updateFilter('q', ''); }}
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
               <button
-                type="button"
-                onClick={() => { setQuery(''); updateFilter('q', ''); }}
-                className="absolute right-[130px] p-1 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors"
-                aria-label="Clear search"
+                type="submit"
+                className="ml-1 px-5 h-[40px] bg-primary text-white font-semibold text-[14px] rounded-[10px] hover:bg-primary/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shadow-sm active:scale-[0.98] transition-all duration-150 whitespace-nowrap"
               >
-                <X className="w-4 h-4" />
+                Search
               </button>
-            )}
-            <button
-              type="submit"
-              className="absolute right-2 px-5 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:shadow-sm active:scale-95 transition-all duration-150"
-            >
-              Search
-            </button>
+            </div>
           </form>
         </div>
       </div>
@@ -141,20 +146,10 @@ export default function HomeVisitDoctorExperience() {
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Sidebar Filters */}
-        <aside className={`
-          fixed lg:static inset-y-0 left-0 z-40 lg:z-0
-          w-full sm:w-[320px] lg:w-[260px] 
-          bg-background lg:bg-transparent
-          border-r border-border lg:border-none
-          p-6 lg:p-0
-          overflow-y-auto lg:overflow-visible
-          transition-transform duration-300 ease-in-out
-          ${isMobileFiltersOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          flex flex-col
-        `}>
+        <FilterPanel open={isMobileFiltersOpen} onClose={() => setIsMobileFiltersOpen(false)} label="Healthcare filters">
           <div className="flex items-center justify-between lg:hidden mb-6 shrink-0">
             <h2 className="text-lg font-bold text-foreground">Filters</h2>
-            <button type="button" onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg">
+            <button type="button" onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg" aria-label="Close filters">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
@@ -162,7 +157,7 @@ export default function HomeVisitDoctorExperience() {
           <div className="flex-1">
             <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 hidden lg:block">Filter by</h2>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <CollapsibleFilter
                 title="Specialization"
                 icon={Stethoscope}
@@ -199,28 +194,24 @@ export default function HomeVisitDoctorExperience() {
               </button>
             </div>
           </div>
-        </aside>
+        </FilterPanel>
 
         {/* Mobile Filter Backdrop */}
-        {isMobileFiltersOpen && (
-          <div
-            className="fixed inset-0 bg-black/20 z-30 lg:hidden backdrop-blur-sm"
-            onClick={() => setIsMobileFiltersOpen(false)}
-          />
-        )}
+
 
         {/* Main Content */}
-        <section className="flex-1 min-w-0 w-full flex flex-col pb-24 lg:pb-32" aria-labelledby="doctor-results-heading">
+        <section className="discovery-results flex-1 min-w-0 w-full flex flex-col" aria-labelledby="doctor-results-heading">
           {/* Results Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div className="flex flex-col gap-1.5">
-              <h2 id="doctor-results-heading" className="text-lg font-semibold text-foreground">
+          <div className="results-toolbar">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50 w-full">
+              <h2 id="doctor-results-heading" className="text-sm font-semibold text-foreground">
                 {loading && doctors.length === 0 ? 'Searching...' :
                  `${totalCount ?? doctors.length} doctor${(totalCount ?? doctors.length) !== 1 ? 's' : ''} found`}
               </h2>
 
               {/* Active Filter Chips */}
-              <AnimatePresence>
+              </div>
+            <AnimatePresence>
                 {hasActiveFilters && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -229,13 +220,13 @@ export default function HomeVisitDoctorExperience() {
                     className="flex flex-wrap items-center gap-1.5"
                   >
                     {filters.q && (
-                      <span className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
+                      <span className="flex items-center gap-1.5 pl-3 pr-1 py-1 bg-primary/5 text-primary border border-primary/10 rounded-full text-[13px] font-medium">
                         Search: &quot;{filters.q}&quot;
                         <button type="button" onClick={() => { setQuery(''); updateFilter('q', ''); }} className="p-0.5 hover:bg-border/60 rounded-full"><X className="w-3 h-3" /></button>
                       </span>
                     )}
                     {activeChips.map(chip => (
-                      <span key={chip.key} className="flex items-center gap-1 pl-2.5 pr-1 py-1 bg-surface border border-border/60 rounded-full text-[12px] font-medium text-muted-foreground">
+                      <span key={chip.key} className="flex items-center gap-1.5 pl-3 pr-1 py-1 bg-primary/5 text-primary border border-primary/10 rounded-full text-[13px] font-medium">
                         {chip.label}
                         <button type="button" onClick={() => updateFilter(chip.key, '')} className="p-0.5 hover:bg-border/60 rounded-full"><X className="w-3 h-3" /></button>
                       </span>
@@ -250,9 +241,7 @@ export default function HomeVisitDoctorExperience() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
-
-            <div className="hidden lg:flex items-center gap-2 shrink-0 self-start">
+            <div className="desktop-sort hidden lg:flex items-center gap-2 shrink-0">
               <span className="text-sm text-muted-foreground font-medium">Sort by:</span>
               <div className="relative">
                 <select
@@ -285,7 +274,7 @@ export default function HomeVisitDoctorExperience() {
           )}
 
           {/* Doctors Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 lg:gap-6 mb-8">
+          <div className="doctor-grid mb-8">
             {loading && doctors.length === 0 ? (
               Array.from({ length: 6 }).map((_, i) => (
                 <DoctorCardSkeleton key={i} />
@@ -295,7 +284,7 @@ export default function HomeVisitDoctorExperience() {
                 <DoctorCard key={doctor.id} doctor={doctor} />
               ))
             ) : (
-              <div className="col-span-full py-16 text-center bg-surface/30 rounded-[24px] border border-dashed border-border/60">
+              <div className="col-span-full py-10 text-center bg-surface/30 rounded-[20px] border border-dashed border-border/60">
                 <div className="w-14 h-14 bg-surface rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-sm">
                   <Stethoscope className="w-6 h-6 text-muted-foreground/60" />
                 </div>

@@ -9,8 +9,8 @@ export default function TiltedCard({ children, className }) {
   const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
   const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7.5deg", "-7.5deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7.5deg", "7.5deg"]);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["1.5deg", "-1.5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-1.5deg", "1.5deg"]);
 
   const handleMouseMove = (e) => {
     if (reduceMotion) return;
@@ -42,7 +42,7 @@ export default function TiltedCard({ children, className }) {
       className={cn("relative rounded-xl border border-border bg-surface shadow-sm", className)}
     >
       <div
-        style={{ transform: "translateZ(30px)" }}
+        style={{ transform: "translateZ(0)" }}
         className="h-full w-full"
       >
         {children}

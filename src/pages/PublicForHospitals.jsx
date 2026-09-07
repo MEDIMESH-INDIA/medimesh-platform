@@ -33,16 +33,16 @@ export default function PublicForHospitals() {
   ];
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-8 sm:py-10">
       <Container>
-        <div className="max-w-4xl mx-auto space-y-12">
+        <div className="space-y-8">
           {/* Hero Section */}
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="space-y-3 max-w-[720px]">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
               <Building2 className="w-3.5 h-3.5" />
               Institutional Healthcare Network
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-[42px] font-serif font-bold text-foreground tracking-tight">
               Accredited Hospital Capacity &amp; Service Governance
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
@@ -70,7 +70,7 @@ export default function PublicForHospitals() {
           {/* Capabilities Grid */}
           <div className="grid sm:grid-cols-2 gap-6 pt-4">
             {capabilities.map(cap => (
-              <FrostedPanel key={cap.title} variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-3 border-border/80">
+              <FrostedPanel key={cap.title} variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-3 border-border/80">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
                   <cap.icon className="w-5 h-5" />
                 </div>
@@ -83,7 +83,7 @@ export default function PublicForHospitals() {
           </div>
 
           {/* Institutional Integrity Standards */}
-          <FrostedPanel variant="elevated" className="rounded-[28px] p-8 sm:p-10 border-border/80 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-5 sm:p-7 border-border/80 space-y-6">
             <div className="max-w-2xl space-y-2">
               <h2 className="text-2xl font-serif font-bold text-foreground">
                 Institutional Integrity Principles

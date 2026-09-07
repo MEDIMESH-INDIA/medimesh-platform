@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowUpRight, Menu, X, UserCircle } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "../common/Button";
@@ -18,7 +18,14 @@ const navLinks = [
   { name: "About", href: "/about" },
 ];
 
+function isNavActive(pathname, href) {
+  if (href === '/discover') return pathname === href || pathname.startsWith('/hospitals/');
+  if (href === '/hospitals') return pathname === href || pathname === '/for-hospitals';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Navbar() {
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, role } = useAuth();
@@ -57,8 +64,8 @@ export default function Navbar() {
       <Container>
         <div
           className={cn(
-            "relative rounded-[20px] border border-white/80 bg-[#fdfbf7]/78 px-3 shadow-[0_12px_40px_rgba(18,49,43,0.06)] backdrop-blur-2xl transition-all duration-300 sm:px-4",
-            isScrolled && "bg-white/88 shadow-[0_16px_46px_rgba(18,49,43,0.1)]",
+            "relative rounded-[20px] border border-white/80 bg-[#fdfbf7]/78 px-3 shadow-[0_3px_16px_rgba(18,49,43,0.04)] backdrop-blur-2xl transition-all duration-300 sm:px-4",
+            isScrolled && "bg-white/88 shadow-[0_5px_22px_rgba(18,49,43,0.07)]",
           )}
         >
           <nav className="flex h-16 items-center justify-between" aria-label="Primary navigation">
@@ -70,12 +77,13 @@ export default function Navbar() {
               <MedimeshLogo variant="full" size="md" />
             </Link>
 
-            <ul className="hidden items-center gap-1 lg:flex">
+            <ul className="hidden items-center gap-1 xl:flex">
               {navLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="inline-flex min-h-11 items-center rounded-[10px] px-3 py-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:bg-white/70 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-focus-ring"
+                    aria-current={isNavActive(location.pathname, link.href) ? 'page' : undefined}
+                    className={cn("inline-flex min-h-11 items-center rounded-[10px] px-2.5 py-2 text-[13px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring", isNavActive(location.pathname, link.href) ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-black/5 hover:text-foreground")}
                   >
                     {link.name}
                   </Link>
@@ -83,13 +91,13 @@ export default function Navbar() {
               ))}
             </ul>
 
-            <div className="hidden items-center gap-2 lg:flex">
+            <div className="hidden items-center gap-2 xl:flex">
               {user ? (
                 <>
                   <Button as={Link} to={dashboardLink} size="sm" className="min-h-11 gap-1.5 px-4">
                     Open MEDIMESH <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Button>
-                  <Link to={`${dashboardLink}/profile`} className="ml-1 rounded-full p-1 hover:bg-surface transition">
+                  <Link to={`${dashboardLink}/profile`} aria-label="Open profile" className="ml-1 rounded-full p-1 hover:bg-surface transition">
                     {profile?.avatar_url ? (
                       <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full" />
                     ) : (
@@ -109,7 +117,7 @@ export default function Navbar() {
 
             <button
               type="button"
-              className="grid min-h-11 min-w-11 place-items-center rounded-[12px] text-foreground transition-colors hover:bg-white lg:hidden"
+              className="grid min-h-11 min-w-11 place-items-center rounded-[12px] text-foreground transition-colors hover:bg-white xl:hidden"
               onClick={() => setIsMobileMenuOpen((open) => !open)}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-navigation"
@@ -122,7 +130,7 @@ export default function Navbar() {
           <div
             id="mobile-navigation"
             className={cn(
-              "absolute inset-x-0 top-[72px] origin-top rounded-[20px] border border-white/80 bg-[#fdfbf7]/95 p-4 shadow-[0_22px_60px_rgba(18,49,43,0.12)] backdrop-blur-2xl transition duration-200 lg:hidden",
+              "absolute inset-x-0 top-[72px] max-h-[calc(100dvh-110px)] overflow-y-auto origin-top rounded-[20px] border border-white/80 bg-[#fdfbf7]/95 p-4 shadow-[0_22px_60px_rgba(18,49,43,0.12)] backdrop-blur-2xl transition duration-200 xl:hidden",
               isMobileMenuOpen ? "visible scale-y-100 opacity-100" : "invisible scale-y-95 opacity-0",
             )}
           >
@@ -131,6 +139,7 @@ export default function Navbar() {
                 <li key={link.name}>
                   <Link
                     to={link.href}
+                    aria-current={isNavActive(location.pathname, link.href) ? 'page' : undefined}
                     className="flex min-h-11 items-center justify-between rounded-[12px] px-3 text-base font-semibold text-foreground hover:bg-white"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

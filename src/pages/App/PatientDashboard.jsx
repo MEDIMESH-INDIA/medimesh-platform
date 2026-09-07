@@ -37,8 +37,8 @@ export default function PatientDashboard() {
   };
 
   return (
-    <AppPageContainer className="!max-w-[1240px] space-y-8 sm:space-y-10">
-      <section className="overflow-hidden rounded-[30px] border border-white/80 bg-white/72 p-6 shadow-[0_18px_55px_rgba(15,40,35,0.07)] backdrop-blur-xl sm:p-9">
+    <AppPageContainer className="space-y-7">
+      <section className="overflow-hidden rounded-[20px] border border-white/80 bg-white/72 p-6 shadow-[0_3px_14px_rgba(15,40,35,0.035)] backdrop-blur-xl sm:p-7">
         <div className="grid items-center gap-8 lg:grid-cols-[1.15fr_.85fr]">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Your MEDIMESH home</p>
@@ -64,21 +64,21 @@ export default function PatientDashboard() {
 
       <section aria-labelledby="quick-actions-heading">
         <div className="mb-5 flex items-end justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Continue your journey</p><h2 id="quick-actions-heading" className="mt-2 font-serif text-2xl font-semibold text-foreground">Quick actions</h2></div></div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {quickActions.map(action => <Link key={action.label} to={action.href} className="group rounded-[22px] border border-white/80 bg-white/68 p-5 shadow-[0_12px_36px_rgba(15,40,35,0.05)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-white"><span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary"><action.icon className="h-5 w-5" /></span><h3 className="mt-5 font-serif text-lg font-semibold text-foreground group-hover:text-primary">{action.label}</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">{action.description}</p><ArrowRight className="mt-4 h-4 w-4 text-primary transition-transform duration-200 group-hover:translate-x-1" /></Link>)}
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {quickActions.map(action => <Link key={action.label} to={action.href} className="group relative rounded-[18px] border border-border/60 bg-white/68 p-4 shadow-sm backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-white"><span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary"><action.icon className="h-5 w-5" /></span><h3 className="mt-3 font-sans text-sm font-semibold text-foreground group-hover:text-primary">{action.label}</h3><p className="mt-1 text-xs leading-5 text-muted-foreground">{action.description}</p><ArrowRight className="absolute right-4 top-5 h-4 w-4 text-primary transition-transform duration-200 group-hover:translate-x-1" /></Link>)}
         </div>
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.45fr_.55fr]">
         <section aria-labelledby="saved-preview-heading">
-          <FrostedPanel className="h-full rounded-[26px] p-6 sm:p-7">
+          <FrostedPanel className="h-full rounded-[20px] p-6 sm:p-7">
             <div className="flex items-start justify-between gap-4"><div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Your shortlist</p><h2 id="saved-preview-heading" className="mt-2 font-serif text-2xl font-semibold text-foreground">Saved hospitals</h2></div><Link to="/app/saved" className="text-sm font-semibold text-primary hover:underline">View all</Link></div>
             {savedLoading || recordsLoading ? <div className="mt-6 space-y-3" role="status" aria-label="Loading saved hospital preview">{[1, 2].map(item => <div key={item} className="h-16 animate-pulse rounded-2xl bg-muted/35" />)}</div> : savedHospitals.length ? <div className="mt-6 divide-y divide-border/70">{savedHospitals.map(hospital => <Link key={hospital.id} to={`/app/hospitals/${hospital.slug}`} className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"><span><strong className="block text-sm text-foreground">{hospital.name}</strong><span className="mt-1 block text-xs text-muted-foreground">{[hospital.location.locality, hospital.location.city].filter(Boolean).join(', ') || 'Location not provided'}</span></span><ArrowRight className="h-4 w-4 shrink-0 text-primary" /></Link>)}</div> : <div className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center"><Bookmark className="mx-auto h-6 w-6 text-primary" /><p className="mt-3 text-sm font-semibold text-foreground">No saved hospitals yet</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Save a hospital from Discover to see it here.</p><Button as={Link} to="/app/discover" variant="outline" size="sm" className="mt-4">Discover hospitals</Button></div>}
           </FrostedPanel>
         </section>
 
         <section aria-labelledby="trust-heading">
-          <FrostedPanel className="h-full rounded-[26px] p-6 sm:p-7">
+          <FrostedPanel className="h-full rounded-[20px] p-6 sm:p-7">
             <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary"><ShieldCheck className="h-5 w-5" /></span>
             <h2 id="trust-heading" className="mt-5 font-serif text-xl font-semibold text-foreground">Understand the source</h2>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">MEDIMESH shows where provider information came from and when it was checked. Missing facts stay marked as not provided.</p>
@@ -91,5 +91,5 @@ export default function PatientDashboard() {
 }
 
 function StatusTile({ icon: Icon, label, value, href }) {
-  return <Link to={href} className="rounded-2xl border border-white/80 bg-white/68 p-5 shadow-[0_12px_35px_rgba(15,40,35,0.055)] backdrop-blur-xl transition hover:border-primary/20 hover:bg-white"><Icon className="h-5 w-5 text-primary" /><span className="mt-4 block font-serif text-3xl font-semibold text-foreground">{value}</span><span className="mt-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span></Link>;
+  return <Link to={href} className="rounded-2xl border border-white/80 bg-white/68 p-5 shadow-[0_12px_35px_rgba(15,40,35,0.055)] backdrop-blur-xl transition hover:border-primary/20 hover:bg-white"><Icon className="h-5 w-5 text-primary" /><span className="mt-2 block font-sans text-2xl font-semibold text-foreground">{value}</span><span className="mt-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span></Link>;
 }

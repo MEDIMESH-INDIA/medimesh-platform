@@ -34,7 +34,7 @@ export default function DoctorVerification() {
   const current = statusConfig[status] || statusConfig.unreviewed;
 
   return (
-    <AppPageContainer className="!max-w-[800px] space-y-8">
+    <AppPageContainer className="space-y-8">
       <div>
         <h1 className="text-2xl font-serif font-bold text-foreground mb-2 flex items-center gap-2">
           <ShieldCheck className="w-6 h-6 text-primary" /> Verification Status
@@ -42,7 +42,7 @@ export default function DoctorVerification() {
         <p className="text-muted-foreground">Manage your credentials audit and registry cross-checks.</p>
       </div>
 
-      <FrostedPanel className="p-6 sm:p-8 rounded-[24px] space-y-6">
+      <FrostedPanel className="p-6 sm:p-8 rounded-[20px] space-y-6">
         <div className="flex flex-col md:flex-row gap-6 md:items-center justify-between pb-6 border-b border-border/60">
           <div className="space-y-1">
             <h2 className="font-semibold text-foreground">Current Status</h2>

@@ -92,7 +92,7 @@ export default function DoctorHomeVisits() {
   if (loading) return <AppPageContainer><LoadingState message="Loading home visit settings..." /></AppPageContainer>;
 
   return (
-    <AppPageContainer className="!max-w-[800px] space-y-8">
+    <AppPageContainer className="space-y-8">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
       <div>
@@ -103,7 +103,7 @@ export default function DoctorHomeVisits() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <FrostedPanel className="p-6 sm:p-8 rounded-[24px]">
+        <FrostedPanel className="p-6 sm:p-8 rounded-[20px]">
           <label className="flex items-start gap-4 cursor-pointer mb-2">
             <input
               type="checkbox"
@@ -121,7 +121,7 @@ export default function DoctorHomeVisits() {
 
         {formData.offers_home_visits && (
           <>
-            <FrostedPanel className="p-6 sm:p-8 rounded-[24px] space-y-6 border-emerald-100 bg-emerald-50/20">
+            <FrostedPanel className="p-6 sm:p-8 rounded-[20px] space-y-6 border-emerald-100 bg-emerald-50/20">
               <h3 className="font-semibold text-foreground border-b border-border/60 pb-3">Service Areas & Schedule</h3>
               
               <div>
@@ -207,7 +207,7 @@ export default function DoctorHomeVisits() {
               />
             </FrostedPanel>
 
-            <FrostedPanel className="p-6 sm:p-8 rounded-[24px] space-y-6">
+            <FrostedPanel className="p-6 sm:p-8 rounded-[20px] space-y-6">
               <h3 className="font-semibold text-foreground border-b border-border/60 pb-3">Public Contact Integration</h3>
               
               <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl mb-4">

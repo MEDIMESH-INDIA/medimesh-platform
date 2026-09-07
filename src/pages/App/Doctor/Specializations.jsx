@@ -63,7 +63,7 @@ export default function DoctorSpecializations() {
   if (loading) return <AppPageContainer><LoadingState message="Loading specializations..." /></AppPageContainer>;
 
   return (
-    <AppPageContainer className="!max-w-[800px] space-y-8">
+    <AppPageContainer className="space-y-8">
       {toast && <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />}
       
       <div>
@@ -73,7 +73,7 @@ export default function DoctorSpecializations() {
         <p className="text-muted-foreground">Manage your clinical focus areas and languages.</p>
       </div>
 
-      <FrostedPanel className="p-6 sm:p-8 rounded-[24px]">
+      <FrostedPanel className="p-6 sm:p-8 rounded-[20px]">
         <form onSubmit={handleSubmit} className="space-y-6">
           <FormField
             id="primary_specialization"

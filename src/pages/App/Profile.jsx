@@ -158,7 +158,7 @@ export default function Profile() {
 
   return (
     <AppPageContainer>
-      <div className="max-w-[920px] space-y-8">
+      <div className="space-y-7">
         <PageHeader
           eyebrow="Account & Health"
           title="Profile Management"
@@ -207,7 +207,7 @@ export default function Profile() {
           )}
 
           {/* Section 1: Personal Details */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-2.5 pb-4 border-b border-border/60">
               <User className="w-5 h-5 text-primary" />
               <div>
@@ -251,7 +251,7 @@ export default function Profile() {
               />
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
               <FormField
                 id="profile-phone"
                 label="Contact phone"
@@ -279,7 +279,7 @@ export default function Profile() {
 
           {/* Section 2: Health Profile (for patients) */}
           {profile?.role === 'patient' && (
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between pb-4 border-b border-border/60">
                 <div className="flex items-center gap-2.5">
                   <Heart className="w-5 h-5 text-primary" />
@@ -358,7 +358,7 @@ export default function Profile() {
 
           {/* Section 3: Emergency Contact (for patients) */}
           {profile?.role === 'patient' && (
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-8 space-y-6">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-8 space-y-6">
               <div className="flex items-center gap-2.5 pb-4 border-b border-border/60">
                 <Phone className="w-5 h-5 text-primary" />
                 <div>
@@ -367,7 +367,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
                 <FormField
                   id="profile-em-name"
                   label="Contact person name"

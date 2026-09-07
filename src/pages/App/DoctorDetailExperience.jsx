@@ -22,9 +22,9 @@ export default function DoctorDetailExperience() {
 
   if (loading) {
     return (
-      <AppPageContainer className="!max-w-[1100px] py-10 space-y-8">
+      <AppPageContainer className="py-10 space-y-8">
         <div className="h-6 w-32 bg-muted/40 rounded animate-pulse"></div>
-        <div className="rounded-[24px] p-8 bg-surface/50 border border-border space-y-4 animate-pulse">
+        <div className="rounded-[20px] p-8 bg-surface/50 border border-border space-y-4 animate-pulse">
           <div className="h-8 w-1/2 bg-muted/60 rounded"></div>
           <div className="h-4 w-1/3 bg-muted/40 rounded"></div>
           <div className="flex gap-2 pt-2">
@@ -33,8 +33,8 @@ export default function DoctorDetailExperience() {
           </div>
         </div>
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 h-64 bg-surface/40 rounded-[24px] border border-border animate-pulse"></div>
-          <div className="h-64 bg-surface/40 rounded-[24px] border border-border animate-pulse"></div>
+          <div className="md:col-span-2 h-64 bg-surface/40 rounded-[20px] border border-border animate-pulse"></div>
+          <div className="h-64 bg-surface/40 rounded-[20px] border border-border animate-pulse"></div>
         </div>
       </AppPageContainer>
     );
@@ -42,7 +42,7 @@ export default function DoctorDetailExperience() {
 
   if (error || !doctor) {
     return (
-      <AppPageContainer className="flex items-center justify-center min-h-[60vh]">
+      <AppPageContainer className="flex items-center justify-center min-h-[320px]">
         <EmptyState
           icon={AlertCircle}
           eyebrow="Practitioner Profile"
@@ -80,7 +80,7 @@ export default function DoctorDetailExperience() {
     : 'Recently';
 
   return (
-    <AppPageContainer className="!max-w-[1100px] py-6 sm:py-8 space-y-8">
+    <AppPageContainer className="space-y-6">
       {/* Back link */}
       <div>
         <Link
@@ -93,7 +93,7 @@ export default function DoctorDetailExperience() {
       </div>
 
       {/* Main Hero Header */}
-      <FrostedPanel variant="elevated" className="rounded-[28px] p-6 sm:p-8 border-border/80 relative overflow-hidden">
+      <FrostedPanel variant="elevated" className="rounded-[20px] p-5 sm:p-6 border-border/80 relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
@@ -136,8 +136,7 @@ export default function DoctorDetailExperience() {
             </button>
 
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{source.reviewStatus === 'verified' ? 'Verified Practitioner' : 'Directory Indexed'}</span>
+              <ShieldCheck className={`w-4 h-4 shrink-0 ${source.reviewStatus === 'verified' ? 'text-primary' : 'text-muted-foreground'}`} />
               <span>
                 {doctor?.recordType === 'demo' || source?.name?.includes('Demonstration')
                   ? 'Demonstration Profile'
@@ -147,19 +146,8 @@ export default function DoctorDetailExperience() {
           </div>
         </div>
 
-        {/* Consultation modes badge strip */}
-        {consultationModes.length > 0 && (
-          <div className="pt-6 mt-6 border-t border-border/60 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground mr-1">Consultation Modes:</span>
-            {consultationModes.map(mode => (
-              <span key={mode} className="px-3 py-1 text-xs font-medium bg-surface/80 text-foreground rounded-lg border border-border/60">
-                {mode}
-              </span>
-            ))}
-          </div>
-        )}
         {/* Consultation modes & Languages */}
-        <div className="pt-6 mt-6 border-t border-border/60 space-y-4">
+        <div className="pt-4 mt-4 border-t border-border/60 space-y-3 empty:hidden">
           {consultationModes.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold text-muted-foreground mr-1">Consultation Modes:</span>
@@ -179,12 +167,12 @@ export default function DoctorDetailExperience() {
         </div>
       </FrostedPanel>
 
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-6">
         {/* Left Column: Summary & Affiliations */}
-        <div className="md:col-span-2 space-y-8">
+        <div className="min-w-0 space-y-6">
           {/* Professional Overview */}
           {summary && (
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-4">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-4">
               <h2 className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
                 <span>Professional Overview</span>
               </h2>
@@ -196,7 +184,7 @@ export default function DoctorDetailExperience() {
 
           {/* Home Visits Section */}
           {doctor.homeVisit?.enabled && (
-            <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-5 border-emerald-100/50 bg-emerald-50/10">
+            <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-5 border-emerald-100/50 bg-emerald-50/10">
               <div className="flex items-center justify-between pb-3 border-b border-border/60">
                 <h2 className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
                   <Home className="w-5 h-5 text-emerald-600" />
@@ -296,7 +284,7 @@ export default function DoctorDetailExperience() {
           )}
 
           {/* Hospital Affiliations */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 sm:p-7 space-y-5">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-border/60">
               <h2 className="text-lg font-serif font-semibold text-foreground flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-primary" />
@@ -355,7 +343,7 @@ export default function DoctorDetailExperience() {
         {/* Right Column: Credentials & Provenance */}
         <div className="space-y-6">
           {/* Credentials Card */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 space-y-4">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
               <Award className="w-4 h-4 text-primary" />
               <span>Medical Credentials</span>
@@ -380,7 +368,7 @@ export default function DoctorDetailExperience() {
           </FrostedPanel>
 
           {/* Data Provenance Card */}
-          <FrostedPanel variant="elevated" className="rounded-[24px] p-6 space-y-4">
+          <FrostedPanel variant="elevated" className="rounded-[20px] p-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
               <Database className="w-4 h-4 text-primary" />
               <span>Data Provenance</span>
@@ -389,7 +377,7 @@ export default function DoctorDetailExperience() {
             <div className="space-y-3 text-xs text-muted-foreground">
               <div className="flex items-center justify-between pb-2 border-b border-border/50">
                 <span>Source Record:</span>
-                <span className="font-medium text-foreground truncate max-w-[160px]">{source.name || 'Verified Directory'}</span>
+                <span className="font-medium text-foreground text-right break-words max-w-[180px]">{source.name || 'Verified Directory'}</span>
               </div>
               <div className="flex items-center justify-between pb-2 border-b border-border/50">
                 <span>Review Status:</span>

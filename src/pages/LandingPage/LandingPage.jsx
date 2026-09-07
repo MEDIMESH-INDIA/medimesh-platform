@@ -1,5 +1,3 @@
-import Navbar from "../../components/layout/Navbar";
-import Footer from "../../components/layout/Footer";
 import Hero from "../../components/landing/Hero";
 import TrustStrip from "../../components/landing/TrustStrip";
 import ProblemSection from "../../components/landing/ProblemSection";
@@ -14,7 +12,6 @@ import PlatformPreview from "../../components/landing/PlatformPreview";
 import WhyMedimesh from "../../components/landing/WhyMedimesh";
 import FutureEcosystem from "../../components/landing/FutureEcosystem";
 import FinalCTA from "../../components/landing/FinalCTA";
-import InteractiveMeshBackground from "../../components/effects/InteractiveMeshBackground";
 
 export default function LandingPage() {
   return (
@@ -22,12 +19,12 @@ export default function LandingPage() {
       <a href="#main-content" className="fixed left-4 top-3 z-[60] -translate-y-20 rounded-[10px] bg-primary px-4 py-3 text-sm font-bold text-white transition focus:translate-y-0">
         Skip to content
       </a>
-      <InteractiveMeshBackground />
+
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar />
+
         
-        <main id="main-content" className="flex-grow">
+        <div id="main-content" className="flex-grow">
           <Hero />
           <TrustStrip />
           <ProblemSection />
@@ -42,9 +39,9 @@ export default function LandingPage() {
           <WhyMedimesh />
           <FutureEcosystem />
           <FinalCTA />
-        </main>
+        </div>
 
-        <Footer />
+
       </div>
     </div>
   );

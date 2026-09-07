@@ -8,16 +8,16 @@ import TiltedCard from "../react-bits/TiltedCard";
 
 export default function Hero() {
   return (
-    <Section className="relative min-h-[900px] overflow-hidden pb-20 pt-32 sm:pt-36 lg:min-h-[820px] lg:pb-24 lg:pt-40" background="transparent">
+    <Section className="relative overflow-hidden pb-12 pt-8 sm:pt-10 lg:pb-14 lg:pt-12" background="transparent" withContainer={false}>
       <div className="pointer-events-none absolute -right-32 top-12 h-[520px] w-[520px] rounded-full bg-primary/[0.055] blur-3xl" />
-      <Container className="relative grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 xl:gap-16">
+      <Container className="relative grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 xl:gap-16">
         <div className="relative z-20 max-w-2xl">
           <div className="mb-6 inline-flex items-center gap-2 rounded-[12px] border border-primary/15 bg-white/65 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary backdrop-blur-lg">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             Healthcare discovery, with context
           </div>
 
-          <h1 className="max-w-[12ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-6xl lg:text-[4.4rem] xl:text-[5rem]">
+          <h1 className="max-w-[12ch] font-serif text-[2.75rem] font-semibold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-6xl lg:text-[3.75rem] xl:text-[4.25rem]">
             Healthcare decisions shouldn&apos;t feel like <em className="font-serif text-primary">guesswork.</em>
           </h1>
 
@@ -41,7 +41,7 @@ export default function Hero() {
 
         <div className="relative mx-auto w-full max-w-[680px]">
           <TiltedCard className="border-0 bg-transparent shadow-none [perspective:1200px]">
-            <div className="relative min-h-[530px] overflow-hidden rounded-[32px] border border-white/80 bg-[#f4f1ea]/70 p-4 shadow-[0_32px_90px_rgba(15,40,35,0.12)] sm:min-h-[570px] sm:p-7">
+            <div className="relative min-h-[530px] overflow-hidden rounded-[32px] border border-white/80 bg-[#f4f1ea]/70 p-4 shadow-[0_8px_30px_rgba(15,40,35,0.07)] sm:min-h-[570px] sm:p-7">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_16%,rgba(10,122,106,0.12),transparent_34%)]" />
               <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(10,122,106,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(10,122,106,0.045)_1px,transparent_1px)] bg-[size:24px_24px]" />
 

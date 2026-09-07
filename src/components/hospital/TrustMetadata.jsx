@@ -1,7 +1,4 @@
-import { Database, ShieldCheck, Clock, Activity } from 'lucide-react';
-import { motion } from 'framer-motion';
-import FrostedPanel from '../common/FrostedPanel';
-import { formatReviewStatus } from '../../lib/utils/formatters';
+import { Database, ShieldCheck, Clock } from 'lucide-react';
 
 const safeFormatDate = (dateString, options) => {
   if (!dateString) return null;
@@ -12,96 +9,54 @@ const safeFormatDate = (dateString, options) => {
 
 export default function TrustMetadata({ provenance, compact = false }) {
   if (compact) {
-    if (!provenance) {
-      return (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
-          <ShieldCheck className="w-3.5 h-3.5 opacity-50" />
-          <span>Source Unknown</span>
-        </div>
-      );
-    }
-
-    let badgeText = 'Public source';
-    if (provenance.reviewStatus === 'demonstration') badgeText = 'Demo Data';
-    else if (provenance.reviewStatus === 'manually_reviewed') badgeText = 'Manually reviewed';
-    else if (provenance.reviewStatus === 'source_matched') badgeText = 'Public source';
-    
-    const formattedDate = safeFormatDate(provenance.checkedAt, { day: '2-digit', month: 'short', year: 'numeric'});
-
-    return (
-      <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground group relative">
-        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-surface/50 border border-border/50 rounded-md cursor-help" title={provenance.sourceName || 'Unknown Source'}>
-          <ShieldCheck className={`w-3 h-3 ${provenance.reviewStatus === 'manually_reviewed' ? 'text-green-500' : 'text-primary/70'}`} />
-          <span className="font-medium text-[11px] uppercase tracking-wider">{badgeText}</span>
-        </div>
-        
-        {formattedDate && (
-          <span className="text-[11.5px]">
-            · Checked {formattedDate}
-          </span>
-        )}
-      </div>
-    );
+    return null; // Not used anymore as we embedded the compact line directly into the card
   }
 
   // Full detail (for Hospital Detail page)
-  const formattedDetailDate = safeFormatDate(provenance?.checkedAt) || 'Not provided';
+  const formattedDetailDate = safeFormatDate(provenance?.last_verified || provenance?.checkedAt) || 'Not provided';
+  let reviewStatusText = 'Not provided';
+  if (provenance?.reviewStatus === 'demonstration') reviewStatusText = 'Demonstration Data';
+  else if (provenance?.reviewStatus === 'manually_reviewed') reviewStatusText = 'Manually Reviewed';
+  else if (provenance?.reviewStatus === 'source_matched') reviewStatusText = 'Source Matched';
 
   const steps = [
     {
       icon: Database,
       label: 'Source',
-      value: provenance?.sourceName || 'Unknown',
-      color: 'text-blue-500'
+      value: provenance?.source || provenance?.sourceName || 'Unknown',
     },
     {
       icon: ShieldCheck,
       label: 'Review Status',
-      value: formatReviewStatus(provenance?.reviewStatus),
-      color: 'text-amber-500'
+      value: reviewStatusText,
     },
     {
       icon: Clock,
       label: 'Last Checked',
       value: formattedDetailDate,
-      color: 'text-primary'
     }
   ];
 
   return (
-    <FrostedPanel className="rounded-[20px] p-5 space-y-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Activity className="w-5 h-5 text-primary" />
-        <h3 className="font-semibold text-foreground font-serif">Data Provenance</h3>
-      </div>
-      
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {steps.map((step, idx) => (
-          <div key={step.label} className="flex-1 flex flex-col items-center text-center relative group">
-            <div className={`w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center mb-2 z-10 relative bg-white`}>
-              <step.icon className={`w-4 h-4 ${step.color}`} />
-            </div>
-            
-            {idx < steps.length - 1 && (
-              <div className="hidden md:block absolute top-5 left-1/2 w-full h-[2px] bg-border/50 -z-0">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: '100%' }}
-                  transition={{ duration: 1, delay: idx * 0.2 }}
-                  className="h-full bg-primary/20"
-                />
-              </div>
-            )}
-            
-            {idx < steps.length - 1 && (
-              <div className="md:hidden absolute left-5 top-10 h-full w-[2px] bg-border/50 -z-0"></div>
-            )}
+    <div className="bg-white/50 border border-border/80 rounded-[16px] p-4">
+      <div className="grid gap-4 md:grid-cols-3 relative">
+        {/* Decorative horizontal line on desktop */}
+        <div className="hidden absolute top-1/2 left-[15%] right-[15%] h-[1px] bg-border/60 -z-0 -translate-y-1/2" />
+        {/* Decorative vertical line on mobile */}
+        <div className="hidden absolute left-[15px] top-[40px] bottom-[40px] w-[1px] bg-border/60 -z-0" />
 
-            <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-0.5">{step.label}</span>
-            <span className="text-sm font-medium text-foreground capitalize">{step.value}</span>
+        {steps.map((step) => (
+          <div key={step.label} className="flex items-start gap-3 min-w-0 text-left">
+            <div className="w-8 h-8 rounded-full bg-surface border border-border/60 flex items-center justify-center shrink-0">
+              <step.icon className="w-3.5 h-3.5 text-primary/70" />
+            </div>
+            <div>
+              <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">{step.label}</div>
+              <div className="text-[13px] font-medium text-foreground mt-0.5">{step.value}</div>
+            </div>
           </div>
         ))}
       </div>
-    </FrostedPanel>
+    </div>
   );
 }
