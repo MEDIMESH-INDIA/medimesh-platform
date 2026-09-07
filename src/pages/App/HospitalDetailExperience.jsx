@@ -29,6 +29,15 @@ import { formatHospitalType } from '../../lib/utils/formatters';
 
 const availability = value => value === true ? 'Available' : value === false ? 'No' : 'Not provided';
 const valueOrFallback = value => value === null || value === undefined || value === '' ? 'Not provided' : value;
+const safeWebsiteUrl = value => {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+};
 
 export default function HospitalDetailExperience({ mode = 'canonical' }) {
   const { slug } = useParams();
@@ -77,7 +86,7 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
     );
   }
 
-  const { name, location, type, specialties, facilities, metrics, provenance, contact, yearEstablished } = hospital;
+  const { name, location, type, specialties, facilities, services, metrics, provenance, contact, yearEstablished } = hospital;
   const locality = [location.locality, location.city, location.state].filter(Boolean).join(' · ') || 'Location not provided';
   const fullAddress = [location.addressLine1, location.addressLine2, location.locality, location.city, location.state, location.pinCode].filter(Boolean).join(', ');
 
@@ -120,14 +129,15 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
 
               <InfoSection title="Specialties" icon={Activity} items={specialties} />
               <InfoSection title="Facilities" icon={PlusSquare} items={facilities} />
+              <InfoSection title="Services" icon={Check} items={services} />
             </div>
 
             <div className="space-y-6">
               <section aria-labelledby="capacity-heading">
                 <SectionTitle id="capacity-heading" icon={BedDouble}>Capacity</SectionTitle>
                 <DataList rows={[
-                  ['Total beds', valueOrFallback(metrics?.totalBeds)],
-                  ['ICU beds', valueOrFallback(metrics?.icuBeds)],
+                  ['Total bed capacity', valueOrFallback(metrics?.totalBeds)],
+                  ['ICU bed capacity', valueOrFallback(metrics?.icuBeds)],
                 ]} />
               </section>
               <section aria-labelledby="access-heading">
@@ -152,7 +162,7 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
                 {fullAddress && <ContactItem icon={MapPin} label="Address" value={fullAddress} />}
                 {contact?.phone && <ContactItem icon={Phone} label="Public phone" value={contact.phone} href={`tel:${contact.phone}`} />}
                 {contact?.email && <ContactItem icon={Mail} label="Public email" value={contact.email} href={`mailto:${contact.email}`} />}
-                {contact?.website && <ContactItem icon={Building2} label="Website" value={contact.website} href={contact.website} external />}
+                {contact?.website && <ContactItem icon={Building2} label="Website" value={contact.website} href={safeWebsiteUrl(contact.website)} external />}
               </div>
             </section>
           )}

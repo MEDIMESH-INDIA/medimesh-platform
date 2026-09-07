@@ -20,6 +20,9 @@ export function normalizeHospital(record, recordType = 'canonical') {
   const facilities = rowsFrom(hospital.hospital_facilities)
     .map(item => item.facilities?.name)
     .filter(name => typeof name === 'string');
+  const services = rowsFrom(hospital.hospital_services_catalog)
+    .map(item => item.services?.name)
+    .filter(name => typeof name === 'string');
 
   let provenance = null;
   if (rowsFrom(hospital.hospital_evidence).length > 0) {
@@ -56,6 +59,7 @@ export function normalizeHospital(record, recordType = 'canonical') {
     type: hospital.hospital_type,
     specialties,
     facilities,
+    services,
     metrics: {
       emergency: hospital.emergency_department ?? null,
       ambulance: hospital.ambulance_available ?? null,
@@ -82,6 +86,7 @@ export function normalizeDemoHospital(hospital) {
     type: hospital.type,
     specialties: hospital.specialties || [],
     facilities: hospital.facilities || [],
+    services: [],
     metrics: { emergency: null, ambulance: null, totalBeds: null, icuBeds: null },
     provenance: hospital.trustMetadata ? {
       sourceType: 'demonstration',
@@ -119,7 +124,7 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
     : 'hospital_facilities(facilities(name))';
   let query = supabase
     .from('hospitals')
-    .select(`${BASE_SELECT}, ${specialtyRelation}, ${facilityRelation}`, { count: 'exact' })
+    .select(`${BASE_SELECT}, ${specialtyRelation}, ${facilityRelation}, hospital_services_catalog(services(name))`, { count: 'exact' })
     .eq('publication_status', 'published');
 
   const search = cleanSearchValue(filters.q);
@@ -172,7 +177,7 @@ export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
 
   const { data, error } = await supabase
     .from('hospitals')
-    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))`)
+    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
     .eq('slug', slug)
     .eq('publication_status', 'published')
     .maybeSingle();
@@ -192,7 +197,7 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical' } = {}) {
 
   const { data, error } = await supabase
     .from('hospitals')
-    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))`)
+    .select(`${BASE_SELECT}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
     .in('slug', uniqueSlugs)
     .eq('publication_status', 'published');
   if (error) throw error;

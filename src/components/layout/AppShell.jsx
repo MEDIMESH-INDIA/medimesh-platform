@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ChevronUp, LogOut, User, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, Building2, ShieldCheck } from 'lucide-react';
+import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
@@ -69,10 +69,21 @@ export default function AppShell() {
       { name: 'Home Visits', href: '/doctor/home-visits', icon: Home },
       { name: 'Verification', href: '/doctor/verification', icon: ShieldCheck }
     );
+  } else if (role === 'hospital') {
+    navLinks.push(
+      { name: 'Profile', href: '/hospital/profile', icon: Building2 },
+      { name: 'Specialties', href: '/hospital/specialties', icon: Stethoscope },
+      { name: 'Facilities', href: '/hospital/facilities', icon: BedDouble },
+      { name: 'Services', href: '/hospital/services', icon: ListChecks },
+      { name: 'Doctors', href: '/hospital/doctors', icon: Users },
+      { name: 'Verification', href: '/hospital/verification', icon: ShieldCheck },
+      { name: 'Settings', href: '/hospital/settings', icon: Settings }
+    );
   }
 
   const secondaryLinks = role === 'doctor' ? [
     { name: 'Settings', href: '/doctor/settings', icon: Settings },
+  ] : role === 'hospital' ? [
   ] : [
     { name: 'Profile', href: '/app/profile', icon: User },
     { name: 'Settings', href: '/app/settings', icon: Settings },
