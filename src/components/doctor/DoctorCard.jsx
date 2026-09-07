@@ -137,7 +137,10 @@ export default function DoctorCard({ doctor = {} }) {
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          {homeVisit?.enabled && homeVisit?.contactPublic && (
+          {homeVisit?.enabled && (!homeVisit?.contactPublic || (!homeVisit?.professionalPhone && !homeVisit?.whatsappNumber)) && (
+            <span className="text-xs text-muted-foreground italic mr-2">Contact info not provided</span>
+          )}
+          {homeVisit?.enabled && homeVisit?.contactPublic && (homeVisit?.professionalPhone || homeVisit?.whatsappNumber) && (
             <div className="flex items-center gap-2">
               <button
                 type="button"
