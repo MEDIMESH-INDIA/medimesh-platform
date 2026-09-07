@@ -32,7 +32,14 @@ import PublicForHospitals from "./pages/PublicForHospitals";
 import PublicAbout from "./pages/PublicAbout";
 import Compare from "./pages/App/Compare";
 import Saved from "./pages/App/Saved";
-import DoctorDashboard from "./pages/App/DoctorDashboard";
+import DoctorDashboard from "./pages/App/Doctor/Dashboard";
+import DoctorProfile from "./pages/App/Doctor/Profile";
+import DoctorQualifications from "./pages/App/Doctor/Qualifications";
+import DoctorSpecializations from "./pages/App/Doctor/Specializations";
+import DoctorAffiliations from "./pages/App/Doctor/Affiliations";
+import DoctorVerification from "./pages/App/Doctor/Verification";
+import DoctorHomeVisits from "./pages/App/Doctor/HomeVisits";
+import DoctorSettings from "./pages/App/Doctor/Settings";
 import HospitalDashboard from "./pages/App/HospitalDashboard";
 import AdminDashboard from "./pages/App/AdminDashboard";
 import Profile from "./pages/App/Profile";
@@ -117,6 +124,41 @@ function App() {
         <Route path="/doctor" element={
           <RoleRoute allowedRoles={['doctor']}>
             <DoctorDashboard />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/profile" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorProfile />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/qualifications" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorQualifications />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/specializations" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorSpecializations />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/affiliations" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorAffiliations />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/verification" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorVerification />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/home-visits" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorHomeVisits />
+          </RoleRoute>
+        } />
+        <Route path="/doctor/settings" element={
+          <RoleRoute allowedRoles={['doctor']}>
+            <DoctorSettings />
           </RoleRoute>
         } />
         
