@@ -243,7 +243,14 @@ export default function DoctorDetailExperience() {
                     </div>
                   )}
                   
-                  {doctor.homeVisit.contactPublic && (
+                  
+                  {(!doctor.homeVisit.contactPublic || (!doctor.homeVisit.professionalPhone && !doctor.homeVisit.whatsappNumber)) ? (
+                    <div className="pt-2">
+                      <div className="bg-surface/50 rounded-xl p-4 border border-border/60 text-sm text-center text-muted-foreground italic">
+                        Contact information not provided
+                      </div>
+                    </div>
+                  ) : (
                     <div className="pt-2 flex flex-col gap-2.5">
                       {doctor.homeVisit.professionalPhone && (
                         <button
