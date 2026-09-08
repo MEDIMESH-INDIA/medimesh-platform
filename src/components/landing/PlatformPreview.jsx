@@ -57,7 +57,7 @@ export default function PlatformPreview() {
 
                   <div className="mt-7 grid gap-2 rounded-[18px] border border-border bg-surface-elevated/45 p-2 sm:grid-cols-[1fr_0.65fr_auto]">
                     <span className="flex min-h-11 items-center gap-2 rounded-[11px] bg-white px-3 text-xs font-semibold"><Search className="h-3.5 w-3.5 text-primary" />Cardiology</span>
-                    <span className="flex min-h-11 items-center gap-2 rounded-[11px] bg-white px-3 text-xs font-semibold"><MapPin className="h-3.5 w-3.5 text-primary" />Navi Mumbai</span>
+                    <span className="flex min-h-11 items-center gap-2 rounded-[11px] bg-white px-3 text-xs font-semibold"><MapPin className="h-3.5 w-3.5 text-primary" />Maharashtra</span>
                     <span className="flex min-h-11 items-center justify-center rounded-[11px] bg-primary px-4 text-xs font-bold text-white">Search</span>
                   </div>
 
@@ -65,7 +65,7 @@ export default function PlatformPreview() {
                     <div className="rounded-[18px] border border-border bg-white p-4">
                       <p className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-wider"><SlidersHorizontal className="h-3.5 w-3.5 text-primary" />Filters</p>
                       <div className="mt-4 grid gap-3">
-                        {["Location", "Specialty", "Facility", "Source state"].map((label, index) => <div key={label} className="border-b border-border pb-3 last:border-0"><span className="text-[9px] font-bold text-muted-foreground">{label}</span><span className="mt-1 block text-[10px] font-semibold">{index < 2 ? ["Navi Mumbai","Cardiology"][index] : "Any"}</span></div>)}
+                        {["Location", "Specialty", "Facility", "Source state"].map((label, index) => <div key={label} className="border-b border-border pb-3 last:border-0"><span className="text-[9px] font-bold text-muted-foreground">{label}</span><span className="mt-1 block text-[10px] font-semibold">{index < 2 ? ["Maharashtra","Cardiology"][index] : "Any"}</span></div>)}
                       </div>
                     </div>
                     <div className="grid gap-3">
@@ -78,7 +78,7 @@ export default function PlatformPreview() {
                                 <strong className="text-xs sm:text-sm">{name}</strong>
                                 <span className="w-fit text-[8px] font-extrabold uppercase tracking-wider text-primary">Illustrative</span>
                               </div>
-                              <p className="mt-1 text-[9px] font-medium text-muted-foreground">{index === 0 ? "Vashi" : "Nerul"} · Navi Mumbai</p>
+                              <p className="mt-1 text-[9px] font-medium text-muted-foreground">{index === 0 ? "Vashi" : "Nerul"} · Maharashtra</p>
                               <div className="mt-3 flex flex-wrap gap-1.5">{["Cardiology", index === 0 ? "Multi-specialty" : "Diagnostics"].map(item => <span key={item} className="rounded-lg bg-surface-elevated px-2 py-1 text-[8px] font-bold">{item}</span>)}</div>
                             </div>
                           </div>

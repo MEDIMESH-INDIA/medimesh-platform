@@ -19,9 +19,10 @@ export default function DoctorCard({ doctor = {} }) {
   } = doctor || {};
 
   const safeLocation = location || {};
-  const locString = safeLocation.locality && safeLocation.city
-    ? `${safeLocation.locality}, ${safeLocation.city}`
-    : safeLocation.locality || safeLocation.city || 'Navi Mumbai';
+  const locString = [safeLocation.locality, safeLocation.city, safeLocation.state].filter(Boolean).join(', ') || 'Location not provided';
+  // const _loc = safeLocation.locality
+
+
 
   const primaryAffiliation = affiliations[0];
   const isBookable = Boolean(homeVisit.enabled && homeVisit.days?.length && homeVisit.startTime && homeVisit.endTime);

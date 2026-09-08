@@ -29,9 +29,10 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
   const { slug, name = 'Hospital', location, type, specialties, metrics, provenance } = hospital || {};
 
   const safeLocation = location || {};
-  const locString = safeLocation.locality && safeLocation.city
-    ? `${safeLocation.locality}, ${safeLocation.city}`
-    : safeLocation.locality || safeLocation.city || 'Location not provided';
+  const locString = [safeLocation.locality, safeLocation.city, safeLocation.district, safeLocation.state].filter(Boolean).join(', ') || 'Location not provided';
+  // const _loc = safeLocation.locality
+
+
 
   const safeSpecialties = Array.isArray(specialties) ? specialties : [];
 

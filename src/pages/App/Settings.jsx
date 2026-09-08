@@ -183,7 +183,7 @@ export default function Settings() {
             <div className="grid sm:grid-cols-2 gap-5">
               <div className="rounded-xl border border-border/50 bg-surface/40 p-4">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Default Geographic Scope</span>
-                <p className="mt-1 font-medium text-foreground text-sm">Navi Mumbai, Maharashtra</p>
+                <p className="mt-1 font-medium text-foreground text-sm">Maharashtra, India</p>
                 <p className="text-xs text-muted-foreground mt-1">MEDIMESH indexed hospital directory active.</p>
               </div>
 

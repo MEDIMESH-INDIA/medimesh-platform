@@ -263,7 +263,7 @@ export default function Profile() {
               <FormField
                 id="profile-city"
                 label="City"
-                placeholder="e.g. Navi Mumbai"
+                placeholder="e.g. Mumbai"
                 value={city}
                 onChange={e => setCity(e.target.value)}
               />

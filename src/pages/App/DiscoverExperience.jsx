@@ -29,7 +29,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
   const filters = {
     q: searchParams.get('q') || '',
-    location: searchParams.get('location') || '',
+    city: searchParams.get('city') || '',
     specialty: searchParams.get('specialty') || '',
     type: searchParams.get('type') || '',
     facility: searchParams.get('facility') || '',
@@ -92,7 +92,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
   // Build Results Header chips logic
   const activeChips = [];
-  if (filters.location) activeChips.push({ key: 'location', label: filters.location });
+  if (filters.city) activeChips.push({ key: 'location', label: filters.city });
   if (filters.specialty) activeChips.push({ key: 'specialty', label: filters.specialty });
   if (filters.type) activeChips.push({ key: 'type', label: formatHospitalType(filters.type) });
   if (filters.facility) activeChips.push({ key: 'facility', label: filters.facility });
@@ -105,7 +105,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
           Explore Healthcare
         </h1>
         <p className="text-muted-foreground text-left text-[16px] md:text-[18px] max-w-[700px] mb-6 leading-relaxed mx-0">
-          Explore hospitals across Navi Mumbai with structured information and transparent sources.
+          Explore hospitals across supported regions with structured information and transparent sources.
         </p>
 
         <div className="w-full">
@@ -184,11 +184,11 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
             <div className="space-y-3">
               <CollapsibleFilter
-                title="Location"
+                title="City"
                 icon={MapPin}
-                options={facets.locations}
-                value={filters.location}
-                onChange={(val) => updateFilter('location', val)}
+                options={facets.cities}
+                value={filters.city}
+                onChange={(val) => updateFilter('city', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter

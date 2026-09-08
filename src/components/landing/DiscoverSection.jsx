@@ -48,7 +48,7 @@ export default function DiscoverSection() {
                 <label className="flex min-h-12 items-center gap-2 rounded-[12px] border border-border bg-white px-3">
                   <MapPin className="h-4 w-4 shrink-0 text-primary" />
                   <span className="sr-only">Location</span>
-                  <input aria-label="Location" readOnly value="Navi Mumbai" className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" />
+                  <input aria-label="Location" readOnly value="Maharashtra" className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" />
                 </label>
                 <button type="button" className="min-h-12 rounded-[12px] bg-primary px-5 text-sm font-bold text-white shadow-sm">Search</button>
               </div>

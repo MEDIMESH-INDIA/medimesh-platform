@@ -84,8 +84,8 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
     if (filters.q) {
       query = query.or(`full_name.ilike.%${filters.q}%,specialization.ilike.%${filters.q}%,locality.ilike.%${filters.q}%,city.ilike.%${filters.q}%`);
     }
-    if (filters.location) {
-      query = query.or(`locality.ilike.%${filters.location}%,city.ilike.%${filters.location}%`);
+    if (filters.city) {
+      query = query.or(`locality.ilike.%${filters.city}%,city.ilike.%${filters.city}%`);
     }
     if (filters.specialization) {
       query = query.ilike('specialization', `%${filters.specialization}%`);
@@ -149,7 +149,7 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
 
   // Fallback to indexed demonstration doctors
   const q = cleanSearch(filters.q).toLowerCase();
-  const locationFilter = (filters.location || '').toLowerCase();
+  const locationFilter = (filters.city || '').toLowerCase();
   const specFilter = (filters.specialization || '').toLowerCase();
   const hospitalFilter = (filters.hospital || '').toLowerCase();
   const languageFilter = (filters.language || '').toLowerCase();
@@ -231,7 +231,7 @@ export async function getDoctorFacets() {
         .eq('publication_status', 'published');
 
       if (!error && data) {
-        const locations = [...new Set(data.flatMap(d => [d.locality, d.city]).filter(Boolean))].sort();
+        const cities = [...new Set(data.map(d => d.city).filter(Boolean))].sort();
         const specializations = [...new Set(data.map(d => d.specialization).filter(Boolean))].sort();
         const serviceAreas = [...new Set(data.flatMap(d => d.home_visit_service_areas || []).filter(Boolean))].sort();
 
@@ -239,7 +239,7 @@ export async function getDoctorFacets() {
           d.doctor_affiliations_directory?.map(a => a.hospital_name || a.hospitals?.name) || []
         ).filter(Boolean))].sort();
 
-        return { locations, specializations, hospitals, languages: ['English', 'Hindi', 'Marathi'], serviceAreas };
+        return { cities, specializations, hospitals, languages: ['English', 'Hindi', 'Marathi'], serviceAreas };
       }
     } catch (err) {
       console.warn('Facets query error:', err);
@@ -247,14 +247,14 @@ export async function getDoctorFacets() {
     return { locations: [], specializations: [], hospitals: [], languages: [], serviceAreas: [] };
   }
 
-  const locations = [...new Set(starterDoctors.flatMap(d => [d.location.locality, d.location.city]).filter(Boolean))].sort();
+  const cities = [...new Set(starterDoctors.map(d => d.location.city).filter(Boolean))].sort();
   const specializations = [...new Set(starterDoctors.map(d => d.specialization).filter(Boolean))].sort();
   const hospitals = [...new Set(starterDoctors.flatMap(d => d.affiliations.map(a => a.hospitalName)).filter(Boolean))].sort();
   const languages = [...new Set(starterDoctors.flatMap(d => d.languages || []).filter(Boolean))].sort();
   const serviceAreas = [...new Set(starterDoctors.flatMap(d => d.homeVisit?.serviceAreas || []).filter(Boolean))].sort();
 
   return {
-    locations,
+    cities,
     specializations,
     hospitals,
     languages,

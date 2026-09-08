@@ -58,7 +58,7 @@ export default function Hero() {
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-primary text-white"><Search className="h-4 w-4" /></span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-[9px]">Search by care need and place</p>
-                    <p className="truncate pt-1 text-sm font-semibold text-foreground sm:text-base">Cardiology in Navi Mumbai</p>
+                    <p className="truncate pt-1 text-sm font-semibold text-foreground sm:text-base">Cardiology in Maharashtra</p>
                   </div>
                   <ArrowRight className="hidden h-4 w-4 text-primary sm:block" />
                 </div>
@@ -75,7 +75,7 @@ export default function Hero() {
                   <span className="rounded-lg bg-primary/10 px-2 py-1 text-[8px] font-extrabold uppercase tracking-[0.1em] text-primary sm:text-[9px]">Demonstration data</span>
                 </div>
                 <h2 className="mt-5 text-lg font-bold tracking-[-0.025em] sm:text-xl">Harbourview Medical Centre</h2>
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> Vashi, Navi Mumbai</p>
+                <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> Vashi, Maharashtra</p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {["Cardiology", "Critical care", "Multi-specialty"].map((item) => (
                     <span key={item} className="rounded-[10px] border border-border bg-white/65 px-2.5 py-1.5 text-[10px] font-bold text-foreground/70">{item}</span>

@@ -19,7 +19,7 @@ export default function DoctorDiscoverExperience() {
 
   const filters = {
     q: searchParams.get('q') || '',
-    location: searchParams.get('location') || '',
+    city: searchParams.get('city') || '',
     specialization: searchParams.get('specialization') || '',
     hospital: searchParams.get('hospital') || '',
     language: searchParams.get('language') || '',
@@ -64,7 +64,7 @@ export default function DoctorDiscoverExperience() {
   const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== false);
 
   const activeChips = [];
-  if (filters.location) activeChips.push({ key: 'location', label: filters.location });
+  if (filters.city) activeChips.push({ key: 'location', label: filters.city });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
   if (filters.hospital) activeChips.push({ key: 'hospital', label: filters.hospital });
   if (filters.language) activeChips.push({ key: 'language', label: filters.language });
@@ -188,11 +188,11 @@ export default function DoctorDiscoverExperience() {
                 defaultOpen={true}
               />
               <CollapsibleFilter
-                title="Location"
+                title="City"
                 icon={MapPin}
-                options={facets.locations}
-                value={filters.location}
-                onChange={(val) => updateFilter('location', val)}
+                options={facets.cities}
+                value={filters.city}
+                onChange={(val) => updateFilter('city', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter

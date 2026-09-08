@@ -8,7 +8,7 @@ import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
 
 const availableFilters = [
-  { group: "Location", value: "Navi Mumbai" },
+  { group: "Location", value: "Maharashtra" },
   { group: "Specialty", value: "Cardiology" },
   { group: "Facility", value: "Critical care" },
   { group: "Hospital type", value: "Multi-specialty" },

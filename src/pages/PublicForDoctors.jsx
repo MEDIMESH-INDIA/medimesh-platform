@@ -23,7 +23,7 @@ export default function PublicForDoctors() {
     {
       icon: Building2,
       title: '3. Link Hospital Affiliations',
-      description: 'Connect your practice to accredited hospitals, surgical centers, and healthcare facilities across Navi Mumbai.',
+      description: 'Connect your practice to accredited hospitals, surgical centers, and healthcare facilities across Maharashtra.',
     },
     {
       icon: ShieldCheck,

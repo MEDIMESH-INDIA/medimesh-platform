@@ -134,7 +134,7 @@ export default function DoctorProfile() {
               label="Primary City"
               value={formData.city}
               onChange={handleChange}
-              placeholder="e.g. Navi Mumbai"
+              placeholder="e.g. Mumbai"
             />
             <FormField
               id="state"
