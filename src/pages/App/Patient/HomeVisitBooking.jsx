@@ -60,7 +60,7 @@ export default function HomeVisitBooking() {
   const [unavailable, setUnavailable] = useState([]);
   const [checkingSlots, setCheckingSlots] = useState(false);
   const [address, setAddress] = useState({
-    line1: '', line2: '', locality: profile?.city || '', city: 'Navi Mumbai', postalCode: '', landmark: '',
+    line1: '', line2: '', locality: profile?.city || '', city: profile?.city || '', postalCode: '', landmark: '',
   });
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);

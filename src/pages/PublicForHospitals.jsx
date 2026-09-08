@@ -46,7 +46,7 @@ export default function PublicForHospitals() {
               Accredited Hospital Capacity &amp; Service Governance
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              MEDIMESH provides verified healthcare infrastructure across Navi Mumbai. Maintain official licensed capacity, clinical specialties, and medical affiliations—structured for civic transparency without commercial pay-for-rank placement.
+              MEDIMESH provides verified healthcare infrastructure across Maharashtra. Maintain official licensed capacity, clinical specialties, and medical affiliations—structured for civic transparency without commercial pay-for-rank placement.
             </p>
 
             <div className="pt-4 flex flex-wrap items-center justify-center gap-4">

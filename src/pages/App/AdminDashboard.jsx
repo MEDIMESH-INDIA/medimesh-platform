@@ -189,7 +189,7 @@ export default function AdminDashboard() {
                   <Building2 className="w-4 h-4 text-primary" />
                 </div>
                 <div className="text-2xl font-sans font-bold text-foreground">{hospitalCount}</div>
-                <p className="text-[11px] text-muted-foreground">Navi Mumbai canonical records</p>
+                <p className="text-[11px] text-muted-foreground">Platform canonical records</p>
               </FrostedPanel>
 
               <FrostedPanel variant="elevated" className="p-5 rounded-[22px] space-y-1.5">

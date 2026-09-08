@@ -88,8 +88,8 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
   }
 
   const { name, location, type, specialties, facilities, services, metrics, provenance, contact, yearEstablished } = hospital;
-  const locality = [location.locality, location.city, location.state].filter(Boolean).join(' · ') || 'Location not provided';
-  const fullAddress = [location.addressLine1, location.addressLine2, location.locality, location.city, location.state, location.pinCode].filter(Boolean).join(', ');
+  const locality = [location.locality, location.city, location.district, location.state].filter(Boolean).join(', ') || 'Location not provided';
+  const fullAddress = [location.addressLine1, location.addressLine2, location.locality, location.city, location.district, location.state, location.pinCode].filter(Boolean).join(', ');
 
   return (
     <AppPageContainer className="">

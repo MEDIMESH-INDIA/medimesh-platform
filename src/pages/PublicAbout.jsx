@@ -41,9 +41,9 @@ export default function PublicAbout() {
 
   const milestones = [
     {
-      label: 'Phase 1: Navi Mumbai Index',
+      label: 'Phase 1: Maharashtra Index',
       status: 'Active Index',
-      details: 'Comprehensive canonical dataset covering private and public hospitals across Navi Mumbai nodes with verified beds, emergency status, and locations.',
+      details: 'Comprehensive canonical dataset covering private and public hospitals across Maharashtra nodes with verified beds, emergency status, and locations.',
     },
     {
       label: 'Phase 2: Physician Credentialing',
@@ -153,7 +153,7 @@ export default function PublicAbout() {
                 </p>
               </div>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 w-fit">
-                Navi Mumbai Pilot Active
+                Maharashtra Pilot Active
               </span>
             </div>
 

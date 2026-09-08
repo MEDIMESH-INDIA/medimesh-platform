@@ -2,7 +2,7 @@ import { demoHospitals } from '../../data/sihDemoHospitals';
 import { supabase } from '../supabase/client';
 
 const BASE_SELECT = `
-  id, slug, name, locality, city, state, country, hospital_type,
+  id, slug, name, locality, city, district, state, country, hospital_type,
   address_line_1, address_line_2, pin_code, public_phone, public_email, website, year_established,
   latitude, longitude, google_place_id,
   total_beds, icu_beds, emergency_department, ambulance_available,
@@ -55,6 +55,7 @@ export function normalizeHospital(record, recordType = 'canonical') {
       addressLine2: hospital.address_line_2,
       locality: hospital.locality,
       city: hospital.city,
+      district: hospital.district,
       state: hospital.state,
       country: hospital.country,
       pinCode: hospital.pin_code,
@@ -115,7 +116,7 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
     const matches = demoHospitals.filter(hospital => {
       const location = hospital.location?.toLowerCase() || '';
       return (!search || hospital.name?.toLowerCase().includes(search) || location.includes(search))
-        && (!filters.location || hospital.location === filters.location)
+        && (!filters.city || hospital.location === filters.city)
         && (!filters.type || hospital.type === filters.type)
         && (!filters.specialty || hospital.specialties?.includes(filters.specialty))
         && (!filters.facility || hospital.facilities?.includes(filters.facility));
@@ -137,8 +138,8 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
       .from('hospitals')
       .select(`${selectFields}, ${specialtyRelation}, ${facilityRelation}, hospital_services_catalog(services(name))`, { count: 'exact' })
       .eq('publication_status', 'published');
-    if (search) query = query.or(`name.ilike.%${search}%,locality.ilike.%${search}%,city.ilike.%${search}%`);
-    if (filters.location) query = query.or(`locality.eq.${filters.location},city.eq.${filters.location}`);
+    if (search) query = query.or(`name.ilike.%${search}%,locality.ilike.%${search}%,city.ilike.%${search}%,district.ilike.%${search}%`);
+    if (filters.city) query = query.eq('city', filters.city);
     if (filters.type) query = query.eq('hospital_type', filters.type);
     if (filters.specialty) query = query.eq('hospital_specialties.specialties.name', filters.specialty);
     if (filters.facility) query = query.eq('hospital_facilities.facilities.name', filters.facility);
@@ -157,7 +158,7 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
 export async function getHospitalFacets({ mode = 'canonical' } = {}) {
   if (mode === 'demo') {
     return {
-      locations: [...new Set(demoHospitals.map(h => h.location).filter(Boolean))].sort(),
+      cities: [...new Set(demoHospitals.map(h => h.location).filter(Boolean))].sort(),
       types: [...new Set(demoHospitals.map(h => h.type).filter(Boolean))].sort(),
       specialties: [...new Set(demoHospitals.flatMap(h => h.specialties || []))].sort(),
       facilities: [...new Set(demoHospitals.flatMap(h => h.facilities || []))].sort(),
@@ -166,12 +167,12 @@ export async function getHospitalFacets({ mode = 'canonical' } = {}) {
 
   const { data, error } = await supabase
     .from('hospitals')
-    .select('locality, city, hospital_type, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))')
+    .select('city, hospital_type, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))')
     .eq('publication_status', 'published');
   if (error) throw error;
   const records = data || [];
   return {
-    locations: [...new Set(records.flatMap(h => [h.locality, h.city]).filter(Boolean))].sort(),
+    cities: [...new Set(records.map(h => h.city).filter(Boolean))].sort(),
     types: [...new Set(records.map(h => h.hospital_type).filter(Boolean))].sort(),
     specialties: [...new Set(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name)).filter(Boolean))].sort(),
     facilities: [...new Set(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name)).filter(Boolean))].sort(),
@@ -186,11 +187,11 @@ export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
   }
 
   const execute = selectFields => supabase
-      .from('hospitals')
-      .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
-      .eq('slug', slug)
-      .eq('publication_status', 'published')
-      .maybeSingle();
+    .from('hospitals')
+    .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
+    .eq('slug', slug)
+    .eq('publication_status', 'published')
+    .maybeSingle();
   let response = await execute(BASE_SELECT);
   if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
   const { data, error } = response;
@@ -209,10 +210,10 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical' } = {}) {
   }
 
   const execute = selectFields => supabase
-      .from('hospitals')
-      .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
-      .in('slug', uniqueSlugs)
-      .eq('publication_status', 'published');
+    .from('hospitals')
+    .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
+    .in('slug', uniqueSlugs)
+    .eq('publication_status', 'published');
   let response = await execute(BASE_SELECT);
   if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
   const { data, error } = response;
