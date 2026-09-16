@@ -19,7 +19,7 @@ export default function HomeVisitDoctorExperience() {
 
   const filters = {
     q: searchParams.get('q') || '',
-    location: searchParams.get('location') || '',
+    city: searchParams.get('city') || '',
     specialization: searchParams.get('specialization') || '',
     hospital: searchParams.get('hospital') || '',
     language: searchParams.get('language') || '',
@@ -65,6 +65,7 @@ export default function HomeVisitDoctorExperience() {
   const hasActiveFilters = Object.entries(filters).some(([k, v]) => k !== 'homeVisitsOnly' && v !== '' && v !== false);
 
   const activeChips = [];
+  if (filters.city) activeChips.push({ key: 'city', label: filters.city });
   if (filters.serviceArea) activeChips.push({ key: 'serviceArea', label: filters.serviceArea });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
   if (filters.language) activeChips.push({ key: 'language', label: filters.language });

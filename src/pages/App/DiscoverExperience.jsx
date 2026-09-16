@@ -92,7 +92,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
   // Build Results Header chips logic
   const activeChips = [];
-  if (filters.city) activeChips.push({ key: 'location', label: filters.city });
+  if (filters.city) activeChips.push({ key: 'city', label: filters.city });
   if (filters.specialty) activeChips.push({ key: 'specialty', label: filters.specialty });
   if (filters.type) activeChips.push({ key: 'type', label: formatHospitalType(filters.type) });
   if (filters.facility) activeChips.push({ key: 'facility', label: filters.facility });
