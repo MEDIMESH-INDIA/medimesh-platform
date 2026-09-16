@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getHospitalFacets } from '../lib/data/hospitalRepository';
 
-const EMPTY_FACETS = { cities: [], specialties: [], facilities: [], types: [] };
+const EMPTY_FACETS = { cities: [], localities: [], cityToLocalities: {}, specialties: [], facilities: [], types: [] };
 
 export function useHospitalFacets({ mode = 'canonical' } = {}) {
   const [facets, setFacets] = useState(EMPTY_FACETS);

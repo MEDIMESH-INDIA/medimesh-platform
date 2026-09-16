@@ -85,7 +85,10 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
       query = query.or(`full_name.ilike.%${filters.q}%,specialization.ilike.%${filters.q}%,locality.ilike.%${filters.q}%,city.ilike.%${filters.q}%`);
     }
     if (filters.city) {
-      query = query.or(`locality.ilike.%${filters.city}%,city.ilike.%${filters.city}%`);
+      query = query.eq('city', filters.city);
+    }
+    if (filters.locality) {
+      query = query.eq('locality', filters.locality);
     }
     if (filters.specialization) {
       query = query.ilike('specialization', `%${filters.specialization}%`);
@@ -232,6 +235,18 @@ export async function getDoctorFacets() {
 
       if (!error && data) {
         const cities = [...new Set(data.map(d => d.city).filter(Boolean))].sort();
+        const localities = [...new Set(data.map(d => d.locality).filter(Boolean))].sort();
+        const cityToLocalities = {};
+        data.forEach(d => {
+          if (d.city && d.locality) {
+            if (!cityToLocalities[d.city]) cityToLocalities[d.city] = new Set();
+            cityToLocalities[d.city].add(d.locality);
+          }
+        });
+        Object.keys(cityToLocalities).forEach(k => {
+          cityToLocalities[k] = [...cityToLocalities[k]].sort();
+        });
+
         const specializations = [...new Set(data.map(d => d.specialization).filter(Boolean))].sort();
         const serviceAreas = [...new Set(data.flatMap(d => d.home_visit_service_areas || []).filter(Boolean))].sort();
 
@@ -239,15 +254,17 @@ export async function getDoctorFacets() {
           d.doctor_affiliations_directory?.map(a => a.hospital_name || a.hospitals?.name) || []
         ).filter(Boolean))].sort();
 
-        return { cities, specializations, hospitals, languages: ['English', 'Hindi', 'Marathi'], serviceAreas };
+        return { cities, localities, cityToLocalities, specializations, hospitals, languages: ['English', 'Hindi', 'Marathi'], serviceAreas };
       }
     } catch (err) {
       console.warn('Facets query error:', err);
     }
-    return { locations: [], specializations: [], hospitals: [], languages: [], serviceAreas: [] };
+    return { cities: [], localities: [], cityToLocalities: {}, specializations: [], hospitals: [], languages: [], serviceAreas: [] };
   }
 
   const cities = [...new Set(starterDoctors.map(d => d.location.city).filter(Boolean))].sort();
+  const localities = [];
+  const cityToLocalities = {};
   const specializations = [...new Set(starterDoctors.map(d => d.specialization).filter(Boolean))].sort();
   const hospitals = [...new Set(starterDoctors.flatMap(d => d.affiliations.map(a => a.hospitalName)).filter(Boolean))].sort();
   const languages = [...new Set(starterDoctors.flatMap(d => d.languages || []).filter(Boolean))].sort();
@@ -255,6 +272,8 @@ export async function getDoctorFacets() {
 
   return {
     cities,
+    localities,
+    cityToLocalities,
     specializations,
     hospitals,
     languages,

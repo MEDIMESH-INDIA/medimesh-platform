@@ -15,7 +15,7 @@ export default function HomeVisitDoctorExperience() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [sort, setSort] = useState('name_asc');
-  const [facets, setFacets] = useState({ locations: [], specializations: [], hospitals: [] });
+  const [facets, setFacets] = useState({ cities: [], localities: [], cityToLocalities: {}, specializations: [], hospitals: [] });
 
   const filters = {
     q: searchParams.get('q') || '',
@@ -162,19 +162,27 @@ export default function HomeVisitDoctorExperience() {
 
             <div className="space-y-3">
               <CollapsibleFilter
+                title="City"
+                icon={MapPin}
+                options={facets.cities}
+                value={filters.city}
+                onChange={(val) => updateFilter('city', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
+                title="Area / Locality"
+                icon={MapPin}
+                options={facets.serviceAreas || []}
+                value={filters.serviceArea}
+                onChange={(val) => updateFilter('serviceArea', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
                 title="Specialization"
                 icon={Stethoscope}
                 options={facets.specializations}
                 value={filters.specialization}
                 onChange={(val) => updateFilter('specialization', val)}
-                defaultOpen={true}
-              />
-              <CollapsibleFilter
-                title="Service Area"
-                icon={MapPin}
-                options={facets.serviceAreas || []}
-                value={filters.serviceArea}
-                onChange={(val) => updateFilter('serviceArea', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter

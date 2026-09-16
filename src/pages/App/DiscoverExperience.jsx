@@ -30,6 +30,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   const filters = {
     q: searchParams.get('q') || '',
     city: searchParams.get('city') || '',
+    locality: searchParams.get('locality') || '',
     specialty: searchParams.get('specialty') || '',
     type: searchParams.get('type') || '',
     facility: searchParams.get('facility') || '',
@@ -63,6 +64,21 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
     } else {
       newParams.delete(key);
     }
+
+    if (key === 'city') {
+      const currentLocality = newParams.get('locality');
+      if (currentLocality) {
+        if (!value) {
+           newParams.delete('locality');
+        } else {
+           const validLocalities = facets.cityToLocalities?.[value] || [];
+           if (validLocalities.length > 0 && !validLocalities.includes(currentLocality)) {
+             newParams.delete('locality');
+           }
+        }
+      }
+    }
+
     setSearchParams(newParams);
     if (key === 'q') setQuery(value); // Sync local state
   };
@@ -93,6 +109,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   // Build Results Header chips logic
   const activeChips = [];
   if (filters.city) activeChips.push({ key: 'city', label: filters.city });
+  if (filters.locality) activeChips.push({ key: 'locality', label: filters.locality });
   if (filters.specialty) activeChips.push({ key: 'specialty', label: filters.specialty });
   if (filters.type) activeChips.push({ key: 'type', label: formatHospitalType(filters.type) });
   if (filters.facility) activeChips.push({ key: 'facility', label: filters.facility });
@@ -189,6 +206,14 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 options={facets.cities}
                 value={filters.city}
                 onChange={(val) => updateFilter('city', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
+                title="Area"
+                icon={MapPin}
+                options={filters.city && facets.cityToLocalities?.[filters.city] ? facets.cityToLocalities[filters.city] : (facets.localities || [])}
+                value={filters.locality}
+                onChange={(val) => updateFilter('locality', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter

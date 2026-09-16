@@ -11,7 +11,7 @@ import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { formatHospitalType, formatReviewStatus } from '../../lib/utils/formatters';
 
-const EMPTY = { q: '', city: '', specialty: '', facility: '' };
+const EMPTY = { q: '', city: '', locality: '', specialty: '', facility: '' };
 const WAITING = { ...EMPTY, q: '__waiting_for_compare_search__' };
 const NEEDS = [
   [['cardiac', 'cardiology', 'heart'], 'Cardiology'],
@@ -82,7 +82,8 @@ export default function Compare() {
   const rows = useMemo(() => {
     const list = [];
     if (selectedNeed) list.push({ group: 'Your priorities', label: `${selectedNeed} listed`, priority: true, get: h => h.specialties.some(item => item.toLowerCase() === selectedNeed.toLowerCase()) ? 'Available' : 'Unknown' });
-    if (search?.city) list.push({ group: 'Your priorities', label: `In ${search.city}`, priority: true, get: h => [h.location.locality, h.location.city].some(item => item?.toLowerCase() === search.city.toLowerCase()) ? 'Matches area' : 'Outside area' });
+    if (search?.locality) list.push({ group: 'Your priorities', label: `In ${search.locality}`, priority: true, get: h => h.location.locality?.toLowerCase() === search.locality.toLowerCase() ? 'Matches area' : 'Outside area' });
+    else if (search?.city) list.push({ group: 'Your priorities', label: `In ${search.city}`, priority: true, get: h => [h.location.locality, h.location.city].some(item => item?.toLowerCase() === search.city.toLowerCase()) ? 'Matches area' : 'Outside area' });
     list.push(
       { group: 'Overview', label: 'Location', priority: true, get: place },
       { group: 'Overview', label: 'Hospital type', priority: true, get: h => formatHospitalType(h.type) },
@@ -100,7 +101,7 @@ export default function Compare() {
       const values = hospitals.map(row.get);
       return { ...row, values, differs: new Set(values.map(String)).size > 1 };
     });
-  }, [hospitals, search?.city, selectedNeed]);
+  }, [hospitals, search?.city, search?.locality, selectedNeed]);
   const visible = rows.filter(row => (!differences || row.differs) && (!focused || row.priority || row.group === 'Trust & freshness'));
   const groups = visible.reduce((result, row) => ({ ...result, [row.group]: [...(result[row.group] || []), row] }), {});
   const runSearch = event => { event.preventDefault(); setSearch({ ...draft, q: draft.q.trim() }); };
@@ -115,9 +116,10 @@ export default function Compare() {
     <FrostedPanel variant="elevated" className="mb-7 overflow-hidden rounded-[20px]">
       <div className="border-b border-border bg-gradient-to-r from-primary/[0.06] via-white/40 to-lavender/[0.1] p-5 sm:p-7">
         <div className="mb-5 flex gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white"><Search className="h-5 w-5" /></div><div><h2 className="font-serif text-xl font-semibold">What kind of hospital are you looking for?</h2><p className="mt-1 text-sm text-muted-foreground">Try “cardiac care”, “kidney hospital”, a hospital name, or a locality.</p></div></div>
-        <form onSubmit={runSearch} className="grid gap-3 lg:grid-cols-[1.5fr_.75fr_.75fr_auto]">
-          <label className="relative"><span className="sr-only">Hospital name or healthcare need</span><Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" /><input type="search" value={draft.q} onChange={e => setDraft(value => ({ ...value, q: e.target.value }))} placeholder="Hospital name or healthcare need" className="h-12 w-full rounded-xl border border-border bg-white/90 pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
-          <label className="relative"><span className="sr-only">Location</span><MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.city} onChange={e => setDraft(value => ({ ...value, city: e.target.value }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any location</option>{(facets.cities || []).map(item => <option key={item}>{item}</option>)}</select></label>
+        <form onSubmit={runSearch} className="grid gap-3 lg:grid-cols-[1fr_.75fr_.75fr_.75fr_auto]">
+          <label className="relative"><span className="sr-only">Hospital name or healthcare need</span><Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" /><input type="search" value={draft.q} onChange={e => setDraft(value => ({ ...value, q: e.target.value }))} placeholder="Hospital name or need" className="h-12 w-full rounded-xl border border-border bg-white/90 pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
+          <label className="relative"><span className="sr-only">Location</span><MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.city} onChange={e => setDraft(value => ({ ...value, city: e.target.value, locality: (!e.target.value || (facets.cityToLocalities?.[e.target.value] && !facets.cityToLocalities[e.target.value].includes(value.locality))) ? '' : value.locality }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any location</option>{(facets.cities || []).map(item => <option key={item}>{item}</option>)}</select></label>
+          <label className="relative"><span className="sr-only">Area</span><MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.locality} onChange={e => setDraft(value => ({ ...value, locality: e.target.value }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any area</option>{(draft.city && facets.cityToLocalities?.[draft.city] ? facets.cityToLocalities[draft.city] : (facets.localities || [])).map(item => <option key={item}>{item}</option>)}</select></label>
           <label className="relative"><span className="sr-only">Specialty</span><SlidersHorizontal className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.specialty} onChange={e => setDraft(value => ({ ...value, specialty: e.target.value }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any specialty</option>{(facets.specialties || []).map(item => <option key={item}>{item}</option>)}</select></label>
           <Button type="submit" className="h-12 gap-2 px-6 text-sm">Find hospitals</Button>
         </form>
