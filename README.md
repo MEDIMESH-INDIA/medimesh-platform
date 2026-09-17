@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MEDIMESH INDIA 2.0
 
-## Getting Started
+> A unified healthcare discovery, comparison, and navigation platform for India.
 
-First, run the development server:
+## Phase 01: Project Foundation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This repository contains the foundational application scaffold for MEDIMESH INDIA 2.0, built on Next.js App Router, React 19, TypeScript, and Tailwind CSS v4.
+
+### Design System: "Warm Rationalism & Data Transparency"
+
+The visual architecture is derived canonically from `DESIGN.md` ("MediMesh India Canvas"):
+- **Primary Institutional Anchor:** `#005C55` (Deep Pine-Teal)
+- **Primary Container:** `#0F766E`
+- **Secondary Public Data Blue:** `#0051D5`
+- **Caution / Freshness Warning:** `#7D4200`
+- **Error:** `#BA1A1A`
+- **Surfaces:** `#FAF8FF` warm off-white canvas
+- **Typography:** Plus Jakarta Sans (headings/display) and Inter (body/labels/data) loaded via `next/font/google`
+- **Responsive Breakpoints:** Mobile (`< 640px`), Tablet (`640px–1024px`), Desktop (`> 1024px`), Max Content Width `1280px`
+
+### Project Architecture
+
+```text
+medimesh-app/
+├── database/               # Database migrations, schemas, seeds (scaffold)
+├── src/
+│   ├── app/                # App Router layouts, routes, error/loading states
+│   │   ├── (public)/       # Public discovery routes layout
+│   │   ├── (user)/         # Authenticated user routes layout
+│   │   ├── admin/          # Internal administration layout
+│   │   ├── portal/         # Healthcare facility portal layout
+│   │   ├── error.tsx       # Route-level error boundary
+│   │   ├── global-error.tsx# Catastrophic root error boundary
+│   │   ├── globals.css     # Design tokens as CSS variables + Tailwind v4 theme
+│   │   ├── layout.tsx      # Root HTML shell with font configuration
+│   │   ├── loading.tsx     # Structural route transition loading state
+│   │   ├── not-found.tsx   # 404 state with platform navigation
+│   │   └── page.tsx        # Foundation verification placeholder homepage
+│   ├── components/         # Shared component library (scaffold)
+│   ├── design-system/      # Centralized design tokens (tokens.ts, index.ts)
+│   ├── features/           # Domain-oriented feature modules (scaffold)
+│   ├── lib/                # Configuration, utility functions, future clients
+│   └── types/              # Core trust model, provenance, location contracts
+└── tests/                  # Automated foundation tests (node:test)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Safety & Trust Boundary Architecture
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+MEDIMESH strictly adheres to core safety principles:
+- Information is categorized under 5 trust states: `PUBLIC_SOURCE`, `FACILITY_REPORTED`, `MEDIMESH_VERIFIED`, `PENDING_VERIFICATION`, and `NOT_CONFIRMED`.
+- Location is categorized as `SELECTED`, `APPROXIMATE`, or `ACTUAL` (only when explicitly authorized).
+- Distances are strictly expressed as approximate estimates (`~X.X km approx`).
+- Non-clinical, non-ranking, and emergency disclaimers are enforced at the type and data contract level.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Development Commands
 
-## Learn More
+```bash
+# Install dependencies
+npm install
 
-To learn more about Next.js, take a look at the following resources:
+# Run development server
+npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Run automated tests
+npm test
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Run ESLint
+npm run lint
 
-## Deploy on Vercel
+# Validate TypeScript types
+npx tsc --noEmit
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Create optimized production build
+npm run build
+```
