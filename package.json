@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/foundation.test.ts tests/discovery.test.ts tests/data-architecture.test.ts tests/discovery-modules.test.ts"
+    "test": "node --experimental-strip-types --test tests/foundation.test.ts tests/discovery.test.ts tests/data-architecture.test.ts tests/discovery-modules.test.ts tests/user-system.test.ts"
   },
   "dependencies": {
     "next": "16.3.5",

@@ -211,17 +211,17 @@ export function Header({
             </button>
 
             {/* Notifications Button */}
-            <button
-              type="button"
+            <Link
+              href="/account/notifications"
               aria-label="Notifications"
               className="p-2 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-[var(--color-surface-container)] rounded-[var(--radius-md)] transition-colors cursor-pointer"
             >
               <NotificationsIcon size={20} />
-            </button>
+            </Link>
 
             {/* Account Avatar / Button */}
             <Link
-              href="/showcase"
+              href="/account"
               aria-label="My MEDIMESH account"
               className="w-8 h-8 rounded-full bg-[var(--color-primary)] text-[var(--color-on-primary)] flex items-center justify-center text-xs font-semibold shadow-xs hover:bg-[var(--color-primary-container)] transition-colors"
             >
@@ -363,11 +363,14 @@ export function MobileDrawer({
             <span className="font-label-sm text-xs font-bold text-[var(--color-outline)] uppercase tracking-wider">
               Compare &amp; Saved
             </span>
-            <Link href="/#compare" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+            <Link href="/account/comparisons" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Compare Hospitals (Max 2)
             </Link>
-            <Link href="/#saved" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+            <Link href="/account/saved" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Saved Items
+            </Link>
+            <Link href="/account" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              My Account
             </Link>
           </div>
 
@@ -402,9 +405,9 @@ export function MobileBottomNav({
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: <HomeIcon size={20} />, href: '/' },
     { id: 'discover' as const, label: 'Discover', icon: <SearchIcon size={20} />, href: '/search' },
-    { id: 'compare' as const, label: 'Compare', icon: <ScaleIcon size={20} />, href: '/#compare' },
-    { id: 'saved' as const, label: 'Saved', icon: <BookmarkIcon size={20} />, href: '/#saved' },
-    { id: 'account' as const, label: 'Account', icon: <PersonIcon size={20} />, href: '/#account' },
+    { id: 'compare' as const, label: 'Compare', icon: <ScaleIcon size={20} />, href: '/account/comparisons' },
+    { id: 'saved' as const, label: 'Saved', icon: <BookmarkIcon size={20} />, href: '/account/saved' },
+    { id: 'account' as const, label: 'Account', icon: <PersonIcon size={20} />, href: '/account' },
   ];
 
   return (

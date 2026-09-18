@@ -126,6 +126,38 @@ enum AvailabilityStatus {
   UNKNOWN
 }
 
+enum SavedEntityType {
+  FACILITY
+  HOSPITAL
+  SPECIALTY
+  DOCTOR
+  SERVICE
+  SCHEME
+  TARIFF
+  AMBULANCE
+  PHARMACY
+  HOME_HEALTHCARE
+}
+
+enum NotificationType {
+  SAVED_INFORMATION
+  CORRECTION_UPDATE
+  ACCOUNT_SECURITY
+  SYSTEM
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum LocationPreferenceMode {
+  SELECTED
+  APPROXIMATE
+  ACTUAL
+}
+
 // -----------------------------------------------------------------------------
 // 1. Source & Provenance
 // -----------------------------------------------------------------------------
@@ -574,3 +606,141 @@ model AuditLog {
   @@index([timestamp])
   @@map("audit_logs")
 }
+
+// -----------------------------------------------------------------------------
+// 13. User Account & Platform Identity
+// -----------------------------------------------------------------------------
+
+model User {
+  id                String                 @id @default(uuid())
+  authIdentifier    String                 @unique @map("auth_identifier")
+  displayName       String                 @map("display_name")
+  email             String?                @unique
+  preferredLanguage String                 @default("en") @map("preferred_language")
+  status            UserStatus             @default(ACTIVE)
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+
+  // Relationships
+  preference        UserPreference?
+  savedItems        SavedItem[]
+  savedComparisons  SavedComparison[]
+  recentSearches    RecentSearch[]
+  notifications     PlatformNotification[]
+
+  @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// 14. Platform User Preferences (No GPS / No PinCode Stored)
+// -----------------------------------------------------------------------------
+
+model UserPreference {
+  id                   String                 @id @default(uuid())
+  userId               String                 @unique @map("user_id")
+  locationMode         LocationPreferenceMode @default(SELECTED) @map("location_mode")
+  locationDisplayName  String?                @map("location_display_name")
+  locationCity         String?                @map("location_city")
+  locationState        String?                @map("location_state")
+  reduceMotion         Boolean                @default(false) @map("reduce_motion")
+  largerText           Boolean                @default(false) @map("larger_text")
+  highContrast         Boolean                @default(false) @map("high_contrast")
+  emailUpdates         Boolean                @default(true) @map("email_updates")
+  serviceAnnouncements Boolean                @default(true) @map("service_announcements")
+  updatedAt            DateTime               @updatedAt @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+// -----------------------------------------------------------------------------
+// 15. Saved Public Healthcare Discovery Items (No Free-Text Notes)
+// -----------------------------------------------------------------------------
+
+model SavedItem {
+  id         String          @id @default(uuid())
+  userId     String          @map("user_id")
+  entityType SavedEntityType @map("entity_type")
+  entityId   String          @map("entity_id")
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType, entityId])
+  @@index([userId])
+  @@index([userId, entityType])
+  @@index([userId, createdAt])
+  @@map("saved_items")
+}
+
+// -----------------------------------------------------------------------------
+// 16. Saved Facility Comparisons (Strictly 2 Facilities)
+// -----------------------------------------------------------------------------
+
+model SavedComparison {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  entityType String   @default("FACILITY") @map("entity_type")
+  entityAId  String   @map("entity_a_id")
+  entityBId  String   @map("entity_b_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType, entityAId, entityBId])
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("saved_comparisons")
+}
+
+// -----------------------------------------------------------------------------
+// 17. Recent Discovery Searches (Non-Diagnostic)
+// -----------------------------------------------------------------------------
+
+model RecentSearch {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  query             String
+  interpretedIntent String?  @map("interpreted_intent")
+  selectedLocation  String?  @map("selected_location")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@map("recent_searches")
+}
+
+// -----------------------------------------------------------------------------
+// 18. Informational Platform Notifications
+// -----------------------------------------------------------------------------
+
+model PlatformNotification {
+  id                String           @id @default(uuid())
+  userId            String           @map("user_id")
+  type              NotificationType
+  title             String
+  message           String
+  relatedEntityType SavedEntityType? @map("related_entity_type")
+  relatedEntityId   String?          @map("related_entity_id")
+  readAt            DateTime?        @map("read_at")
+  expiresAt         DateTime?        @map("expires_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+

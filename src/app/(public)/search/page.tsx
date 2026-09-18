@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/global/navigation';
 import { Footer } from '@/components/global/footer';
@@ -26,11 +26,14 @@ import type {
 } from '@/features/hospitals/types';
 import type { UserLocation } from '@/types';
 import { RefreshIcon } from '@/components/global/icons';
+import { useAuth } from '@/features/user/auth';
+import { defaultUserService } from '@/features/user/services';
 
 function SearchResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
+  const { user, isAuthenticated, openAuthPrompt } = useAuth();
 
   const rawQuery = searchParams.get('q') || '';
   const paramLocation = searchParams.get('location') || '';
@@ -69,10 +72,33 @@ function SearchResultsContent() {
   const [savedHospitalIds, setSavedHospitalIds] = useState<string[]>([]);
   const [comparedHospitalIds, setComparedHospitalIds] = useState<string[]>([]);
 
+  // Load saved items if user is authenticated
+  useEffect(() => {
+    if (user?.id) {
+      defaultUserService.listSavedItemsResolved(user.id, 'FACILITY').then((items) => {
+        setSavedHospitalIds(items.map((i) => i.savedItem.entityId));
+      });
+    }
+  }, [user?.id]);
+
   // Execute deterministic search engine
   const searchResult = useMemo(() => {
     return searchHospitals(rawQuery, currentLocation, filters, sortOrder);
   }, [rawQuery, currentLocation, filters, sortOrder]);
+
+  // Record non-diagnostic recent search if user is authenticated
+  useEffect(() => {
+    if (user?.id && rawQuery.trim()) {
+      defaultUserService.recordSearch(
+        user.id,
+        rawQuery,
+        currentLocation.city,
+        searchResult.interpretation.interpretedSpecialty
+          ? `Specialty: ${searchResult.interpretation.interpretedSpecialty}`
+          : undefined
+      );
+    }
+  }, [user?.id, rawQuery, currentLocation.city, searchResult.interpretation.interpretedSpecialty]);
 
   const handleQuerySubmit = (newQuery?: string) => {
     const q = (newQuery !== undefined ? newQuery : searchInputVal).trim();
@@ -82,17 +108,32 @@ function SearchResultsContent() {
     router.push(`/search?${params.toString()}`);
   };
 
-  const handleToggleSave = (id: string) => {
+  const handleToggleSave = async (id: string) => {
+    if (!isAuthenticated || !user) {
+      openAuthPrompt({ entityType: 'FACILITY', entityId: id });
+      return;
+    }
+
     if (savedHospitalIds.includes(id)) {
       setSavedHospitalIds((prev) => prev.filter((item) => item !== id));
-      showToast('Removed from saved items', 'info');
+      try {
+        await defaultUserService.unsaveItem(user.id, 'FACILITY', id);
+        showToast('Removed from saved items', 'info');
+      } catch {
+        showToast('Failed to update saved item', 'info');
+      }
     } else {
       setSavedHospitalIds((prev) => [...prev, id]);
-      showToast('Saved to My MEDIMESH', 'success');
+      try {
+        await defaultUserService.saveItem(user.id, 'FACILITY', id);
+        showToast('Saved to your MEDIMESH account.', 'success');
+      } catch {
+        showToast('Failed to save to account', 'info');
+      }
     }
   };
 
-  const handleToggleCompare = (id: string) => {
+  const handleToggleCompare = async (id: string) => {
     if (comparedHospitalIds.includes(id)) {
       setComparedHospitalIds((prev) => prev.filter((item) => item !== id));
       showToast('Removed from comparison', 'info');
@@ -101,7 +142,15 @@ function SearchResultsContent() {
         showToast('Maximum 2 facilities can be compared at a time.', 'info');
         return;
       }
-      setComparedHospitalIds((prev) => [...prev, id]);
+      const nextCompared = [...comparedHospitalIds, id];
+      setComparedHospitalIds(nextCompared);
+      if (nextCompared.length === 2 && user?.id) {
+        try {
+          await defaultUserService.saveComparison(user.id, nextCompared[0], nextCompared[1]);
+        } catch {
+          // ignore
+        }
+      }
       showToast('Added to comparison (max 2)', 'success');
     }
   };
