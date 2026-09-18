@@ -1,0 +1,576 @@
+// =============================================================================
+// MEDIMESH INDIA 2.0 — Canonical Relational Database Schema
+// =============================================================================
+// CANONICAL LOCATION: prisma/schema.prisma
+// MIGRATION SOURCE: prisma/migrations/20260917000000_init_data_architecture/
+//
+// Target Database: PostgreSQL
+// Technology: Prisma ORM with strongly typed domain repository boundary.
+//
+// DESIGN PRINCIPLES:
+// 1. Normalized relational architecture for healthcare discovery and navigation.
+// 2. Granular, record/revision-aware publication chain.
+// 3. Universal source provenance attachment to prevent unverified claims.
+// 4. Non-destructive deletion semantics: onDelete: Restrict on provenance relations.
+// 5. Explicit demo data isolation: data_origin enum (SYNTHETIC_DEMO).
+// 6. Strict neutrality: zero hospital/doctor ratings, rankings, or quality scores.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Core Enumerations
+// -----------------------------------------------------------------------------
+
+enum VerificationState {
+  PUBLIC_SOURCE
+  FACILITY_REPORTED
+  MEDIMESH_VERIFIED
+  PENDING_VERIFICATION
+  NOT_CONFIRMED
+  UNABLE_TO_VERIFY
+}
+
+enum WorkflowStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  NEEDS_INFORMATION
+  APPROVED
+  REJECTED
+  UNABLE_TO_VERIFY
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CorrectionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  NEEDS_INFORMATION
+  ACCEPTED
+  REJECTED
+  UNABLE_TO_VERIFY
+}
+
+enum DataOrigin {
+  SYNTHETIC_DEMO
+  STAGED_RESEARCH
+  PUBLISHED_PRODUCTION
+}
+
+enum FacilityCategory {
+  Hospital
+  Clinic
+  Diagnostic_Laboratory
+  Specialty_Centre
+  Emergency_Critical_Care
+  Rehabilitation
+  Home_Healthcare
+  Pharmacy
+}
+
+enum HospitalType {
+  Super_Specialty_Hospital
+  Multi_Specialty_Hospital
+  Single_Specialty_Hospital
+  Government_Medical_College_Hospital
+  Community_Health_Center
+  Daycare_Polyclinic
+}
+
+enum ClinicalDomain {
+  Cardiology
+  Orthopedics
+  Neurology_Neurosurgery
+  Oncology
+  Nephrology_Urology
+  Pediatrics
+  General_Medicine
+  Obstetrics_Gynecology
+  Gastroenterology
+  Emergency_Critical_Care
+}
+
+enum ServiceCategory {
+  Critical_Care
+  Diagnostic_Imaging
+  Laboratory
+  Surgical
+  Therapeutic
+  Emergency_Support
+}
+
+enum SourceType {
+  FACILITY_REPORTED
+  GOVERNMENT_PUBLICATION
+  PUBLIC_REGISTRY
+  PROFESSIONAL_REGISTRY
+  OFFICIAL_SCHEME_SOURCE
+  PUBLIC_DOCUMENT
+  OTHER_PUBLIC_SOURCE
+  SYNTHETIC_DEMO
+}
+
+enum AvailabilityStatus {
+  ACTIVE
+  LIMITED
+  NOT_REPORTED
+  CLOSED
+  UNKNOWN
+}
+
+// -----------------------------------------------------------------------------
+// 1. Source & Provenance
+// -----------------------------------------------------------------------------
+
+model SourceProvenance {
+  id                 String            @id @default(uuid())
+  sourceType         SourceType        @map("source_type")
+  sourceOrganization String            @map("source_organization")
+  sourceTitle        String?           @map("source_title")
+  sourceUrl          String?           @map("source_url")
+  publishedAt        DateTime?         @map("published_at")
+  collectedAt        DateTime          @default(now()) @map("collected_at")
+  lastReviewedAt     DateTime?         @map("last_reviewed_at")
+  collectedBy        String?           @map("collected_by")
+  reviewedBy         String?           @map("reviewed_by")
+  verificationState  VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  notes              String?
+  dataOrigin         DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facilities          Facility[]
+  hospitalProfiles    HospitalProfile[]
+  facilitySpecialties FacilitySpecialty[]
+  facilityServices    FacilityService[]
+  doctorProfiles      DoctorProfile[]
+  facilitySchemes     FacilityScheme[]
+  tariffs             TariffItem[]
+  availabilities      AvailabilityRecord[]
+  revisions           RecordRevision[]
+
+  @@index([sourceType])
+  @@index([verificationState])
+  @@index([dataOrigin])
+  @@map("source_provenances")
+}
+
+// -----------------------------------------------------------------------------
+// 2. Historical Revisions & Reviews
+// -----------------------------------------------------------------------------
+
+model RecordRevision {
+  id             String   @id @default(uuid())
+  entityType     String   @map("entity_type")
+  entityId       String   @map("entity_id")
+  revisionNumber Int      @map("revision_number")
+  changeSummary  String   @map("change_summary")
+  previousData   Json?    @map("previous_data")
+  newData        Json     @map("new_data")
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  sourceId       String   @map("source_id")
+
+  // Relationships
+  source  SourceProvenance @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  reviews WorkflowReview[]
+
+  @@unique([entityType, entityId, revisionNumber])
+  @@index([entityType, entityId])
+  @@map("record_revisions")
+}
+
+model WorkflowReview {
+  id            String         @id @default(uuid())
+  revisionId    String         @map("revision_id")
+  reviewerId    String         @map("reviewer_id")
+  status        WorkflowStatus
+  decisionNotes String         @map("decision_notes")
+  reviewedAt    DateTime       @default(now()) @map("reviewed_at")
+
+  // Relationships
+  revision RecordRevision @relation(fields: [revisionId], references: [id], onDelete: Restrict)
+
+  @@index([revisionId])
+  @@index([status])
+  @@map("workflow_reviews")
+}
+
+// -----------------------------------------------------------------------------
+// 3. Facility Entity (Generic Facility Identity)
+// -----------------------------------------------------------------------------
+
+model Facility {
+  id                String            @id @default(uuid())
+  slug              String            @unique
+  name              String
+  category          FacilityCategory
+  ownershipType     String?           @map("ownership_type")
+  description       String
+  address           String
+  locality          String?
+  city              String
+  district          String?
+  state             String
+  country           String            @default("India")
+  postalCode        String            @map("postal_code")
+  latitude          Float?
+  longitude         Float?
+  primaryPhone      String            @map("primary_phone")
+  emergencyPhone    String?           @map("emergency_phone")
+  email             String?
+  websiteUrl        String?           @map("website_url")
+  operatingHours    String?           @map("operating_hours")
+  workflowStatus    WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  currentRevisionId String?           @map("current_revision_id")
+  sourceId          String            @map("source_id")
+  verificationState VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin        DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  isArchived        Boolean           @default(false) @map("is_archived")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  source          SourceProvenance     @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  hospitalProfile HospitalProfile?
+  specialties     FacilitySpecialty[]
+  services        FacilityService[]
+  doctors         DoctorProfile[]
+  schemes         FacilityScheme[]
+  tariffs         TariffItem[]
+  availabilities  AvailabilityRecord[]
+
+  @@index([slug])
+  @@index([city, state])
+  @@index([category])
+  @@index([workflowStatus])
+  @@index([verificationState])
+  @@index([dataOrigin])
+  @@map("facilities")
+}
+
+// -----------------------------------------------------------------------------
+// 4. Hospital Profile
+// -----------------------------------------------------------------------------
+
+model HospitalProfile {
+  id                         String            @id @default(uuid())
+  facilityId                 String            @unique @map("facility_id")
+  hospitalType               HospitalType      @map("hospital_type")
+  bedCapacityTotal           Int               @default(0) @map("bed_capacity_total")
+  icuBedCapacity             Int               @default(0) @map("icu_bed_capacity")
+  traumaCapability           Boolean           @default(false) @map("trauma_capability")
+  emergencyIntakeOperational Boolean           @default(false) @map("emergency_intake_operational")
+  isMedicalCollege           Boolean           @default(false) @map("is_medical_college")
+  accreditationSummary       String?           @map("accreditation_summary")
+  workflowStatus             WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  currentRevisionId          String?           @map("current_revision_id")
+  sourceId                   String            @map("source_id")
+  verificationState          VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin                 DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  createdAt                  DateTime          @default(now()) @map("created_at")
+  updatedAt                  DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facility Facility         @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  source   SourceProvenance @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@index([facilityId])
+  @@index([hospitalType])
+  @@index([workflowStatus])
+  @@map("hospital_profiles")
+}
+
+// -----------------------------------------------------------------------------
+// 5. Specialty Taxonomy & Relationships
+// -----------------------------------------------------------------------------
+
+model Specialty {
+  id             String         @id @default(uuid())
+  slug           String         @unique
+  name           String
+  clinicalDomain ClinicalDomain @map("clinical_domain")
+  description    String?
+  isAdult        Boolean        @default(true) @map("is_adult")
+  isPediatric    Boolean        @default(false) @map("is_pediatric")
+
+  // Relationships
+  facilities FacilitySpecialty[]
+  doctors    DoctorProfile[]
+
+  @@index([slug])
+  @@index([clinicalDomain])
+  @@map("specialties")
+}
+
+model FacilitySpecialty {
+  id                 String            @id @default(uuid())
+  facilityId         String            @map("facility_id")
+  specialtyId        String            @map("specialty_id")
+  opdAvailable       Boolean           @default(true) @map("opd_available")
+  inpatientAvailable Boolean           @default(true) @map("inpatient_available")
+  workflowStatus     WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  sourceId           String            @map("source_id")
+  verificationState  VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin         DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  isArchived         Boolean           @default(false) @map("is_archived")
+  lastReviewedAt     DateTime?         @map("last_reviewed_at")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facility  Facility         @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  specialty Specialty        @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
+  source    SourceProvenance @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@unique([facilityId, specialtyId])
+  @@index([facilityId])
+  @@index([specialtyId])
+  @@index([workflowStatus])
+  @@map("facility_specialties")
+}
+
+// -----------------------------------------------------------------------------
+// 6. Service & Capability Taxonomy & Relationships
+// -----------------------------------------------------------------------------
+
+model ServiceCapability {
+  id          String          @id @default(uuid())
+  slug        String          @unique
+  name        String
+  category    ServiceCategory
+  description String?
+
+  // Relationships
+  facilities FacilityService[]
+  tariffs    TariffItem[]
+
+  @@index([slug])
+  @@index([category])
+  @@map("service_capabilities")
+}
+
+model FacilityService {
+  id                String            @id @default(uuid())
+  facilityId        String            @map("facility_id")
+  serviceId         String            @map("service_id")
+  is24x7            Boolean           @default(false) @map("is_24x7")
+  operationalNotes  String?           @map("operational_notes")
+  workflowStatus    WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  sourceId          String            @map("source_id")
+  verificationState VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin        DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  isArchived        Boolean           @default(false) @map("is_archived")
+  lastReviewedAt    DateTime?         @map("last_reviewed_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facility Facility          @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  service  ServiceCapability @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  source   SourceProvenance  @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@unique([facilityId, serviceId])
+  @@index([facilityId])
+  @@index([serviceId])
+  @@index([workflowStatus])
+  @@map("facility_services")
+}
+
+// -----------------------------------------------------------------------------
+// 7. Doctor & Professional Profiles (Public Information Only)
+// -----------------------------------------------------------------------------
+
+model DoctorProfile {
+  id                    String            @id @default(uuid())
+  facilityId            String            @map("facility_id")
+  name                  String
+  title                 String
+  qualifications        String
+  specialtyId           String            @map("specialty_id")
+  registrationReference String?           @map("registration_reference")
+  opdTimings            String?           @map("opd_timings")
+  workflowStatus        WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  sourceId              String            @map("source_id")
+  verificationState     VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin            DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  isArchived            Boolean           @default(false) @map("is_archived")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facility  Facility         @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  specialty Specialty        @relation(fields: [specialtyId], references: [id], onDelete: Restrict)
+  source    SourceProvenance @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@index([facilityId])
+  @@index([specialtyId])
+  @@index([workflowStatus])
+  @@map("doctor_profiles")
+}
+
+// -----------------------------------------------------------------------------
+// 8. Schemes & Empanelment Relationships
+// -----------------------------------------------------------------------------
+
+model SchemeInsurance {
+  id           String  @id @default(uuid())
+  code         String  @unique
+  name         String
+  providerType String  @map("provider_type")
+  stateScope   String? @map("state_scope")
+  description  String?
+
+  // Relationships
+  facilities FacilityScheme[]
+
+  @@index([code])
+  @@map("schemes")
+}
+
+model FacilityScheme {
+  id                  String            @id @default(uuid())
+  facilityId          String            @map("facility_id")
+  schemeId            String            @map("scheme_id")
+  empanelmentCategory String?           @map("empanelment_category")
+  helpdeskLocation    String?           @map("helpdesk_location")
+  effectiveFrom       DateTime?         @map("effective_from")
+  effectiveTo         DateTime?         @map("effective_to")
+  workflowStatus      WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  sourceId            String            @map("source_id")
+  verificationState   VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin          DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  isArchived          Boolean           @default(false) @map("is_archived")
+  lastReviewedAt      DateTime?         @map("last_reviewed_at")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facility Facility         @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  scheme   SchemeInsurance  @relation(fields: [schemeId], references: [id], onDelete: Restrict)
+  source   SourceProvenance @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@unique([facilityId, schemeId])
+  @@index([facilityId])
+  @@index([schemeId])
+  @@index([workflowStatus])
+  @@map("facility_schemes")
+}
+
+// -----------------------------------------------------------------------------
+// 9. Informational Tariffs (Non-Promotional)
+// -----------------------------------------------------------------------------
+
+model TariffItem {
+  id                String            @id @default(uuid())
+  facilityId        String            @map("facility_id")
+  serviceId         String            @map("service_id")
+  amount            Float
+  currency          String            @default("INR")
+  unit              String
+  effectiveFrom     DateTime?         @map("effective_from")
+  effectiveTo       DateTime?         @map("effective_to")
+  notes             String?
+  workflowStatus    WorkflowStatus    @default(DRAFT) @map("workflow_status")
+  sourceId          String            @map("source_id")
+  verificationState VerificationState @default(PENDING_VERIFICATION) @map("verification_state")
+  dataOrigin        DataOrigin        @default(SYNTHETIC_DEMO) @map("data_origin")
+  isArchived        Boolean           @default(false) @map("is_archived")
+  lastReviewedAt    DateTime?         @map("last_reviewed_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  facility Facility          @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  service  ServiceCapability @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  source   SourceProvenance  @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@index([facilityId])
+  @@index([serviceId])
+  @@index([workflowStatus])
+  @@map("tariffs")
+}
+
+// -----------------------------------------------------------------------------
+// 10. Availability Records (Never a Guarantee)
+// -----------------------------------------------------------------------------
+
+model AvailabilityRecord {
+  id                   String             @id @default(uuid())
+  facilityId           String             @map("facility_id")
+  capabilityType       String             @map("capability_type")
+  status               AvailabilityStatus
+  observedAt           DateTime           @default(now()) @map("observed_at")
+  expiresAt            DateTime?          @map("expires_at")
+  sourceId             String             @map("source_id")
+  verificationState    VerificationState  @default(PENDING_VERIFICATION) @map("verification_state")
+  requiresConfirmation Boolean            @default(true) @map("requires_confirmation")
+  contextNotes         String?            @map("context_notes")
+  dataOrigin           DataOrigin         @default(SYNTHETIC_DEMO) @map("data_origin")
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  // Relationships
+  facility Facility         @relation(fields: [facilityId], references: [id], onDelete: Restrict)
+  source   SourceProvenance @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@index([facilityId])
+  @@index([observedAt])
+  @@map("availability_records")
+}
+
+// -----------------------------------------------------------------------------
+// 11. Correction Submissions
+// -----------------------------------------------------------------------------
+
+model CorrectionSubmission {
+  id                  String           @id @default(uuid())
+  targetEntityType    String           @map("target_entity_type")
+  targetEntityId      String           @map("target_entity_id")
+  targetField         String           @map("target_field")
+  currentValue        String?          @map("current_value")
+  proposedValue       String           @map("proposed_value")
+  justification       String
+  sourceCitation      String           @map("source_citation")
+  submitterContact    String?          @map("submitter_contact")
+  status              CorrectionStatus @default(SUBMITTED)
+  submittedAt         DateTime         @default(now()) @map("submitted_at")
+  reviewedBy          String?          @map("reviewed_by")
+  resolutionNotes     String?          @map("resolution_notes")
+  resultingRevisionId String?          @map("resulting_revision_id")
+  resolvedAt          DateTime?        @map("resolved_at")
+
+  @@index([targetEntityType, targetEntityId])
+  @@index([status])
+  @@map("corrections")
+}
+
+// -----------------------------------------------------------------------------
+// 12. Application Audit Log
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id               String   @id @default(uuid())
+  actorId          String   @map("actor_id")
+  actorRole        String   @map("actor_role")
+  action           String
+  entityType       String   @map("entity_type")
+  entityId         String   @map("entity_id")
+  timestamp        DateTime @default(now())
+  previousStateRef String?  @map("previous_state_ref")
+  newStateRef      String?  @map("new_state_ref")
+  metadata         Json?
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}

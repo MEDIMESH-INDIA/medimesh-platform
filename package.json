@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test tests/foundation.test.ts tests/discovery.test.ts"
+    "test": "node --experimental-strip-types --test tests/foundation.test.ts tests/discovery.test.ts tests/data-architecture.test.ts"
   },
   "dependencies": {
     "next": "16.3.5",
@@ -15,12 +15,14 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@prisma/client": "^6.4.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "prisma": "^6.4.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
