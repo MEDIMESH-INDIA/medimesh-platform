@@ -19,6 +19,7 @@ import {
   ClockIcon,
   ShieldIcon,
 } from '@/components/global/icons';
+import { CorrectionTrigger } from '@/features/corrections';
 
 export interface FacilityDetailViewProps {
   facility: Facility;
@@ -401,10 +402,31 @@ export function FacilityDetailView({
           <div>
             <span className="text-[10px] uppercase font-semibold text-[var(--color-outline)] block">Review Desk</span>
             <span className="font-medium text-[var(--color-on-surface)]">
-              {source?.reviewedBy || 'MEDIMESH Public Audit Desk'}
+              {source?.reviewedBy || 'MEDIMESH Review Desk'}
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Public Correction Action Trigger */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 md:p-5 rounded-[var(--radius-xl)] bg-[var(--color-surface-container-lowest,#ffffff)] border border-[var(--color-border-default)] shadow-[var(--shadow-xs)] gap-4">
+        <div className="flex flex-col gap-1">
+          <span className="font-heading font-bold text-xs md:text-sm text-[var(--color-on-surface)]">
+            Notice an inaccuracy or outdated detail on this facility?
+          </span>
+          <span className="font-body text-xs text-[var(--color-on-surface-variant)] leading-relaxed">
+            Report factual corrections regarding operating hours, contact numbers, address, or capacity. Sign-in identifies you as the submitter; changes are evaluated against documented sources before publication.
+          </span>
+        </div>
+        <CorrectionTrigger
+          targetEntityType="FACILITY"
+          targetEntityId={facility.id}
+          targetTitle={facility.name}
+          label="Notice an inaccuracy? Report an information issue"
+          variant="outline"
+          size="sm"
+          className="shrink-0 font-semibold"
+        />
       </div>
     </div>
   );

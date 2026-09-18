@@ -207,6 +207,7 @@ describe('MEDIMESH Phase 04 — Data Architecture Tests', () => {
 
       // Submit public correction
       const correction = await repo.submitCorrection({
+        userId: 'user-demo-001',
         targetEntityType: 'Facility',
         targetEntityId: facility.id,
         targetField: 'contact.primaryPhone',

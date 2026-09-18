@@ -35,6 +35,7 @@ import type {
   IRecentSearchRepository,
   INotificationRepository,
 } from './interfaces.ts';
+export type { INotificationRepository };
 
 // ---------------------------------------------------------------------------
 // Shared Synthetic Memory Store

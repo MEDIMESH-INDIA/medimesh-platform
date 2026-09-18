@@ -24,6 +24,7 @@ import type {
   SourceProvenance,
   RecordRevision,
   CorrectionSubmission,
+  CorrectionEvidenceItem,
   AuditLogEntry,
   VerificationState,
 } from '../domain/index.ts';
@@ -57,6 +58,7 @@ export interface PrismaClientLike {
   recordRevision: any;
   workflowReview: any;
   correctionSubmission: any;
+  correctionEvidenceItem: any;
   auditLog: any;
 }
 
@@ -714,22 +716,48 @@ export class PrismaRepository
   // ---------------------------------------------------------------------------
 
   async submitCorrection(
-    correctionData: Omit<CorrectionSubmission, 'id' | 'submittedAt' | 'status'>
+    correctionData: Omit<CorrectionSubmission, 'id' | 'submittedAt' | 'status' | 'evidenceItems'>
   ): Promise<CorrectionSubmission> {
     const row = await this.prisma.correctionSubmission.create({
       data: {
+        userId: correctionData.userId,
         targetEntityType: correctionData.targetEntityType,
         targetEntityId: correctionData.targetEntityId,
         targetField: correctionData.targetField,
         currentValue: correctionData.currentValue,
+        currentValueAtSubmission: correctionData.currentValueAtSubmission,
+        targetRevisionIdAtSubmission: correctionData.targetRevisionIdAtSubmission,
         proposedValue: correctionData.proposedValue,
         justification: correctionData.justification,
         sourceCitation: correctionData.sourceCitation,
-        submitterContact: correctionData.submitterContact,
         status: 'SUBMITTED',
+      },
+      include: {
+        evidenceItems: true,
       },
     });
     return this.mapCorrection(row);
+  }
+
+  async getById(id: string): Promise<CorrectionSubmission | null> {
+    const row = await this.prisma.correctionSubmission.findUnique({
+      where: { id },
+      include: {
+        evidenceItems: true,
+      },
+    });
+    return row ? this.mapCorrection(row) : null;
+  }
+
+  async listByUserId(userId: string): Promise<CorrectionSubmission[]> {
+    const rows = await this.prisma.correctionSubmission.findMany({
+      where: { userId },
+      orderBy: { submittedAt: 'desc' },
+      include: {
+        evidenceItems: true,
+      },
+    });
+    return rows.map((r: any) => this.mapCorrection(r));
   }
 
   async getCorrectionsForRecord(
@@ -739,15 +767,71 @@ export class PrismaRepository
     const rows = await this.prisma.correctionSubmission.findMany({
       where: { targetEntityType, targetEntityId },
       orderBy: { submittedAt: 'desc' },
+      include: {
+        evidenceItems: true,
+      },
     });
     return rows.map((r: any) => this.mapCorrection(r));
+  }
+
+  async listPendingCorrections(): Promise<CorrectionSubmission[]> {
+    const rows = await this.prisma.correctionSubmission.findMany({
+      where: {
+        status: {
+          in: ['SUBMITTED', 'UNDER_REVIEW', 'NEEDS_INFORMATION'],
+        },
+      },
+      orderBy: { submittedAt: 'desc' },
+      include: {
+        evidenceItems: true,
+      },
+    });
+    return rows.map((r: any) => this.mapCorrection(r));
+  }
+
+  async appendEvidence(
+    correctionId: string,
+    evidence: Omit<CorrectionEvidenceItem, 'id' | 'submittedAt'>
+  ): Promise<CorrectionEvidenceItem> {
+    const row = await this.prisma.correctionEvidenceItem.create({
+      data: {
+        correctionId,
+        evidenceText: evidence.evidenceText,
+        sourceUrl: evidence.sourceUrl,
+        submittedBy: evidence.submittedBy,
+      },
+    });
+    return {
+      id: row.id,
+      correctionId: row.correctionId,
+      evidenceText: row.evidenceText,
+      sourceUrl: row.sourceUrl ?? undefined,
+      submittedBy: row.submittedBy,
+      submittedAt: row.submittedAt instanceof Date ? row.submittedAt.toISOString() : String(row.submittedAt),
+    };
+  }
+
+  async getEvidenceItems(correctionId: string): Promise<CorrectionEvidenceItem[]> {
+    const rows = await this.prisma.correctionEvidenceItem.findMany({
+      where: { correctionId },
+      orderBy: { submittedAt: 'asc' },
+    });
+    return rows.map((r: any) => ({
+      id: r.id,
+      correctionId: r.correctionId,
+      evidenceText: r.evidenceText,
+      sourceUrl: r.sourceUrl ?? undefined,
+      submittedBy: r.submittedBy,
+      submittedAt: r.submittedAt instanceof Date ? r.submittedAt.toISOString() : String(r.submittedAt),
+    }));
   }
 
   async reviewCorrection(
     id: string,
     reviewerId: string,
     status: CorrectionSubmission['status'],
-    resolutionNotes: string
+    resolutionNotes: string,
+    resultingRevisionId?: string
   ): Promise<CorrectionSubmission> {
     const row = await this.prisma.correctionSubmission.update({
       where: { id },
@@ -755,7 +839,11 @@ export class PrismaRepository
         status,
         reviewedBy: reviewerId,
         resolutionNotes,
+        resultingRevisionId: resultingRevisionId ?? undefined,
         resolvedAt: new Date(),
+      },
+      include: {
+        evidenceItems: true,
       },
     });
     return this.mapCorrection(row);
@@ -993,10 +1081,13 @@ export class PrismaRepository
   private mapCorrection(r: any): CorrectionSubmission {
     return {
       id: r.id,
+      userId: r.userId,
       targetEntityType: r.targetEntityType,
       targetEntityId: r.targetEntityId,
       targetField: r.targetField,
       currentValue: r.currentValue,
+      currentValueAtSubmission: r.currentValueAtSubmission,
+      targetRevisionIdAtSubmission: r.targetRevisionIdAtSubmission,
       proposedValue: r.proposedValue,
       justification: r.justification,
       sourceCitation: r.sourceCitation,
@@ -1007,6 +1098,16 @@ export class PrismaRepository
       resolutionNotes: r.resolutionNotes,
       resultingRevisionId: r.resultingRevisionId,
       resolvedAt: r.resolvedAt instanceof Date ? r.resolvedAt.toISOString() : r.resolvedAt,
+      evidenceItems: Array.isArray(r.evidenceItems)
+        ? r.evidenceItems.map((e: any) => ({
+            id: e.id,
+            correctionId: e.correctionId,
+            evidenceText: e.evidenceText,
+            sourceUrl: e.sourceUrl ?? undefined,
+            submittedBy: e.submittedBy,
+            submittedAt: e.submittedAt instanceof Date ? e.submittedAt.toISOString() : String(e.submittedAt),
+          }))
+        : [],
     };
   }
 }

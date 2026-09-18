@@ -23,6 +23,7 @@ import type {
   SourceProvenance,
   RecordRevision,
   CorrectionSubmission,
+  CorrectionEvidenceItem,
   AuditLogEntry,
   VerificationState,
   DoctorProfile,
@@ -72,6 +73,7 @@ export class SyntheticRepository
   private availabilityRecords: AvailabilityRecord[];
   private revisions: RecordRevision[];
   private corrections: Map<string, CorrectionSubmission>;
+  private correctionEvidenceItems: CorrectionEvidenceItem[];
   private auditLogs: AuditLogEntry[];
 
   constructor() {
@@ -90,7 +92,65 @@ export class SyntheticRepository
     this.availabilityRecords = [...seed.availabilityRecords];
     this.revisions = [];
     this.corrections = new Map();
+    this.correctionEvidenceItems = [];
     this.auditLogs = [];
+
+    // Seed Synthetic Demo Corrections for Demo Users
+    const demoCorr1: CorrectionSubmission = {
+      id: 'corr-demo-001',
+      userId: 'user-demo-001',
+      targetEntityType: 'FACILITY',
+      targetEntityId: 'hosp-001',
+      targetField: 'contact.emergencyPhone',
+      currentValue: '+91 20 6645 5100',
+      currentValueAtSubmission: '+91 20 6645 5100',
+      targetRevisionIdAtSubmission: 'hosp-001:rev-1',
+      proposedValue: '+91 20 6645 5150',
+      justification: 'Updated emergency casualty hotline number published on hospital reception noticeboard.',
+      sourceCitation: 'Ruby Hall Emergency Department Reception Board, Ground Floor, September 2026',
+      status: 'UNDER_REVIEW',
+      submittedAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+    };
+    this.corrections.set(demoCorr1.id, demoCorr1);
+
+    const demoCorr2: CorrectionSubmission = {
+      id: 'corr-demo-002',
+      userId: 'user-demo-001',
+      targetEntityType: 'FACILITY',
+      targetEntityId: 'hosp-002',
+      targetField: 'operatingHours',
+      currentValue: '24x7 Emergency; OPD: 08:00 - 20:00 (Mon-Sat)',
+      currentValueAtSubmission: '24x7 Emergency; OPD: 08:00 - 20:00 (Mon-Sat)',
+      targetRevisionIdAtSubmission: 'hosp-002:rev-1',
+      proposedValue: '24x7 Emergency; OPD: 08:00 - 18:00 (Mon-Sat)',
+      justification: 'OPD evening counter timings revised to 18:00 per recent notification.',
+      sourceCitation: 'KEM Hospital Central Notice, September 2026',
+      status: 'NEEDS_INFORMATION',
+      resolutionNotes: 'Please provide a photo or official department circular confirming the revised evening OPD hours.',
+      submittedAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+    };
+    this.corrections.set(demoCorr2.id, demoCorr2);
+
+    const demoCorr3: CorrectionSubmission = {
+      id: 'corr-demo-003',
+      userId: 'user-demo-002',
+      targetEntityType: 'FACILITY',
+      targetEntityId: 'hosp-003',
+      targetField: 'contact.websiteUrl',
+      currentValue: 'https://sanchetihospital.org',
+      currentValueAtSubmission: 'https://sanchetihospital.org',
+      targetRevisionIdAtSubmission: 'hosp-003:rev-1',
+      proposedValue: 'https://sanchetihospital.org/contact',
+      justification: 'Direct link to department contact page.',
+      sourceCitation: 'Sancheti Hospital Contact Portal',
+      status: 'ACCEPTED',
+      resultingRevisionId: 'rev-demo-accepted-001',
+      resolutionNotes: 'Verified against official facility website documentation.',
+      submittedAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
+      resolvedAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
+      reviewedBy: 'reviewer-demo-001',
+    };
+    this.corrections.set(demoCorr3.id, demoCorr3);
   }
 
   // ---------------------------------------------------------------------------
@@ -217,6 +277,69 @@ export class SyntheticRepository
       throw new Error(`Non-destructive rule violation: cannot hard delete record ${id} in state ${existing.workflowStatus}`);
     }
     return this.facilities.delete(id);
+  }
+
+  async applyRevisionUpdate(
+    entityType: string,
+    entityId: string,
+    updates: Record<string, unknown>,
+    newRevisionId?: string
+  ): Promise<void> {
+    if (entityType === 'FACILITY') {
+      const existing = this.facilities.get(entityId);
+      if (existing) {
+        this.facilities.set(entityId, {
+          ...existing,
+          ...updates,
+          contact: {
+            ...existing.contact,
+            ...((updates.contact as Partial<Facility['contact']>) || {}),
+          },
+          location: {
+            ...existing.location,
+            ...((updates.location as Partial<Facility['location']>) || {}),
+          },
+          currentRevisionId: newRevisionId ?? existing.currentRevisionId,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    } else if (entityType === 'HOSPITAL_PROFILE') {
+      const existing = this.hospitalProfiles.get(entityId);
+      if (existing) {
+        this.hospitalProfiles.set(entityId, {
+          ...existing,
+          ...updates,
+          currentRevisionId: newRevisionId ?? existing.currentRevisionId,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    } else if (entityType === 'DOCTOR') {
+      const existing = this.doctors.get(entityId);
+      if (existing) {
+        this.doctors.set(entityId, {
+          ...existing,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    } else if (entityType === 'TARIFF') {
+      const existing = this.tariffs.get(entityId);
+      if (existing) {
+        this.tariffs.set(entityId, {
+          ...existing,
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    } else if (entityType === 'SPECIALTY') {
+      const existing = this.specialties.get(entityId);
+      if (existing) {
+        this.specialties.set(entityId, {
+          ...existing,
+          ...updates,
+        });
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -660,17 +783,36 @@ export class SyntheticRepository
   // ---------------------------------------------------------------------------
 
   async submitCorrection(
-    correctionData: Omit<CorrectionSubmission, 'id' | 'submittedAt' | 'status'>
+    correctionData: Omit<CorrectionSubmission, 'id' | 'submittedAt' | 'status' | 'evidenceItems'>
   ): Promise<CorrectionSubmission> {
-    const id = `corr-${Date.now()}`;
+    const id = `corr-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
     const sub: CorrectionSubmission = {
       ...correctionData,
       id,
       status: 'SUBMITTED',
       submittedAt: new Date().toISOString(),
+      evidenceItems: [],
     };
     this.corrections.set(id, sub);
     return { ...sub };
+  }
+
+  async getById(id: string): Promise<CorrectionSubmission | null> {
+    const c = this.corrections.get(id);
+    if (!c) return null;
+    const evidenceItems = this.correctionEvidenceItems.filter((e) => e.correctionId === id);
+    return { ...c, evidenceItems };
+  }
+
+  async listByUserId(userId: string): Promise<CorrectionSubmission[]> {
+    const results: CorrectionSubmission[] = [];
+    for (const c of this.corrections.values()) {
+      if (c.userId === userId) {
+        const evidenceItems = this.correctionEvidenceItems.filter((e) => e.correctionId === c.id);
+        results.push({ ...c, evidenceItems });
+      }
+    }
+    return results.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
   }
 
   async getCorrectionsForRecord(
@@ -680,17 +822,53 @@ export class SyntheticRepository
     const results: CorrectionSubmission[] = [];
     for (const c of this.corrections.values()) {
       if (c.targetEntityType === targetEntityType && c.targetEntityId === targetEntityId) {
-        results.push({ ...c });
+        const evidenceItems = this.correctionEvidenceItems.filter((e) => e.correctionId === c.id);
+        results.push({ ...c, evidenceItems });
       }
     }
-    return results;
+    return results.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  }
+
+  async listPendingCorrections(): Promise<CorrectionSubmission[]> {
+    const results: CorrectionSubmission[] = [];
+    for (const c of this.corrections.values()) {
+      if (c.status === 'SUBMITTED' || c.status === 'UNDER_REVIEW' || c.status === 'NEEDS_INFORMATION') {
+        const evidenceItems = this.correctionEvidenceItems.filter((e) => e.correctionId === c.id);
+        results.push({ ...c, evidenceItems });
+      }
+    }
+    return results.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  }
+
+  async appendEvidence(
+    correctionId: string,
+    evidence: Omit<CorrectionEvidenceItem, 'id' | 'submittedAt'>
+  ): Promise<CorrectionEvidenceItem> {
+    const existing = this.corrections.get(correctionId);
+    if (!existing) throw new Error(`Correction ${correctionId} not found`);
+    const id = `ev-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const item: CorrectionEvidenceItem = {
+      ...evidence,
+      id,
+      correctionId,
+      submittedAt: new Date().toISOString(),
+    };
+    this.correctionEvidenceItems.push(item);
+    return { ...item };
+  }
+
+  async getEvidenceItems(correctionId: string): Promise<CorrectionEvidenceItem[]> {
+    return this.correctionEvidenceItems
+      .filter((e) => e.correctionId === correctionId)
+      .sort((a, b) => new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime());
   }
 
   async reviewCorrection(
     id: string,
     reviewerId: string,
     status: CorrectionSubmission['status'],
-    resolutionNotes: string
+    resolutionNotes: string,
+    resultingRevisionId?: string
   ): Promise<CorrectionSubmission> {
     const existing = this.corrections.get(id);
     if (!existing) throw new Error(`Correction ${id} not found`);
@@ -699,10 +877,12 @@ export class SyntheticRepository
       status,
       reviewedBy: reviewerId,
       resolutionNotes,
+      resultingRevisionId: resultingRevisionId ?? existing.resultingRevisionId,
       resolvedAt: new Date().toISOString(),
     };
     this.corrections.set(id, resolved);
-    return { ...resolved };
+    const evidenceItems = this.correctionEvidenceItems.filter((e) => e.correctionId === id);
+    return { ...resolved, evidenceItems };
   }
 
   // ---------------------------------------------------------------------------

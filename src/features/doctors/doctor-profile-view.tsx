@@ -10,6 +10,7 @@ import {
   InfoIcon,
   ArrowForwardIcon,
 } from '@/components/global/icons';
+import { CorrectionTrigger } from '@/features/corrections';
 
 export interface DoctorProfileViewProps {
   doctor: DoctorProfile;
@@ -170,6 +171,27 @@ export function DoctorProfileView({
             Practitioner listings do not include patient ratings, popularity metrics, or sponsored placements.
             All medical consultations must be arranged directly with the affiliated hospital or clinic.
           </span>
+        </div>
+
+        {/* Public Correction Action Trigger */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface-container-low)] border border-[var(--color-border-default)] gap-3 mt-2">
+          <div className="flex flex-col gap-0.5">
+            <span className="font-heading font-semibold text-xs text-[var(--color-on-surface)]">
+              Discrepancy in OPD timings or public registration details?
+            </span>
+            <span className="font-body text-[11px] text-[var(--color-on-surface-variant)]">
+              Submit documented updates for editorial provenance review.
+            </span>
+          </div>
+          <CorrectionTrigger
+            targetEntityType="DOCTOR"
+            targetEntityId={doctor.id}
+            targetTitle={doctor.name}
+            label="Report an information issue"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+          />
         </div>
       </div>
     </div>

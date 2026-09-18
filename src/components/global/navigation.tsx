@@ -174,7 +174,7 @@ export function Header({
                   <Link href="/#schemes-access">Government Healthcare Access</Link>
                 </DropdownItem>
                 <DropdownItem icon={<InfoIcon size={16} />}>
-                  <Link href="/#trust">Data Sources &amp; Trust Center</Link>
+                  <Link href="/trust">Data Sources &amp; Trust Center</Link>
                 </DropdownItem>
                 <DropdownItem icon={<HelpIcon size={16} />}>
                   <Link href="/#help">Help &amp; Support</Link>
@@ -382,8 +382,8 @@ export function MobileDrawer({
             <Link href="/schemes" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Government Scheme Empanelment
             </Link>
-            <Link href="/#trust" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
-              Data Sources &amp; Methodology
+            <Link href="/trust" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Trust Center &amp; Methodology
             </Link>
             <Link href="/#help" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Help &amp; Support

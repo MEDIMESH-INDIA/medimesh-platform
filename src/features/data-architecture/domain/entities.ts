@@ -309,12 +309,24 @@ export interface AvailabilityRecord {
 // 11. Correction Submissions (Public / Facility Feedback Workflow)
 // ---------------------------------------------------------------------------
 
+export interface CorrectionEvidenceItem {
+  id: string;
+  correctionId: string;
+  evidenceText: string;
+  sourceUrl?: string;
+  submittedBy: string;
+  submittedAt: string;
+}
+
 export interface CorrectionSubmission {
   id: string;
+  userId: string;
   targetEntityType: string;
   targetEntityId: string;
   targetField: string;
   currentValue?: string;
+  currentValueAtSubmission?: string;
+  targetRevisionIdAtSubmission?: string;
   proposedValue: string;
   justification: string;
   sourceCitation: string;
@@ -325,6 +337,7 @@ export interface CorrectionSubmission {
   resolutionNotes?: string;
   resultingRevisionId?: string;
   resolvedAt?: string;
+  evidenceItems?: CorrectionEvidenceItem[];
 }
 
 // ---------------------------------------------------------------------------

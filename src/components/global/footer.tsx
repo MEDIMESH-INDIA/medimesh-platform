@@ -73,14 +73,14 @@ export function Footer() {
             <span className="font-label-md text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-wider mb-1">
               Trust &amp; Platform
             </span>
-            <Link href="/#methodology" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
-              Data Sources &amp; Methodology
+            <Link href="/trust" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+              Trust Center &amp; Methodology
             </Link>
-            <Link href="/#verification" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/trust#verification" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Verification Standards
             </Link>
-            <Link href="/#corrections" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
-              Report a Correction
+            <Link href="/trust#corrections" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+              Correction Workflow
             </Link>
             <Link href="/#help" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Help &amp; Support

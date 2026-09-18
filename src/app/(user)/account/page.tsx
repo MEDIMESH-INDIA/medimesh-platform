@@ -23,6 +23,7 @@ import {
   SettingsIcon,
   ArrowForwardIcon,
   ShieldIcon,
+  FlagIcon,
 } from '@/components/global/icons';
 import { Button } from '@/design-system/primitives/button';
 
@@ -277,6 +278,24 @@ export default function AccountOverviewPage() {
                   </h3>
                   <p className="text-xs text-[var(--color-on-surface-variant)]">
                     Revisit past discovery searches and locations.
+                  </p>
+                </div>
+              </div>
+              <ArrowForwardIcon size={16} className="text-[var(--color-outline)]" />
+            </Link>
+
+            <Link
+              href="/account/activity"
+              className="p-4 rounded-[var(--radius-lg)] bg-[var(--color-surface-container-lowest,#ffffff)] border border-[var(--color-border-default)] hover:bg-[var(--color-surface-container-low)] transition-colors flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <FlagIcon size={20} className="text-[var(--color-primary)]" />
+                <div>
+                  <h3 className="font-heading text-sm font-bold text-[var(--color-on-surface)]">
+                    Information Issues &amp; Corrections
+                  </h3>
+                  <p className="text-xs text-[var(--color-on-surface-variant)]">
+                    Track reported updates and provide clarification evidence.
                   </p>
                 </div>
               </div>

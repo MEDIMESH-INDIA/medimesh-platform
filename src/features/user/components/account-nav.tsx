@@ -18,6 +18,7 @@ import {
   SearchIcon,
   NotificationsIcon,
   SettingsIcon,
+  ShieldIcon,
 } from '@/components/global/icons';
 
 const NAV_ITEMS = [
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { label: 'Comparisons', href: '/account/comparisons', icon: ScaleIcon },
   { label: 'Recent Searches', href: '/account/searches', icon: SearchIcon },
   { label: 'Notifications', href: '/account/notifications', icon: NotificationsIcon },
+  { label: 'Correction Activity', href: '/account/activity', icon: ShieldIcon },
   { label: 'Settings', href: '/account/settings', icon: SettingsIcon },
 ];
 

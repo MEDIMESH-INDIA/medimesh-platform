@@ -26,6 +26,7 @@ import type {
   SourceProvenance,
   RecordRevision,
   CorrectionSubmission,
+  CorrectionEvidenceItem,
   AuditLogEntry,
   WorkflowStatus,
   VerificationState,
@@ -123,9 +124,25 @@ export interface IRevisionRepository {
 }
 
 export interface ICorrectionRepository {
-  submitCorrection(correction: Omit<CorrectionSubmission, 'id' | 'submittedAt' | 'status'>): Promise<CorrectionSubmission>;
+  submitCorrection(
+    correction: Omit<CorrectionSubmission, 'id' | 'submittedAt' | 'status' | 'evidenceItems'>
+  ): Promise<CorrectionSubmission>;
+  getById(id: string): Promise<CorrectionSubmission | null>;
+  listByUserId(userId: string): Promise<CorrectionSubmission[]>;
   getCorrectionsForRecord(targetEntityType: string, targetEntityId: string): Promise<CorrectionSubmission[]>;
-  reviewCorrection(id: string, reviewerId: string, status: CorrectionSubmission['status'], resolutionNotes: string): Promise<CorrectionSubmission>;
+  listPendingCorrections(): Promise<CorrectionSubmission[]>;
+  appendEvidence(
+    correctionId: string,
+    evidence: Omit<CorrectionEvidenceItem, 'id' | 'submittedAt'>
+  ): Promise<CorrectionEvidenceItem>;
+  getEvidenceItems(correctionId: string): Promise<CorrectionEvidenceItem[]>;
+  reviewCorrection(
+    id: string,
+    reviewerId: string,
+    status: CorrectionSubmission['status'],
+    resolutionNotes: string,
+    resultingRevisionId?: string
+  ): Promise<CorrectionSubmission>;
 }
 
 export interface IAuditLogRepository {

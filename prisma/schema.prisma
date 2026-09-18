@@ -564,25 +564,48 @@ model AvailabilityRecord {
 // -----------------------------------------------------------------------------
 
 model CorrectionSubmission {
-  id                  String           @id @default(uuid())
-  targetEntityType    String           @map("target_entity_type")
-  targetEntityId      String           @map("target_entity_id")
-  targetField         String           @map("target_field")
-  currentValue        String?          @map("current_value")
-  proposedValue       String           @map("proposed_value")
-  justification       String
-  sourceCitation      String           @map("source_citation")
-  submitterContact    String?          @map("submitter_contact")
-  status              CorrectionStatus @default(SUBMITTED)
-  submittedAt         DateTime         @default(now()) @map("submitted_at")
-  reviewedBy          String?          @map("reviewed_by")
-  resolutionNotes     String?          @map("resolution_notes")
-  resultingRevisionId String?          @map("resulting_revision_id")
-  resolvedAt          DateTime?        @map("resolved_at")
+  id                           String                   @id @default(uuid())
+  userId                       String                   @map("user_id")
+  targetEntityType             String                   @map("target_entity_type")
+  targetEntityId               String                   @map("target_entity_id")
+  targetField                  String                   @map("target_field")
+  currentValue                 String?                  @map("current_value")
+  currentValueAtSubmission     String?                  @map("current_value_at_submission")
+  targetRevisionIdAtSubmission String?                  @map("target_revision_id_at_submission")
+  proposedValue                String                   @map("proposed_value")
+  justification                String
+  sourceCitation               String                   @map("source_citation")
+  status                       CorrectionStatus         @default(SUBMITTED)
+  submittedAt                  DateTime                 @default(now()) @map("submitted_at")
+  reviewedBy                   String?                  @map("reviewed_by")
+  resolutionNotes              String?                  @map("resolution_notes")
+  resultingRevisionId          String?                  @map("resulting_revision_id")
+  resolvedAt                   DateTime?                @map("resolved_at")
 
+  // Relationships
+  user          User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evidenceItems CorrectionEvidenceItem[]
+
+  @@index([userId])
   @@index([targetEntityType, targetEntityId])
   @@index([status])
   @@map("corrections")
+}
+
+model CorrectionEvidenceItem {
+  id           String   @id @default(uuid())
+  correctionId String   @map("correction_id")
+  evidenceText String   @map("evidence_text")
+  sourceUrl    String?  @map("source_url")
+  submittedBy  String   @map("submitted_by")
+  submittedAt  DateTime @default(now()) @map("submitted_at")
+
+  // Relationships
+  correction CorrectionSubmission @relation(fields: [correctionId], references: [id], onDelete: Cascade)
+
+  @@index([correctionId])
+  @@index([submittedBy])
+  @@map("correction_evidence_items")
 }
 
 // -----------------------------------------------------------------------------
@@ -627,6 +650,7 @@ model User {
   savedComparisons  SavedComparison[]
   recentSearches    RecentSearch[]
   notifications     PlatformNotification[]
+  corrections       CorrectionSubmission[]
 
   @@map("users")
 }

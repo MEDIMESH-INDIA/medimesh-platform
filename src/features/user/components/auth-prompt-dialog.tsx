@@ -20,9 +20,17 @@ export interface AuthPromptDialogProps {
   isOpen?: boolean;
   onClose?: () => void;
   onSuccess?: () => void;
+  title?: string;
+  description?: string;
 }
 
-export function AuthPromptDialog({ isOpen, onClose, onSuccess }: AuthPromptDialogProps) {
+export function AuthPromptDialog({
+  isOpen,
+  onClose,
+  onSuccess,
+  title = 'Save to MEDIMESH',
+  description = 'Sign in to save this information to your MEDIMESH account.',
+}: AuthPromptDialogProps) {
   const { isPromptOpen, closeAuthPrompt, signIn } = useAuth();
 
   const open = isOpen !== undefined ? isOpen : isPromptOpen;
@@ -38,8 +46,8 @@ export function AuthPromptDialog({ isOpen, onClose, onSuccess }: AuthPromptDialo
     <Dialog
       isOpen={open}
       onClose={handleClose}
-      title="Save to MEDIMESH"
-      description="Sign in to save this information to your MEDIMESH account."
+      title={title}
+      description={description}
       size="md"
     >
       <div className="flex flex-col gap-4">

@@ -98,7 +98,7 @@ export function PharmacyDetailView({
             <ShieldIcon size={18} className="text-[var(--color-outline)] shrink-0 mt-0.5" />
             <div className="flex flex-col gap-0.5">
               <span className="font-semibold text-[var(--color-on-surface)] text-sm">Review & Sourcing</span>
-              <span>Review Desk: {source?.reviewedBy || 'MEDIMESH Public Audit Desk'}</span>
+              <span>Review Desk: {source?.reviewedBy || 'MEDIMESH Review Desk'}</span>
               <span>Data Origin: SYNTHETIC_DEMO</span>
             </div>
           </div>
