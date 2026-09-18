@@ -16,6 +16,7 @@ import type {
   HospitalProfile,
   Specialty,
   ServiceCapability,
+  DoctorProfile,
   SchemeInsurance,
   FacilitySpecialtyRelation,
   FacilityServiceRelation,
@@ -29,12 +30,13 @@ import type {
   WorkflowStatus,
   VerificationState,
   DataOrigin,
+  FacilityCategory,
 } from '../domain/index.ts';
 
 export interface FacilityFilterCriteria {
   city?: string;
   state?: string;
-  category?: string;
+  category?: FacilityCategory | string;
   workflowStatus?: WorkflowStatus;
   verificationState?: VerificationState;
   dataOrigin?: DataOrigin;
@@ -78,9 +80,18 @@ export interface IServiceRepository {
   archiveServiceLink(facilityId: string, serviceId: string): Promise<boolean>;
 }
 
+export interface IDoctorRepository {
+  listDoctors(filter?: { facilityId?: string; specialtyId?: string; city?: string }): Promise<DoctorProfile[]>;
+  getDoctorById(id: string): Promise<DoctorProfile | null>;
+  getDoctorBySlug(slug: string): Promise<{ doctor: DoctorProfile; facility?: Facility; specialty?: Specialty } | null>;
+  getDoctorsByFacility(facilityId: string): Promise<DoctorProfile[]>;
+  getDoctorsBySpecialty(specialtyId: string): Promise<DoctorProfile[]>;
+}
+
 export interface ISchemeRepository {
   listSchemes(): Promise<SchemeInsurance[]>;
   findByCode(code: string): Promise<SchemeInsurance | null>;
+  findSchemeBySlug(slug: string): Promise<SchemeInsurance | null>;
   getFacilitySchemes(facilityId: string): Promise<FacilitySchemeRelation[]>;
   linkScheme(relation: Omit<FacilitySchemeRelation, 'id' | 'createdAt' | 'updatedAt'>): Promise<FacilitySchemeRelation>;
   archiveSchemeLink(facilityId: string, schemeId: string): Promise<boolean>;
@@ -88,6 +99,7 @@ export interface ISchemeRepository {
 
 export interface ITariffRepository {
   getFacilityTariffs(facilityId: string): Promise<TariffItem[]>;
+  listAllTariffs(filter?: { serviceId?: string; city?: string; includeExpired?: boolean }): Promise<TariffItem[]>;
   addTariffDraft(tariff: Omit<TariffItem, 'id' | 'createdAt' | 'updatedAt' | 'workflowStatus'>): Promise<TariffItem>;
   supersedeTariff(id: string, newTariffId: string): Promise<TariffItem>;
   archiveTariff(id: string): Promise<TariffItem>;

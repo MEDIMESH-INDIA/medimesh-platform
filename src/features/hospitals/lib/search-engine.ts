@@ -182,6 +182,23 @@ export function interpretSearchQuery(query: string, activeLocationCity?: string)
     }
   }
 
+  // 7. Detect multi-domain discovery categories (additive, non-diagnostic)
+  if (normalized.includes('doctor') || normalized.includes('dr.') || normalized.includes('physician') || normalized.includes('consultant')) {
+    discoveryKeywords.push('Domain: Healthcare Professionals');
+  }
+  if (normalized.includes('pharmacy') || normalized.includes('chemist') || normalized.includes('dispensary')) {
+    discoveryKeywords.push('Domain: Pharmacy Directory');
+  }
+  if (normalized.includes('ambulance') || normalized.includes('patient transport') || normalized.includes('paramedic')) {
+    discoveryKeywords.push('Domain: Patient Transport & Ambulance');
+  }
+  if (normalized.includes('home care') || normalized.includes('home healthcare') || normalized.includes('home nursing')) {
+    discoveryKeywords.push('Domain: Home Healthcare');
+  }
+  if (normalized.includes('tariff') || normalized.includes('package rate') || normalized.includes('charge schedule')) {
+    discoveryKeywords.push('Domain: Informational Tariffs');
+  }
+
   return {
     rawQuery: query,
     interpretedLocation,

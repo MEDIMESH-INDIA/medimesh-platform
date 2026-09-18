@@ -1,14 +1,17 @@
 /**
  * MEDIMESH INDIA 2.0 — Synthetic Demonstration Seed Data
  *
- * Populates the normalized relational data architecture with the 8 synthetic
- * demonstration hospitals.
+ * Populates the normalized relational data architecture with demonstration records
+ * across all 10 Discovery Modules (Hospitals, Clinics, Diagnostics, Pharmacies,
+ * Home Healthcare, Ambulances, Specialties, Doctors, Services, Schemes, Tariffs, Emergency).
  *
  * MANDATORY SAFETY RULES:
  * - Every record has dataOrigin: 'SYNTHETIC_DEMO'
  * - Zero fake government URLs or fake accreditation certificates
  * - Illustrative demo schema citations only
  * - Non-destructive: seeds without wiping production tables
+ * - Temporal tariff semantics: active windows, expired historical tariffs, and unconfirmed windows
+ * - Time-sensitive attributes labeled "Source-reported 24/7" with timestamps
  */
 
 import { SYNTHETIC_HOSPITALS } from '../../src/features/hospitals/data/synthetic-hospitals.ts';
@@ -17,14 +20,15 @@ import type {
   HospitalProfile,
   Specialty,
   ServiceCapability,
+  DoctorProfile,
   SchemeInsurance,
   FacilitySpecialtyRelation,
   FacilityServiceRelation,
   FacilitySchemeRelation,
+  TariffItem,
   AvailabilityRecord,
   SourceProvenance,
   HospitalType,
-  ClinicalDomain,
 } from '../../src/features/data-architecture/domain/index.ts';
 
 export interface SyntheticSeedDataset {
@@ -33,7 +37,9 @@ export interface SyntheticSeedDataset {
   hospitalProfiles: HospitalProfile[];
   specialties: Specialty[];
   services: ServiceCapability[];
+  doctors: DoctorProfile[];
   schemes: SchemeInsurance[];
+  tariffs: TariffItem[];
   facilitySpecialties: FacilitySpecialtyRelation[];
   facilityServices: FacilityServiceRelation[];
   facilitySchemes: FacilitySchemeRelation[];
@@ -41,8 +47,8 @@ export interface SyntheticSeedDataset {
 }
 
 export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
-  // 1. Reusable Common Source for Synthetic Demo
-  const demoSource: SourceProvenance = {
+  // 1. Reusable Common Sources for Synthetic Demo
+  const demoSourceMaster: SourceProvenance = {
     id: 'src-demo-master',
     sourceType: 'SYNTHETIC_DEMO',
     sourceOrganization: 'MEDIMESH Demo Data Generator (Synthetic Sample)',
@@ -57,44 +63,241 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
     updatedAt: '2026-09-17T00:00:00.000Z',
   };
 
-  // 2. Extract Distinct Specialties
-  const specialtyNames = Array.from(
-    new Set(SYNTHETIC_HOSPITALS.flatMap((h) => h.specialties))
-  );
-  const specialties: Specialty[] = specialtyNames.map((name, idx) => ({
-    id: `spec-${String(idx + 1).padStart(3, '0')}`,
-    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-    name,
-    clinicalDomain: name as ClinicalDomain,
-    isAdult: true,
-    isPediatric: name === 'Pediatrics',
-  }));
+  const demoFacilityReportedSource: SourceProvenance = {
+    id: 'src-demo-facility-reported',
+    sourceType: 'SYNTHETIC_DEMO',
+    sourceOrganization: 'Facility Self-Reported Disclosure (Demo Record)',
+    sourceTitle: 'Demonstration Facility Intake Form',
+    collectedAt: '2026-09-16T10:30:00.000Z',
+    lastReviewedAt: '2026-09-16T12:00:00.000Z',
+    reviewedBy: 'MEDIMESH Demo Validation Desk',
+    verificationState: 'FACILITY_REPORTED',
+    dataOrigin: 'SYNTHETIC_DEMO',
+    notes: 'Self-reported illustrative data awaiting comprehensive corroboration.',
+    createdAt: '2026-09-16T10:30:00.000Z',
+    updatedAt: '2026-09-16T12:00:00.000Z',
+  };
 
-  // 3. Extract Distinct Services
-  const serviceNames = Array.from(
-    new Set(SYNTHETIC_HOSPITALS.flatMap((h) => h.services))
-  );
-  const services: ServiceCapability[] = serviceNames.map((name, idx) => ({
-    id: `svc-${String(idx + 1).padStart(3, '0')}`,
-    slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-    name,
-    category: name.includes('ICU') || name.includes('Casualty') ? 'Critical Care' : 'Diagnostic Imaging',
-  }));
+  const sources: SourceProvenance[] = [demoSourceMaster, demoFacilityReportedSource];
 
-  // 4. Extract Distinct Schemes
-  const schemeNames = Array.from(
-    new Set(SYNTHETIC_HOSPITALS.flatMap((h) => h.schemes))
-  );
-  const schemes: SchemeInsurance[] = schemeNames.map((name, idx) => ({
-    id: `sch-${String(idx + 1).padStart(3, '0')}`,
-    code: name.includes('PM-JAY') ? 'PM-JAY' : name.includes('CGHS') ? 'CGHS' : name.includes('ECHS') ? 'ECHS' : `SCH-${idx + 1}`,
-    name,
-    providerType: name.includes('Cashless') ? 'COMMERCIAL_TPA' : 'GOVERNMENT',
-    stateScope: 'ALL_INDIA',
-    description: `Illustrative demonstration model for ${name}. Fictional facility is not empaneled.`,
-  }));
+  // 2. Canonical Specialties
+  const specialties: Specialty[] = [
+    {
+      id: 'spec-001',
+      slug: 'cardiology',
+      name: 'Cardiology',
+      clinicalDomain: 'Cardiology',
+      description: 'Diagnosis and clinical management of cardiovascular conditions, adult and pediatric cardiac assessment, coronary care, and heart failure clinics.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-002',
+      slug: 'interventional-cardiology',
+      name: 'Interventional Cardiology',
+      clinicalDomain: 'Cardiology',
+      description: 'Catheter-based structural heart interventions, coronary angiography, angioplasty, and cardiac stenting.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-003',
+      slug: 'pediatric-cardiology',
+      name: 'Pediatric Cardiology',
+      clinicalDomain: 'Pediatrics',
+      description: 'Congenital heart disease screening, pediatric echocardiography, and pediatric cardiology consultation.',
+      isAdult: false,
+      isPediatric: true,
+    },
+    {
+      id: 'spec-004',
+      slug: 'orthopedics',
+      name: 'Orthopedics',
+      clinicalDomain: 'Orthopedics',
+      description: 'Musculoskeletal medicine, joint replacement, trauma reconstruction, and sports injury management.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-005',
+      slug: 'neurology-neurosurgery',
+      name: 'Neurology & Neurosurgery',
+      clinicalDomain: 'Neurology & Neurosurgery',
+      description: 'Brain, spine, and peripheral nerve disorder evaluation, stroke rehabilitation, and neuro-critical care.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-006',
+      slug: 'pediatrics',
+      name: 'Pediatrics',
+      clinicalDomain: 'Pediatrics',
+      description: 'General infant, child, and adolescent medical care, immunization schedules, and developmental assessments.',
+      isAdult: false,
+      isPediatric: true,
+    },
+    {
+      id: 'spec-007',
+      slug: 'general-medicine',
+      name: 'General Medicine',
+      clinicalDomain: 'General Medicine',
+      description: 'Comprehensive adult health screenings, chronic disease management (diabetes, hypertension), and outpatient consultations.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-008',
+      slug: 'oncology',
+      name: 'Oncology',
+      clinicalDomain: 'Oncology',
+      description: 'Medical and surgical oncology consultation, chemotherapy day-care, and cancer screening programs.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-009',
+      slug: 'nephrology-urology',
+      name: 'Nephrology & Urology',
+      clinicalDomain: 'Nephrology & Urology',
+      description: 'Renal medicine, maintenance hemodialysis, and urological surgical evaluation.',
+      isAdult: true,
+      isPediatric: false,
+    },
+    {
+      id: 'spec-010',
+      slug: 'emergency-medicine',
+      name: 'Emergency & Critical Care',
+      clinicalDomain: 'Emergency & Critical Care',
+      description: 'Immediate stabilization, acute trauma resuscitation, and advanced intensive care support.',
+      isAdult: true,
+      isPediatric: true,
+    },
+  ];
 
-  // 5. Build Facilities and Relational Records
+  // 3. Sourced Services & Capabilities
+  const services: ServiceCapability[] = [
+    {
+      id: 'svc-001',
+      slug: 'dedicated-cardiac-icu',
+      name: 'Dedicated Cardiac ICU (CICU)',
+      category: 'Critical Care',
+      description: 'Intensive hemodynamic monitoring, post-procedural recovery, and mechanical circulatory support infrastructure.',
+    },
+    {
+      id: 'svc-002',
+      slug: '24-7-emergency-casualty',
+      name: '24/7 Emergency Casualty Department',
+      category: 'Critical Care',
+      description: 'Round-the-clock casualty triage bays, trauma bays, and immediate resuscitation capabilities.',
+    },
+    {
+      id: 'svc-003',
+      slug: '1-5t-mri-imaging',
+      name: '1.5T MRI Diagnostic Imaging',
+      category: 'Diagnostic Imaging',
+      description: 'Magnetic resonance imaging for neurological, musculoskeletal, and vascular diagnostic assessments.',
+    },
+    {
+      id: 'svc-004',
+      slug: '128-slice-ct-scan',
+      name: '128-Slice Multi-Detector CT Scan',
+      category: 'Diagnostic Imaging',
+      description: 'High-resolution computed tomography including cardiac CT angiography and polytrauma scanning.',
+    },
+    {
+      id: 'svc-005',
+      slug: 'automated-pathology-laboratory',
+      name: 'Automated Pathology Laboratory',
+      category: 'Laboratory',
+      description: 'Clinical biochemistry, hematology, microbiology, and routine diagnostics with automated barcoding.',
+    },
+    {
+      id: 'svc-006',
+      slug: 'hemodialysis-unit',
+      name: 'Maintenance Hemodialysis Unit',
+      category: 'Therapeutic',
+      description: 'Daycare hemodialysis stations with reverse osmosis water purification and dedicated infection-isolation bays.',
+    },
+    {
+      id: 'svc-007',
+      slug: 'bls-patient-transport',
+      name: 'Basic Life Support (BLS) Patient Transport',
+      category: 'Emergency Support',
+      description: 'Fitted ambulances with stretcher, oxygen supply, basic airway equipment, and automated external defibrillator.',
+    },
+    {
+      id: 'svc-008',
+      slug: 'als-critical-transport',
+      name: 'Advanced Life Support (ALS) Critical Transport',
+      category: 'Emergency Support',
+      description: 'Mobile intensive care ambulance equipped with transport ventilator, multipara monitor, infusion pumps, and EMT.',
+    },
+    {
+      id: 'svc-009',
+      slug: 'home-nursing-care',
+      name: 'Home Nursing & Post-Operative Dressing',
+      category: 'Therapeutic',
+      description: 'Licensed nursing visits for wound management, catheter care, IV administration, and palliative support.',
+    },
+    {
+      id: 'svc-010',
+      slug: 'home-physiotherapy',
+      name: 'Home Rehabilitation & Physiotherapy',
+      category: 'Therapeutic',
+      description: 'In-home physical therapy sessions for neurological stroke rehabilitation, orthopedic post-op recovery, and mobility restoration.',
+    },
+  ];
+
+  // 4. Schemes & Insurance Programs
+  const schemes: SchemeInsurance[] = [
+    {
+      id: 'sch-pmjay',
+      slug: 'ayushman-bharat-pmjay',
+      code: 'AB-PMJAY',
+      name: 'Ayushman Bharat — Pradhan Mantri Jan Arogya Yojana',
+      providerType: 'GOVERNMENT',
+      stateScope: 'ALL_INDIA',
+      description: 'National public health assurance scheme providing cashless secondary and tertiary hospitalization cover up to defined annual package rates. Note: MEDIMESH displays sourced empanelment records only and does not verify or guarantee individual patient eligibility.',
+    },
+    {
+      id: 'sch-cghs',
+      slug: 'cghs',
+      code: 'CGHS',
+      name: 'Central Government Health Scheme',
+      providerType: 'GOVERNMENT',
+      stateScope: 'ALL_INDIA',
+      description: 'Healthcare facility empanelment for central government employees, pensioners, and eligible dependents.',
+    },
+    {
+      id: 'sch-echs',
+      slug: 'echs',
+      code: 'ECHS',
+      name: 'Ex-Servicemen Contributory Health Scheme',
+      providerType: 'GOVERNMENT',
+      stateScope: 'ALL_INDIA',
+      description: 'Comprehensive medical care scheme for ex-servicemen pensioners and their dependents through empaneled network hospitals.',
+    },
+    {
+      id: 'sch-mjpjay',
+      slug: 'mjpjay-maharashtra',
+      code: 'MJPJAY',
+      name: 'Mahatma Jyotirao Phule Jan Arogya Yojana (Maharashtra)',
+      providerType: 'GOVERNMENT',
+      stateScope: 'Maharashtra',
+      description: 'State health insurance scheme providing defined package treatment coverage for eligible families in Maharashtra.',
+    },
+    {
+      id: 'sch-kasp',
+      slug: 'kasp-kerala',
+      code: 'KASP',
+      name: 'Karunya Arogya Suraksha Padhathi (Kerala)',
+      providerType: 'GOVERNMENT',
+      stateScope: 'Kerala',
+      description: 'State-sponsored healthcare scheme aligned with national assurance parameters for secondary and tertiary care in Kerala.',
+    },
+  ];
+
+  // 5. Facilities List (8 Hospitals + 2 Clinics + 2 Labs + 2 Pharmacies + 2 Home Care + 2 Ambulances = 18 Facilities)
   const facilities: Facility[] = [];
   const hospitalProfiles: HospitalProfile[] = [];
   const facilitySpecialties: FacilitySpecialtyRelation[] = [];
@@ -102,8 +305,8 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
   const facilitySchemes: FacilitySchemeRelation[] = [];
   const availabilityRecords: AvailabilityRecord[] = [];
 
+  // 5.1 Add the 8 Synthetic Hospitals
   for (const h of SYNTHETIC_HOSPITALS) {
-    // Generic Facility
     const facility: Facility = {
       id: h.id,
       slug: h.slug,
@@ -122,8 +325,9 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
       contact: {
         primaryPhone: h.phone,
       },
+      operatingHours: '24 Hours Emergency & Inpatient · OPD: Mon-Sat 08:00 - 18:00',
       workflowStatus: 'PUBLISHED',
-      sourceId: demoSource.id,
+      sourceId: demoSourceMaster.id,
       verificationState: h.verificationState,
       dataOrigin: 'SYNTHETIC_DEMO',
       isArchived: false,
@@ -132,7 +336,6 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
     };
     facilities.push(facility);
 
-    // Hospital Profile
     const profile: HospitalProfile = {
       id: `prof-${h.id}`,
       facilityId: h.id,
@@ -144,7 +347,7 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
       isMedicalCollege: h.facilityType.includes('Medical College'),
       accreditationSummary: h.accreditations.length > 0 ? h.accreditations[0].body : undefined,
       workflowStatus: 'PUBLISHED',
-      sourceId: demoSource.id,
+      sourceId: demoSourceMaster.id,
       verificationState: h.verificationState,
       dataOrigin: 'SYNTHETIC_DEMO',
       createdAt: h.lastProfileUpdate,
@@ -152,9 +355,9 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
     };
     hospitalProfiles.push(profile);
 
-    // Facility Specialties
+    // Link Specialties
     for (const specName of h.specialties) {
-      const spec = specialties.find((s) => s.name === specName);
+      const spec = specialties.find((s) => s.name === specName || specName.includes(s.name));
       if (spec) {
         facilitySpecialties.push({
           id: `fsp-${h.id}-${spec.id}`,
@@ -163,7 +366,7 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
           opdAvailable: true,
           inpatientAvailable: true,
           workflowStatus: 'PUBLISHED',
-          sourceId: demoSource.id,
+          sourceId: demoSourceMaster.id,
           verificationState: h.verificationState,
           dataOrigin: 'SYNTHETIC_DEMO',
           isArchived: false,
@@ -173,17 +376,18 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
       }
     }
 
-    // Facility Services
+    // Link Services
     for (const svcName of h.services) {
-      const svc = services.find((s) => s.name === svcName);
+      const svc = services.find((s) => s.name === svcName || svcName.includes(s.name) || s.name.includes(svcName));
       if (svc) {
         facilityServices.push({
           id: `fsv-${h.id}-${svc.id}`,
           facilityId: h.id,
           serviceId: svc.id,
-          is24x7: svcName.includes('24/7'),
+          is24x7: svcName.includes('24/7') || svcName.includes('Emergency') || svcName.includes('ICU'),
+          operationalNotes: svcName.includes('24/7') ? 'Source-reported 24/7' : 'Standard scheduled service hours',
           workflowStatus: 'PUBLISHED',
-          sourceId: demoSource.id,
+          sourceId: demoSourceMaster.id,
           verificationState: h.verificationState,
           dataOrigin: 'SYNTHETIC_DEMO',
           isArchived: false,
@@ -193,17 +397,17 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
       }
     }
 
-    // Facility Schemes
+    // Link Schemes
     for (const schName of h.schemes) {
-      const sch = schemes.find((s) => s.name === schName);
+      const sch = schemes.find((s) => schName.includes(s.code) || s.name.includes(schName));
       if (sch) {
         facilitySchemes.push({
           id: `fsc-${h.id}-${sch.id}`,
           facilityId: h.id,
           schemeId: sch.id,
-          helpdeskLocation: 'Main Reception Demo Desk',
+          helpdeskLocation: 'Public Scheme Facilitation Desk — Ground Floor Admission Wing',
           workflowStatus: 'PUBLISHED',
-          sourceId: demoSource.id,
+          sourceId: demoSourceMaster.id,
           verificationState: h.verificationState,
           dataOrigin: 'SYNTHETIC_DEMO',
           isArchived: false,
@@ -213,29 +417,868 @@ export function generateSyntheticSeedDataset(): SyntheticSeedDataset {
       }
     }
 
-    // Availability Record
+    // Casualty Availability Record
     availabilityRecords.push({
       id: `avail-${h.id}-casualty`,
       facilityId: h.id,
       capabilityType: 'CASUALTY',
       status: h.casualtyIntake.status === 'ACTIVE_EMERGENCY' ? 'ACTIVE' : 'LIMITED',
       observedAt: h.casualtyIntake.lastUpdated,
-      sourceId: demoSource.id,
+      sourceId: demoSourceMaster.id,
       verificationState: h.casualtyIntake.source.verificationState,
       requiresConfirmation: true,
-      contextNotes: h.casualtyIntake.subtext,
+      contextNotes: `${h.casualtyIntake.subtext}. Time-sensitive observation; patient intake status is subject to real-time clinical assessment and bed capacity.`,
       dataOrigin: 'SYNTHETIC_DEMO',
       createdAt: h.casualtyIntake.lastUpdated,
     });
   }
 
+  // 5.2 Add Non-Hospital Healthcare Facilities Across Modules
+  const nonHospitalFacilities: Facility[] = [
+    // Module A: Clinics
+    {
+      id: 'fac-clinic-01',
+      slug: 'medimesh-metro-polyclinic-bengaluru',
+      name: 'MEDIMESH Metro Polyclinic & Family Care (Demo)',
+      category: 'Clinic',
+      ownershipType: 'Private',
+      description: 'Outpatient polyclinic offering primary care consultations, preventive diagnostics, and pediatric visits. Demonstration dataset record.',
+      location: {
+        address: '42, 11th Main Road, Jayanagar 4th Block',
+        locality: 'Jayanagar',
+        city: 'Bengaluru',
+        district: 'Bengaluru Urban',
+        state: 'Karnataka',
+        country: 'India',
+        postalCode: '560011',
+      },
+      contact: {
+        primaryPhone: '+91 80 0000 1101 (Illustrative Demo)',
+      },
+      operatingHours: 'Mon-Sat: 08:30 - 20:00 · Sun: 09:00 - 13:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fac-clinic-02',
+      slug: 'medimesh-pune-community-clinic',
+      name: 'MEDIMESH Shivajinagar Community Clinic (Demo)',
+      category: 'Clinic',
+      ownershipType: 'Trust/Non-Profit',
+      description: 'Community health clinic providing general medical reviews, immunizations, and chronic disease consultations. Demonstration dataset record.',
+      location: {
+        address: '15, Ghole Road, Shivajinagar',
+        locality: 'Shivajinagar',
+        city: 'Pune',
+        district: 'Pune',
+        state: 'Maharashtra',
+        country: 'India',
+        postalCode: '411005',
+      },
+      contact: {
+        primaryPhone: '+91 20 0000 1102 (Illustrative Demo)',
+      },
+      operatingHours: 'Mon-Fri: 09:00 - 17:00 · Sat: 09:00 - 14:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'PUBLIC_SOURCE',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+
+    // Module D: Diagnostic / Laboratory Facilities
+    {
+      id: 'fac-diag-01',
+      slug: 'medimesh-central-diagnostic-lab-pune',
+      name: 'MEDIMESH Central Diagnostic & Imaging Laboratory (Demo)',
+      category: 'Diagnostic/Laboratory',
+      ownershipType: 'Private',
+      description: 'Advanced diagnostic centre offering multi-slice CT, high-field MRI, digital radiography, and clinical pathology. Demonstration dataset record.',
+      location: {
+        address: '108, Senapati Bapat Road',
+        locality: 'Shivajinagar',
+        city: 'Pune',
+        district: 'Pune',
+        state: 'Maharashtra',
+        country: 'India',
+        postalCode: '411016',
+      },
+      contact: {
+        primaryPhone: '+91 20 0000 2201 (Illustrative Demo)',
+      },
+      operatingHours: 'Source-reported 24/7 Emergency Diagnostics · Routine OPD: 07:00 - 21:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fac-diag-02',
+      slug: 'medimesh-metro-imaging-bengaluru',
+      name: 'MEDIMESH Metro Advanced Imaging Centre (Demo)',
+      category: 'Diagnostic/Laboratory',
+      ownershipType: 'Private',
+      description: 'Specialized medical imaging centre equipped with 1.5T MRI and ultrasound services. Demonstration dataset record.',
+      location: {
+        address: '502, CMH Road, Indiranagar',
+        locality: 'Indiranagar',
+        city: 'Bengaluru',
+        district: 'Bengaluru Urban',
+        state: 'Karnataka',
+        country: 'India',
+        postalCode: '560038',
+      },
+      contact: {
+        primaryPhone: '+91 80 0000 2202 (Illustrative Demo)',
+      },
+      operatingHours: 'Mon-Sat: 07:30 - 21:00 · Sun: 08:00 - 13:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+
+    // Module I: Pharmacies
+    {
+      id: 'fac-pharm-01',
+      slug: 'medimesh-community-pharmacy-mumbai',
+      name: 'MEDIMESH Metro Community Pharmacy (Demo)',
+      category: 'Pharmacy',
+      ownershipType: 'Private',
+      description: 'Licensed retail pharmacy facility offering prescription medications, medical sundries, and cold-chain insulin storage. Directory listing only; MEDIMESH does not dispense or sell drugs.',
+      location: {
+        address: '88, Hill Road, Bandra West',
+        locality: 'Bandra West',
+        city: 'Mumbai',
+        district: 'Mumbai Suburban',
+        state: 'Maharashtra',
+        country: 'India',
+        postalCode: '400050',
+      },
+      contact: {
+        primaryPhone: '+91 22 0000 3301 (Illustrative Demo)',
+      },
+      operatingHours: 'Source-reported 24/7 Operation',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fac-pharm-02',
+      slug: 'medimesh-central-dispensary-delhi',
+      name: 'MEDIMESH City Dispensary & Pharmacy (Demo)',
+      category: 'Pharmacy',
+      ownershipType: 'Private',
+      description: 'Local neighborhood retail pharmacy facility. Directory information only; online ordering or medicine delivery is not supported.',
+      location: {
+        address: '24, Community Centre, Saket',
+        locality: 'Saket',
+        city: 'New Delhi',
+        district: 'South Delhi',
+        state: 'Delhi',
+        country: 'India',
+        postalCode: '110017',
+      },
+      contact: {
+        primaryPhone: '+91 11 0000 3302 (Illustrative Demo)',
+      },
+      operatingHours: 'Mon-Sat: 08:00 - 22:00 · Sun: 09:00 - 18:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+
+    // Module J: Home Healthcare
+    {
+      id: 'fac-home-01',
+      slug: 'medimesh-home-care-services-delhi',
+      name: 'MEDIMESH CareAtHome Nursing & Therapy (Demo)',
+      category: 'Home Healthcare',
+      ownershipType: 'Private',
+      description: 'Sourced home healthcare provider delivering qualified nursing visits, post-hospitalization dressing, and elder-care assistance in South Delhi.',
+      location: {
+        address: 'Sector 3, Pushp Vihar, Saket',
+        locality: 'Saket',
+        city: 'New Delhi',
+        district: 'South Delhi',
+        state: 'Delhi',
+        country: 'India',
+        postalCode: '110017',
+      },
+      contact: {
+        primaryPhone: '+91 11 0000 4401 (Illustrative Demo)',
+      },
+      operatingHours: 'Dispatch Coordination: 07:00 - 21:00 Daily',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fac-home-02',
+      slug: 'medimesh-pune-rehab-home-care',
+      name: 'MEDIMESH Sahyadri Home Rehabilitation (Demo)',
+      category: 'Home Healthcare',
+      ownershipType: 'Private',
+      description: 'Home physiotherapy, stroke mobility retraining, and post-arthroplasty home rehabilitation provider across Pune urban area.',
+      location: {
+        address: '89, Mayur Colony, Kothrud',
+        locality: 'Kothrud',
+        city: 'Pune',
+        district: 'Pune',
+        state: 'Maharashtra',
+        country: 'India',
+        postalCode: '411038',
+      },
+      contact: {
+        primaryPhone: '+91 20 0000 4402 (Illustrative Demo)',
+      },
+      operatingHours: 'Appointments: Mon-Sat 08:00 - 19:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+
+    // Module H: Ambulance & Patient Transport Providers
+    {
+      id: 'fac-amb-01',
+      slug: 'medimesh-rapid-patient-transport-bengaluru',
+      name: 'MEDIMESH Rapid Patient Transport & BLS (Demo)',
+      category: 'Emergency/Critical Care',
+      ownershipType: 'Private',
+      description: 'Sourced emergency and non-emergency patient transport provider operating Basic Life Support ambulances in Bengaluru South and Central.',
+      location: {
+        address: '12, 100 Feet Ring Road, BTM 2nd Stage',
+        locality: 'BTM Layout',
+        city: 'Bengaluru',
+        district: 'Bengaluru Urban',
+        state: 'Karnataka',
+        country: 'India',
+        postalCode: '560076',
+      },
+      contact: {
+        primaryPhone: '+91 80 0000 5501 (Illustrative Demo)',
+        emergencyPhone: '+91 80 0000 5599 (Demo Non-Emergency Helpline)',
+      },
+      operatingHours: 'Source-reported 24/7 Transport Availability',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fac-amb-02',
+      slug: 'medimesh-apex-medical-transport-mumbai',
+      name: 'MEDIMESH Apex Inter-Hospital Transport (Demo)',
+      category: 'Emergency/Critical Care',
+      ownershipType: 'Private',
+      description: 'Advanced Life Support (ALS) patient transport service with transport ventilators and trained emergency medical technicians.',
+      location: {
+        address: '104, SV Road, Khar West',
+        locality: 'Khar West',
+        city: 'Mumbai',
+        district: 'Mumbai Suburban',
+        state: 'Maharashtra',
+        country: 'India',
+        postalCode: '400052',
+      },
+      contact: {
+        primaryPhone: '+91 22 0000 5502 (Illustrative Demo)',
+        emergencyPhone: '+91 22 0000 5588 (Demo Non-Emergency Helpline)',
+      },
+      operatingHours: 'Source-reported 24/7 Critical Care Dispatch',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+  ];
+
+  facilities.push(...nonHospitalFacilities);
+
+  // Link services to non-hospital facilities
+  facilityServices.push(
+    {
+      id: 'fsv-diag01-svc03',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-003',
+      is24x7: false,
+      operationalNotes: 'Appointments Mon-Sat 08:00 - 20:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fsv-diag01-svc04',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-004',
+      is24x7: true,
+      operationalNotes: 'Source-reported 24/7 Emergency CT Scan',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fsv-diag01-svc05',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-005',
+      is24x7: true,
+      operationalNotes: 'Source-reported 24/7 Urgent Sample Processing',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fsv-amb01-svc07',
+      facilityId: 'fac-amb-01',
+      serviceId: 'svc-007',
+      is24x7: true,
+      operationalNotes: 'Source-reported 24/7 BLS Availability',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fsv-amb02-svc08',
+      facilityId: 'fac-amb-02',
+      serviceId: 'svc-008',
+      is24x7: true,
+      operationalNotes: 'Source-reported 24/7 ALS Critical Transport',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fsv-home01-svc09',
+      facilityId: 'fac-home-01',
+      serviceId: 'svc-009',
+      is24x7: false,
+      operationalNotes: 'Scheduled day and night nursing shift bookings',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'fsv-home02-svc10',
+      facilityId: 'fac-home-02',
+      serviceId: 'svc-010',
+      is24x7: false,
+      operationalNotes: 'Mon-Sat 08:00 - 19:00 in-home therapist sessions',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    }
+  );
+
+  // 6. Doctors / Healthcare Professionals
+  const doctors: DoctorProfile[] = [
+    {
+      id: 'doc-001',
+      slug: 'dr-anand-deshmukh',
+      facilityId: 'medimesh-cardiac-specialty-bengaluru',
+      name: 'Dr. Anand Deshmukh',
+      title: 'Consultant Interventional Cardiologist',
+      qualifications: 'MBBS, MD (General Medicine), DM (Cardiology), FACC',
+      specialtyId: 'spec-001',
+      registrationReference: 'KMC-48291 (Illustrative Demo Record)',
+      opdTimings: 'Mon, Wed, Fri: 10:00 - 13:00 (OPD Room 102)',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-002',
+      slug: 'dr-priya-v-nair',
+      facilityId: 'medimesh-cardiac-specialty-bengaluru',
+      name: 'Dr. Priya V. Nair',
+      title: 'Senior Consultant Non-Invasive Cardiology',
+      qualifications: 'MBBS, MD (General Medicine), DNB (Cardiology)',
+      specialtyId: 'spec-001',
+      registrationReference: 'KMC-52119 (Illustrative Demo Record)',
+      opdTimings: 'Tue, Thu, Sat: 09:00 - 12:30 (OPD Room 104)',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-003',
+      slug: 'dr-rajesh-k-sundaram',
+      facilityId: 'medimesh-regional-specialty-bengaluru',
+      name: 'Dr. Rajesh K. Sundaram',
+      title: 'Consultant Orthopedic & Joint Reconstruction Surgeon',
+      qualifications: 'MBBS, MS (Orthopedics), MCh (Orth)',
+      specialtyId: 'spec-004',
+      registrationReference: 'KMC-39104 (Illustrative Demo Record)',
+      opdTimings: 'Mon to Fri: 11:00 - 15:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-004',
+      slug: 'dr-shalini-swaminathan',
+      facilityId: 'medimesh-regional-specialty-bengaluru',
+      name: 'Dr. Shalini Swaminathan',
+      title: 'Consultant Neurologist',
+      qualifications: 'MBBS, MD (General Medicine), DM (Neurology)',
+      specialtyId: 'spec-005',
+      registrationReference: 'KMC-60212 (Illustrative Demo Record)',
+      opdTimings: 'Mon, Wed, Sat: 14:00 - 18:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-005',
+      slug: 'dr-b-r-venkatesh',
+      facilityId: 'medimesh-civic-medical-college-bengaluru',
+      name: 'Dr. B. R. Venkatesh',
+      title: 'Professor & Head of Department, General Medicine',
+      qualifications: 'MBBS, MD (General Medicine)',
+      specialtyId: 'spec-007',
+      registrationReference: 'KMC-21440 (Illustrative Demo Record)',
+      opdTimings: 'Mon to Thu: 09:00 - 13:00 (Civil OPD Unit II)',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'PUBLIC_SOURCE',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-006',
+      slug: 'dr-meenakshi-joshi',
+      facilityId: 'medimesh-apex-cardiac-pune',
+      name: 'Dr. Meenakshi Joshi',
+      title: 'Consultant Pediatric Cardiologist',
+      qualifications: 'MBBS, MD (Pediatrics), FNB (Pediatric Cardiology)',
+      specialtyId: 'spec-003',
+      registrationReference: 'MMC-73410 (Illustrative Demo Record)',
+      opdTimings: 'Mon, Wed, Fri: 10:00 - 14:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-007',
+      slug: 'dr-vivek-k-patil',
+      facilityId: 'medimesh-apex-cardiac-pune',
+      name: 'Dr. Vivek K. Patil',
+      title: 'Senior Cardiac Electrophysiologist',
+      qualifications: 'MBBS, MD, DM (Cardiology), CEPS',
+      specialtyId: 'spec-001',
+      registrationReference: 'MMC-88129 (Illustrative Demo Record)',
+      opdTimings: 'Tue, Thu: 11:00 - 16:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-008',
+      slug: 'dr-cyrus-bharucha',
+      facilityId: 'medimesh-general-hospital-mumbai',
+      name: 'Dr. Cyrus Bharucha',
+      title: 'Consultant Medical Oncologist',
+      qualifications: 'MBBS, MD, DM (Medical Oncology), ECMO',
+      specialtyId: 'spec-008',
+      registrationReference: 'MMC-44190 (Illustrative Demo Record)',
+      opdTimings: 'Mon, Thu: 13:00 - 17:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-009',
+      slug: 'dr-sunita-aggarwal',
+      facilityId: 'medimesh-comprehensive-health-delhi',
+      name: 'Dr. Sunita Aggarwal',
+      title: 'Consultant Nephrologist & Renal Physician',
+      qualifications: 'MBBS, MD (Medicine), DM (Nephrology)',
+      specialtyId: 'spec-009',
+      registrationReference: 'DMC-55912 (Illustrative Demo Record)',
+      opdTimings: 'Mon to Fri: 09:30 - 13:30',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-010',
+      slug: 'dr-kavitha-s-rao',
+      facilityId: 'fac-clinic-01',
+      name: 'Dr. Kavitha S. Rao',
+      title: 'General Practitioner & Family Physician',
+      qualifications: 'MBBS, DNB (Family Medicine)',
+      specialtyId: 'spec-007',
+      registrationReference: 'KMC-71288 (Illustrative Demo Record)',
+      opdTimings: 'Mon-Sat: 09:00 - 13:00, 17:00 - 20:00',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-011',
+      slug: 'dr-r-karthik',
+      facilityId: 'fac-clinic-01',
+      name: 'Dr. R. Karthik',
+      title: 'Consultant Pediatrician',
+      qualifications: 'MBBS, MD (Pediatrics)',
+      specialtyId: 'spec-006',
+      registrationReference: 'KMC-80144 (Illustrative Demo Record)',
+      opdTimings: 'Mon, Wed, Fri: 16:30 - 19:30',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+    {
+      id: 'doc-012',
+      slug: 'dr-sachin-g-kulkarni',
+      facilityId: 'fac-clinic-02',
+      name: 'Dr. Sachin G. Kulkarni',
+      title: 'Consultant Physician & Diabetologist',
+      qualifications: 'MBBS, MD (Medicine)',
+      specialtyId: 'spec-007',
+      registrationReference: 'MMC-63201 (Illustrative Demo Record)',
+      opdTimings: 'Mon to Fri: 09:30 - 13:30',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      createdAt: '2026-09-17T00:00:00.000Z',
+      updatedAt: '2026-09-17T00:00:00.000Z',
+    },
+  ];
+
+  // 7. Informational Tariffs (Demonstrating Active, Expired, and Unstated Validity Windows)
+  const tariffs: TariffItem[] = [
+    // Active Tariffs (Valid in 2026)
+    {
+      id: 'tar-001',
+      facilityId: 'medimesh-cardiac-specialty-bengaluru',
+      serviceId: 'svc-001',
+      amount: 8500,
+      currency: 'INR',
+      unit: 'per day (bed + basic nursing)',
+      effectiveFrom: '2026-01-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Informational tariff listed for Cardiac ICU bed. Excludes specialist consultation visits and specialized medication costs.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-09-01T00:00:00.000Z',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    },
+    {
+      id: 'tar-002',
+      facilityId: 'medimesh-cardiac-specialty-bengaluru',
+      serviceId: 'svc-002',
+      amount: 1200,
+      currency: 'INR',
+      unit: 'per casualty registration & evaluation',
+      effectiveFrom: '2026-01-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Standard casualty department registration and initial medical officer evaluation tariff.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-09-01T00:00:00.000Z',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    },
+    {
+      id: 'tar-003',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-003',
+      amount: 7500,
+      currency: 'INR',
+      unit: 'per scan region without contrast',
+      effectiveFrom: '2026-03-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Listed outpatient charge for 1.5T MRI Brain / Spine plain scan. Includes radiologist formal reporting.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-08-15T00:00:00.000Z',
+      createdAt: '2026-03-01T00:00:00.000Z',
+      updatedAt: '2026-08-15T00:00:00.000Z',
+    },
+    {
+      id: 'tar-004',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-004',
+      amount: 4200,
+      currency: 'INR',
+      unit: 'per scan region without contrast',
+      effectiveFrom: '2026-03-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Listed tariff for high-resolution 128-slice CT Chest / Abdomen plain scan.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-08-15T00:00:00.000Z',
+      createdAt: '2026-03-01T00:00:00.000Z',
+      updatedAt: '2026-08-15T00:00:00.000Z',
+    },
+    {
+      id: 'tar-005',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-005',
+      amount: 350,
+      currency: 'INR',
+      unit: 'per complete blood count test',
+      effectiveFrom: '2026-01-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Automated 5-part differential Complete Blood Count (CBC) with ESR.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-07-20T00:00:00.000Z',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-07-20T00:00:00.000Z',
+    },
+    {
+      id: 'tar-006',
+      facilityId: 'fac-clinic-01',
+      serviceId: 'svc-005',
+      amount: 600,
+      currency: 'INR',
+      unit: 'per general consultation',
+      effectiveFrom: '2026-01-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'General family physician consultation fee. Valid for 7 days follow-up.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-06-10T00:00:00.000Z',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-06-10T00:00:00.000Z',
+    },
+    {
+      id: 'tar-007',
+      facilityId: 'fac-amb-01',
+      serviceId: 'svc-007',
+      amount: 1800,
+      currency: 'INR',
+      unit: 'base rate up to 10 km',
+      effectiveFrom: '2026-01-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Basic Life Support ambulance transport base rate. ₹35 per additional km applies beyond 10 km radius.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-05-18T00:00:00.000Z',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-05-18T00:00:00.000Z',
+    },
+    {
+      id: 'tar-008',
+      facilityId: 'fac-home-01',
+      serviceId: 'svc-009',
+      amount: 800,
+      currency: 'INR',
+      unit: 'per visit up to 60 mins',
+      effectiveFrom: '2026-02-01T00:00:00.000Z',
+      effectiveTo: '2026-12-31T23:59:59.000Z',
+      notes: 'Nurse home visit for vital monitoring, surgical dressing change, or injection administration.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'MEDIMESH_VERIFIED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-08-01T00:00:00.000Z',
+      createdAt: '2026-02-01T00:00:00.000Z',
+      updatedAt: '2026-08-01T00:00:00.000Z',
+    },
+
+    // Expired Historical Tariffs (For Temporal Validity Testing)
+    {
+      id: 'tar-009-expired',
+      facilityId: 'medimesh-cardiac-specialty-bengaluru',
+      serviceId: 'svc-001',
+      amount: 7200,
+      currency: 'INR',
+      unit: 'per day (bed + basic nursing)',
+      effectiveFrom: '2024-01-01T00:00:00.000Z',
+      effectiveTo: '2025-12-31T23:59:59.000Z',
+      notes: 'Historical 2024-2025 tariff schedule. Superseded by 2026 revision.',
+      workflowStatus: 'ARCHIVED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'PUBLIC_SOURCE',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: true,
+      lastReviewedAt: '2025-12-31T00:00:00.000Z',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2025-12-31T00:00:00.000Z',
+    },
+    {
+      id: 'tar-010-expired',
+      facilityId: 'fac-diag-01',
+      serviceId: 'svc-003',
+      amount: 6800,
+      currency: 'INR',
+      unit: 'per scan region plain',
+      effectiveFrom: '2024-06-01T00:00:00.000Z',
+      effectiveTo: '2025-06-30T23:59:59.000Z',
+      notes: 'Historical tariff schedule. No longer in active effect.',
+      workflowStatus: 'ARCHIVED',
+      sourceId: demoSourceMaster.id,
+      verificationState: 'PUBLIC_SOURCE',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: true,
+      lastReviewedAt: '2025-06-30T00:00:00.000Z',
+      createdAt: '2024-06-01T00:00:00.000Z',
+      updatedAt: '2025-06-30T00:00:00.000Z',
+    },
+
+    // Unconfirmed Validity Period (Demonstrating "Effective period not confirmed")
+    {
+      id: 'tar-011-unconfirmed',
+      facilityId: 'medimesh-regional-specialty-bengaluru',
+      serviceId: 'svc-006',
+      amount: 2500,
+      currency: 'INR',
+      unit: 'per hemodialysis session',
+      effectiveFrom: undefined,
+      effectiveTo: undefined,
+      notes: 'Listed outpatient hemodialysis rate reported on facility notice board. Effective validity window not confirmed by official source documentation.',
+      workflowStatus: 'PUBLISHED',
+      sourceId: demoFacilityReportedSource.id,
+      verificationState: 'FACILITY_REPORTED',
+      dataOrigin: 'SYNTHETIC_DEMO',
+      isArchived: false,
+      lastReviewedAt: '2026-04-12T00:00:00.000Z',
+      createdAt: '2026-04-12T00:00:00.000Z',
+      updatedAt: '2026-04-12T00:00:00.000Z',
+    },
+  ];
+
   return {
-    sources: [demoSource],
+    sources,
     facilities,
     hospitalProfiles,
     specialties,
     services,
+    doctors,
     schemes,
+    tariffs,
     facilitySpecialties,
     facilityServices,
     facilitySchemes,

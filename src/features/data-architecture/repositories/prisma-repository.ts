@@ -441,6 +441,21 @@ export class PrismaRepository
     if (!r) return null;
     return {
       id: r.id,
+      slug: r.slug,
+      code: r.code,
+      name: r.name,
+      providerType: r.providerType,
+      stateScope: r.stateScope,
+      description: r.description,
+    };
+  }
+
+  async findSchemeBySlug(slug: string): Promise<SchemeInsurance | null> {
+    const r = await this.prisma.schemeInsurance.findFirst({ where: { slug } });
+    if (!r) return null;
+    return {
+      id: r.id,
+      slug: r.slug,
       code: r.code,
       name: r.name,
       providerType: r.providerType,
@@ -493,6 +508,20 @@ export class PrismaRepository
   async getFacilityTariffs(facilityId: string): Promise<TariffItem[]> {
     const rows = await this.prisma.tariffItem.findMany({
       where: { facilityId, isArchived: false },
+    });
+    return rows.map((r: any) => this.mapTariffItem(r));
+  }
+
+  async listAllTariffs(filter?: { serviceId?: string; city?: string; includeExpired?: boolean }): Promise<TariffItem[]> {
+    const where: Record<string, unknown> = {};
+    if (!filter?.includeExpired) {
+      where.isArchived = false;
+    }
+    if (filter?.serviceId) {
+      where.serviceId = filter.serviceId;
+    }
+    const rows = await this.prisma.tariffItem.findMany({
+      where,
     });
     return rows.map((r: any) => this.mapTariffItem(r));
   }

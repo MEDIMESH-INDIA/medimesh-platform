@@ -88,30 +88,30 @@ export function Header({
               <DropdownContent align="left" width="w-64">
                 <DropdownLabel>Healthcare Facilities</DropdownLabel>
                 <DropdownItem icon={<HospitalIcon size={16} />}>
-                  <Link href="/#facilities">Verified Hospitals</Link>
+                  <Link href="/facilities">Hospitals</Link>
                 </DropdownItem>
                 <DropdownItem icon={<PersonIcon size={16} />}>
-                  <Link href="/#doctors">Doctors &amp; Specialists</Link>
+                  <Link href="/doctors">Doctors &amp; Specialists</Link>
                 </DropdownItem>
                 <DropdownItem icon={<MedicalServicesIcon size={16} />}>
-                  <Link href="/#specialties">Clinical Specialties</Link>
+                  <Link href="/specialties">Clinical Specialties</Link>
                 </DropdownItem>
                 <DropdownItem icon={<HospitalIcon size={16} />}>
-                  <Link href="/#facilities">Healthcare Facilities</Link>
+                  <Link href="/services">Services &amp; Capabilities</Link>
                 </DropdownItem>
                 <DropdownDivider />
                 <DropdownLabel>Emergency &amp; Support</DropdownLabel>
                 <DropdownItem icon={<EmergencyIcon size={16} />}>
-                  <Link href="/#emergency">Emergency &amp; Critical Care</Link>
+                  <Link href="/emergency">Emergency &amp; Critical Care</Link>
                 </DropdownItem>
                 <DropdownItem icon={<HospitalIcon size={16} />}>
-                  <Link href="/#ambulance">Ambulance &amp; Patient Transport</Link>
+                  <Link href="/ambulances">Ambulance &amp; Patient Transport</Link>
                 </DropdownItem>
                 <DropdownItem icon={<MedicalServicesIcon size={16} />}>
-                  <Link href="/#pharmacies">Pharmacies</Link>
+                  <Link href="/pharmacies">Pharmacies</Link>
                 </DropdownItem>
                 <DropdownItem icon={<HospitalIcon size={16} />}>
-                  <Link href="/#homecare">Home Healthcare</Link>
+                  <Link href="/home-healthcare">Home Healthcare</Link>
                 </DropdownItem>
               </DropdownContent>
             </DropdownMenu>
@@ -144,19 +144,19 @@ export function Header({
               </DropdownTrigger>
               <DropdownContent align="left" width="w-60">
                 <DropdownItem icon={<HospitalIcon size={16} />}>
-                  <Link href="/#hospitals">Hospital Directory</Link>
+                  <Link href="/facilities">Hospital Directory</Link>
                 </DropdownItem>
                 <DropdownItem icon={<PersonIcon size={16} />}>
-                  <Link href="/#doctors">Doctors Directory</Link>
+                  <Link href="/doctors">Doctors Directory</Link>
                 </DropdownItem>
                 <DropdownItem icon={<MedicalServicesIcon size={16} />}>
-                  <Link href="/#specialties">Specialties Index</Link>
+                  <Link href="/specialties">Specialties Index</Link>
                 </DropdownItem>
                 <DropdownItem icon={<ShieldIcon size={16} />}>
-                  <Link href="/#schemes">Schemes (PM-JAY, CGHS)</Link>
+                  <Link href="/schemes">Schemes (PM-JAY, CGHS)</Link>
                 </DropdownItem>
                 <DropdownItem icon={<InfoIcon size={16} />}>
-                  <Link href="/#tariffs">Tariffs &amp; Cost Information</Link>
+                  <Link href="/tariffs">Tariffs &amp; Cost Information</Link>
                 </DropdownItem>
               </DropdownContent>
             </DropdownMenu>
@@ -329,17 +329,32 @@ export function MobileDrawer({
             <span className="font-label-sm text-xs font-bold text-[var(--color-outline)] uppercase tracking-wider">
               Discover Healthcare
             </span>
-            <Link href="/#hospitals" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
-              Verified Hospitals
+            <Link href="/facilities" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Hospitals
             </Link>
-            <Link href="/#doctors" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+            <Link href="/doctors" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Doctors &amp; Specialists
             </Link>
-            <Link href="/#specialties" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+            <Link href="/specialties" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Clinical Specialties
             </Link>
-            <Link href="/#emergency" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+            <Link href="/services" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Services &amp; Capabilities
+            </Link>
+            <Link href="/emergency" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Emergency &amp; Critical Care
+            </Link>
+            <Link href="/ambulances" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Ambulance Transport
+            </Link>
+            <Link href="/pharmacies" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Pharmacies
+            </Link>
+            <Link href="/home-healthcare" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Home Healthcare
+            </Link>
+            <Link href="/tariffs" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+              Informational Tariffs
             </Link>
           </div>
 
@@ -361,7 +376,7 @@ export function MobileDrawer({
             <span className="font-label-sm text-xs font-bold text-[var(--color-outline)] uppercase tracking-wider">
               Resources &amp; Trust
             </span>
-            <Link href="/#schemes" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
+            <Link href="/schemes" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
               Government Scheme Empanelment
             </Link>
             <Link href="/#trust" onClick={onClose} className="py-2 px-2 hover:bg-[var(--color-surface-container)] rounded font-medium text-[var(--color-on-surface)]">
@@ -386,7 +401,7 @@ export function MobileBottomNav({
 }) {
   const tabs = [
     { id: 'home' as const, label: 'Home', icon: <HomeIcon size={20} />, href: '/' },
-    { id: 'discover' as const, label: 'Discover', icon: <SearchIcon size={20} />, href: '/#discover' },
+    { id: 'discover' as const, label: 'Discover', icon: <SearchIcon size={20} />, href: '/search' },
     { id: 'compare' as const, label: 'Compare', icon: <ScaleIcon size={20} />, href: '/#compare' },
     { id: 'saved' as const, label: 'Saved', icon: <BookmarkIcon size={20} />, href: '/#saved' },
     { id: 'account' as const, label: 'Account', icon: <PersonIcon size={20} />, href: '/#account' },

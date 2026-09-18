@@ -207,11 +207,18 @@ export interface FacilityServiceRelation {
 
 export interface DoctorProfile {
   id: string;
+  slug: string;
   facilityId: string;
   name: string;
   title: string;
   qualifications: string;
   specialtyId: string;
+  subSpecialtyIds?: string[];
+  facilityAffiliationIds?: string[];
+  department?: string;
+  experienceYears?: number;
+  languagesSpoken?: string[];
+  consultationFee?: number;
   registrationReference?: string;
   opdTimings?: string;
   workflowStatus: WorkflowStatus;
@@ -229,6 +236,7 @@ export interface DoctorProfile {
 
 export interface SchemeInsurance {
   id: string;
+  slug: string;
   code: string;
   name: string;
   providerType: 'GOVERNMENT' | 'SOCIAL_SECURITY' | 'COMMERCIAL_TPA';

@@ -155,6 +155,20 @@ export function StatusBadge({
           </Badge>
         );
 
+      case 'UNABLE_TO_VERIFY':
+        return (
+          <Badge
+            variant="warning"
+            size={size}
+            icon={<WarningIcon size={size === 'sm' ? 12 : 14} />}
+            className={className}
+            title="Attempted verification was inconclusive based on available evidence"
+            {...props}
+          >
+            {label || 'Unable to Verify'}
+          </Badge>
+        );
+
       case 'NOT_CONFIRMED':
       default:
         return (

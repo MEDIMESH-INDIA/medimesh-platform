@@ -18,7 +18,8 @@ export type VerificationState =
   | 'FACILITY_REPORTED'
   | 'MEDIMESH_VERIFIED'
   | 'PENDING_VERIFICATION'
-  | 'NOT_CONFIRMED';
+  | 'NOT_CONFIRMED'
+  | 'UNABLE_TO_VERIFY';
 
 /** Source provenance metadata attached to verifiable data points */
 export interface Source {

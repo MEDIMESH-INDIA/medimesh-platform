@@ -25,12 +25,14 @@ import type {
   CorrectionSubmission,
   AuditLogEntry,
   VerificationState,
+  DoctorProfile,
 } from '../domain/index.ts';
 import type {
   IFacilityRepository,
   IHospitalRepository,
   ISpecialtyRepository,
   IServiceRepository,
+  IDoctorRepository,
   ISchemeRepository,
   ITariffRepository,
   IAvailabilityRepository,
@@ -47,6 +49,7 @@ export class SyntheticRepository
     IHospitalRepository,
     ISpecialtyRepository,
     IServiceRepository,
+    IDoctorRepository,
     ISchemeRepository,
     ITariffRepository,
     IAvailabilityRepository,
@@ -60,6 +63,7 @@ export class SyntheticRepository
   private hospitalProfiles: Map<string, HospitalProfile>;
   private specialties: Map<string, Specialty>;
   private services: Map<string, ServiceCapability>;
+  private doctors: Map<string, DoctorProfile>;
   private schemes: Map<string, SchemeInsurance>;
   private facilitySpecialties: Map<string, FacilitySpecialtyRelation>;
   private facilityServices: Map<string, FacilityServiceRelation>;
@@ -77,11 +81,12 @@ export class SyntheticRepository
     this.hospitalProfiles = new Map(seed.hospitalProfiles.map((p) => [p.facilityId, p]));
     this.specialties = new Map(seed.specialties.map((s) => [s.id, s]));
     this.services = new Map(seed.services.map((s) => [s.id, s]));
+    this.doctors = new Map(seed.doctors.map((d) => [d.id, d]));
     this.schemes = new Map(seed.schemes.map((s) => [s.id, s]));
     this.facilitySpecialties = new Map(seed.facilitySpecialties.map((r) => [r.id, r]));
     this.facilityServices = new Map(seed.facilityServices.map((r) => [r.id, r]));
     this.facilitySchemes = new Map(seed.facilitySchemes.map((r) => [r.id, r]));
-    this.tariffs = new Map();
+    this.tariffs = new Map(seed.tariffs.map((t) => [t.id, t]));
     this.availabilityRecords = [...seed.availabilityRecords];
     this.revisions = [];
     this.corrections = new Map();
@@ -367,6 +372,63 @@ export class SyntheticRepository
   }
 
   // ---------------------------------------------------------------------------
+  // Doctor Repository
+  // ---------------------------------------------------------------------------
+
+  async listDoctors(filter?: { facilityId?: string; specialtyId?: string; city?: string }): Promise<DoctorProfile[]> {
+    let list = Array.from(this.doctors.values());
+    if (filter?.facilityId) {
+      list = list.filter(
+        (d) => d.facilityId === filter.facilityId || d.facilityAffiliationIds?.includes(filter.facilityId!)
+      );
+    }
+    if (filter?.specialtyId) {
+      list = list.filter(
+        (d) => d.specialtyId === filter.specialtyId || d.subSpecialtyIds?.includes(filter.specialtyId!)
+      );
+    }
+    if (filter?.city) {
+      const cityLower = filter.city.toLowerCase();
+      const facMap = this.facilities;
+      list = list.filter((d) => {
+        const primaryFac = facMap.get(d.facilityId);
+        return primaryFac && primaryFac.location.city.toLowerCase() === cityLower;
+      });
+    }
+    return list.map((d) => ({ ...d }));
+  }
+
+  async getDoctorById(id: string): Promise<DoctorProfile | null> {
+    const doc = this.doctors.get(id);
+    return doc ? { ...doc } : null;
+  }
+
+  async getDoctorBySlug(
+    slug: string
+  ): Promise<{ doctor: DoctorProfile; facility?: Facility; specialty?: Specialty } | null> {
+    for (const doc of this.doctors.values()) {
+      if (doc.slug === slug) {
+        const facility = this.facilities.get(doc.facilityId);
+        const specialty = this.specialties.get(doc.specialtyId);
+        return {
+          doctor: { ...doc },
+          facility: facility ? { ...facility } : undefined,
+          specialty: specialty ? { ...specialty } : undefined,
+        };
+      }
+    }
+    return null;
+  }
+
+  async getDoctorsByFacility(facilityId: string): Promise<DoctorProfile[]> {
+    return this.listDoctors({ facilityId });
+  }
+
+  async getDoctorsBySpecialty(specialtyId: string): Promise<DoctorProfile[]> {
+    return this.listDoctors({ specialtyId });
+  }
+
+  // ---------------------------------------------------------------------------
   // Scheme Repository
   // ---------------------------------------------------------------------------
 
@@ -377,6 +439,13 @@ export class SyntheticRepository
   async findByCode(code: string): Promise<SchemeInsurance | null> {
     for (const s of this.schemes.values()) {
       if (s.code === code) return { ...s };
+    }
+    return null;
+  }
+
+  async findSchemeBySlug(slug: string): Promise<SchemeInsurance | null> {
+    for (const s of this.schemes.values()) {
+      if (s.slug === slug) return { ...s };
     }
     return null;
   }
@@ -429,6 +498,25 @@ export class SyntheticRepository
       }
     }
     return results;
+  }
+
+  async listAllTariffs(filter?: { serviceId?: string; city?: string; includeExpired?: boolean }): Promise<TariffItem[]> {
+    let results = Array.from(this.tariffs.values());
+    if (!filter?.includeExpired) {
+      results = results.filter((t) => !t.isArchived && t.workflowStatus !== 'ARCHIVED');
+    }
+    if (filter?.serviceId) {
+      results = results.filter((t) => t.serviceId === filter.serviceId);
+    }
+    if (filter?.city) {
+      const cityLower = filter.city.toLowerCase();
+      const facMap = this.facilities;
+      results = results.filter((t) => {
+        const fac = facMap.get(t.facilityId);
+        return fac && fac.location.city.toLowerCase() === cityLower;
+      });
+    }
+    return results.map((t) => ({ ...t }));
   }
 
   async addTariffDraft(

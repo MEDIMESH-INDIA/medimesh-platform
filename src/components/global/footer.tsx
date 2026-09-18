@@ -29,19 +29,19 @@ export function Footer() {
             <span className="font-label-md text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-wider mb-1">
               Healthcare Directory
             </span>
-            <Link href="/#hospitals" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
-              Verified Hospitals
+            <Link href="/facilities" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+              Hospitals
             </Link>
-            <Link href="/#specialties" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/specialties" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Clinical Specialties
             </Link>
-            <Link href="/#doctors" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/doctors" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Doctors &amp; Specialists
             </Link>
-            <Link href="/#diagnostics" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
-              Diagnostic Centers
+            <Link href="/services" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+              Services &amp; Capabilities
             </Link>
-            <Link href="/#tariffs" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/tariffs" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Cost Tariffs &amp; Estimates
             </Link>
           </div>
@@ -51,19 +51,19 @@ export function Footer() {
             <span className="font-label-md text-xs font-bold text-[var(--color-on-surface)] uppercase tracking-wider mb-1">
               Schemes &amp; Access
             </span>
-            <Link href="/#pmjay" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/schemes/ayushman-bharat-pmjay" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Ayushman Bharat (PM-JAY)
             </Link>
-            <Link href="/#cghs" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/schemes/cghs" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Central Govt Health Scheme (CGHS)
             </Link>
-            <Link href="/#echs" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/schemes/echs" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Ex-Servicemen Scheme (ECHS)
             </Link>
-            <Link href="/#emergency" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/emergency" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Emergency &amp; Critical Care
             </Link>
-            <Link href="/#ambulance" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
+            <Link href="/ambulances" className="text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-colors">
               Ambulance Transport Directory
             </Link>
           </div>
