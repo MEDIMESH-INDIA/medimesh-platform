@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { searchHospitals } from '../lib/data/hospitalRepository';
 
 export function useHospitalSearch({ mode = 'canonical', filters = {}, sort = 'name_asc', pageSize = 12 }) {
-  const { q = '', location = '', type = '', specialty = '', facility = '' } = filters;
+  const { q = '', city = '', locality = '', type = '', specialty = '', facility = '' } = filters;
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ export function useHospitalSearch({ mode = 'canonical', filters = {}, sort = 'na
     try {
       setLoading(true);
       setError(null);
-      const result = await searchHospitals({ mode, filters: { q, location, type, specialty, facility }, sort, offset, pageSize });
+      const result = await searchHospitals({ mode, filters: { q, city, locality, type, specialty, facility }, sort, offset, pageSize });
       if (requestId !== requestRef.current) return;
       setHospitals(previous => append ? [...previous, ...result.hospitals] : result.hospitals);
       setTotalCount(result.totalCount);
@@ -28,7 +28,7 @@ export function useHospitalSearch({ mode = 'canonical', filters = {}, sort = 'na
     } finally {
       if (requestId === requestRef.current) setLoading(false);
     }
-  }, [mode, q, location, type, specialty, facility, sort, pageSize]);
+  }, [mode, q, city, locality, type, specialty, facility, sort, pageSize]);
 
   useEffect(() => {
     setHospitals([]);

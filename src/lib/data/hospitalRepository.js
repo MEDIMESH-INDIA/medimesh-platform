@@ -140,6 +140,7 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
       .eq('publication_status', 'published');
     if (search) query = query.or(`name.ilike.%${search}%,locality.ilike.%${search}%,city.ilike.%${search}%,district.ilike.%${search}%`);
     if (filters.city) query = query.eq('city', filters.city);
+    if (filters.locality) query = query.eq('locality', filters.locality);
     if (filters.type) query = query.eq('hospital_type', filters.type);
     if (filters.specialty) query = query.eq('hospital_specialties.specialties.name', filters.specialty);
     if (filters.facility) query = query.eq('hospital_facilities.facilities.name', filters.facility);
@@ -159,6 +160,8 @@ export async function getHospitalFacets({ mode = 'canonical' } = {}) {
   if (mode === 'demo') {
     return {
       cities: [...new Set(demoHospitals.map(h => h.location).filter(Boolean))].sort(),
+      localities: [],
+      cityToLocalities: {},
       types: [...new Set(demoHospitals.map(h => h.type).filter(Boolean))].sort(),
       specialties: [...new Set(demoHospitals.flatMap(h => h.specialties || []))].sort(),
       facilities: [...new Set(demoHospitals.flatMap(h => h.facilities || []))].sort(),
@@ -167,12 +170,26 @@ export async function getHospitalFacets({ mode = 'canonical' } = {}) {
 
   const { data, error } = await supabase
     .from('hospitals')
-    .select('city, hospital_type, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))')
+    .select('city, locality, hospital_type, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))')
     .eq('publication_status', 'published');
   if (error) throw error;
   const records = data || [];
+
+  const cityToLocalities = {};
+  records.forEach(h => {
+    if (h.city && h.locality) {
+      if (!cityToLocalities[h.city]) cityToLocalities[h.city] = new Set();
+      cityToLocalities[h.city].add(h.locality);
+    }
+  });
+  Object.keys(cityToLocalities).forEach(k => {
+    cityToLocalities[k] = [...cityToLocalities[k]].sort();
+  });
+
   return {
     cities: [...new Set(records.map(h => h.city).filter(Boolean))].sort(),
+    localities: [...new Set(records.map(h => h.locality).filter(Boolean))].sort(),
+    cityToLocalities,
     types: [...new Set(records.map(h => h.hospital_type).filter(Boolean))].sort(),
     specialties: [...new Set(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name)).filter(Boolean))].sort(),
     facilities: [...new Set(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name)).filter(Boolean))].sort(),

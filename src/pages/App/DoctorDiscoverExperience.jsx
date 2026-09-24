@@ -15,11 +15,12 @@ export default function DoctorDiscoverExperience() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [sort, setSort] = useState('name_asc');
-  const [facets, setFacets] = useState({ locations: [], specializations: [], hospitals: [] });
+  const [facets, setFacets] = useState({ cities: [], localities: [], cityToLocalities: {}, specializations: [], hospitals: [] });
 
   const filters = {
     q: searchParams.get('q') || '',
     city: searchParams.get('city') || '',
+    locality: searchParams.get('locality') || '',
     specialization: searchParams.get('specialization') || '',
     hospital: searchParams.get('hospital') || '',
     language: searchParams.get('language') || '',
@@ -47,6 +48,21 @@ export default function DoctorDiscoverExperience() {
     } else {
       newParams.delete(key);
     }
+
+    if (key === 'city') {
+      const currentLocality = newParams.get('locality');
+      if (currentLocality) {
+        if (!value) {
+           newParams.delete('locality');
+        } else {
+           const validLocalities = facets.cityToLocalities?.[value] || [];
+           if (validLocalities.length > 0 && !validLocalities.includes(currentLocality)) {
+             newParams.delete('locality');
+           }
+        }
+      }
+    }
+
     setSearchParams(newParams);
     if (key === 'q') setQuery(value);
   };
@@ -64,7 +80,8 @@ export default function DoctorDiscoverExperience() {
   const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== false);
 
   const activeChips = [];
-  if (filters.city) activeChips.push({ key: 'location', label: filters.city });
+  if (filters.city) activeChips.push({ key: 'city', label: filters.city });
+  if (filters.locality) activeChips.push({ key: 'locality', label: filters.locality });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
   if (filters.hospital) activeChips.push({ key: 'hospital', label: filters.hospital });
   if (filters.language) activeChips.push({ key: 'language', label: filters.language });
@@ -193,6 +210,14 @@ export default function DoctorDiscoverExperience() {
                 options={facets.cities}
                 value={filters.city}
                 onChange={(val) => updateFilter('city', val)}
+                defaultOpen={true}
+              />
+              <CollapsibleFilter
+                title="Area / Locality"
+                icon={MapPin}
+                options={filters.city && facets.cityToLocalities?.[filters.city] ? facets.cityToLocalities[filters.city] : (facets.localities || [])}
+                value={filters.locality}
+                onChange={(val) => updateFilter('locality', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter
