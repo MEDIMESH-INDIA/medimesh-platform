@@ -36,7 +36,7 @@ export default function FilterPanel({ open, onClose, label, children }) {
 
   if (desktop) {
     return (
-      <aside className="discovery-filters w-[260px] shrink-0 sticky top-24 self-start" aria-label={label}>
+      <aside className="discovery-filters w-[235px] xl:w-[245px] shrink-0 sticky top-24 self-start" aria-label={label}>
         {children}
       </aside>
     );

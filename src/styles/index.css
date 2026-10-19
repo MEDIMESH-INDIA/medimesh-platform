@@ -114,12 +114,22 @@
 
   .hospital-grid, .doctor-grid {
     display: grid;
-    gap: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 18px;
+    grid-template-columns: 1fr;
   }
 
-  .doctor-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  @container (min-width: 580px) {
+    .hospital-grid, .doctor-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+  }
+
+  @container (min-width: 940px) {
+    .hospital-grid, .doctor-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
   }
 
   .discovery-results {
@@ -168,15 +178,9 @@
    would squeeze cards or leave them wider than the remaining content. */
 
 
-@container (min-width: 760px) {
-  .hospital-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .hospital-metrics > div:nth-child(3) { border-left: 1px solid #e4e5df; }
-  .hospital-metrics > div:nth-child(n+3) { border-top: 0; }
-}
-
-body.has-compare-tray { padding-bottom: 116px; }
+body.has-compare-tray { padding-bottom: 120px; }
 @media (max-width: 639px) {
-  body.has-compare-tray { padding-bottom: 200px; }
+  body.has-compare-tray { padding-bottom: 160px; }
   .compare-tray { gap: 8px; }
   .results-toolbar { grid-template-columns: minmax(0, 1fr); }
 }
