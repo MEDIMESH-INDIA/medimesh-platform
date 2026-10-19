@@ -83,6 +83,7 @@ export function normalizeHospital(record, recordType = 'canonical') {
       longitude: hospital.longitude ?? null,
       placeId: hospital.google_place_id || null,
     },
+    imageUrl: hospital.image_url || hospital.imageUrl || hospital.image || hospital.photo || null,
     recordType,
   };
 }
@@ -107,6 +108,7 @@ export function normalizeDemoHospital(hospital) {
     contact: { phone: null, email: null, website: null },
     yearEstablished: null,
     map: { latitude: null, longitude: null, placeId: null },
+    imageUrl: hospital.imageUrl || hospital.image || null,
     recordType: 'demo',
   };
 }

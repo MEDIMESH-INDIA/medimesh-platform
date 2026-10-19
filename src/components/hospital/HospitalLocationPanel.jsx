@@ -1,63 +1,183 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ExternalLink, Map, MapPin, Navigation, Satellite } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Map, MapPin, Navigation, Satellite } from 'lucide-react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Button from '../common/Button';
-import { buildGoogleMapsUrl, getHospitalMapDestination, hasResolvedHospitalLocation } from '../../lib/maps/googleMaps';
-import { getMapTilerStyle, hasMapTilerKey } from '../../lib/maps/mapTiler';
+import {
+  buildGoogleMapsUrl,
+  getHospitalMapDestination,
+  hasResolvedHospitalLocation,
+  hasValidCoordinates,
+} from '../../lib/maps/googleMaps';
+import { getFallbackMapStyle, getMapTilerStyle, hasMapTilerKey } from '../../lib/maps/mapTiler';
 
 export default function HospitalLocationPanel({ hospital, fullAddress }) {
   const [mapType, setMapType] = useState('roadmap');
+  const [useFallbackTiles, setUseFallbackTiles] = useState(false);
+  const [mapError, setMapError] = useState(false);
+
   const hasResolvedLocation = hasResolvedHospitalLocation(hospital);
   const destination = useMemo(() => getHospitalMapDestination(hospital, fullAddress), [fullAddress, hospital]);
 
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
   const markerInstance = useRef(null);
+  const currentStyleRef = useRef('roadmap');
 
-  const mapErrorState = useState(false);
-  const mapError = mapErrorState[0];
-  const setMapError = mapErrorState[1];
+  const validCoords = hasValidCoordinates(hospital);
+  const lat = validCoords ? Number(hospital.map.latitude) : null;
+  const lng = validCoords ? Number(hospital.map.longitude) : null;
+  const keyAvailable = hasMapTilerKey();
 
-  const lat = Number(hospital?.map?.latitude);
-  const lng = Number(hospital?.map?.longitude);
+  // Map is displayable as long as coordinates exist
+  const canShowMap = validCoords;
 
-  const canShowMap = hasResolvedLocation && hasMapTilerKey() && Number.isFinite(lat) && Number.isFinite(lng);
-
+  // Initialize or update MapLibre GL map
   useEffect(() => {
     if (!canShowMap || !mapContainer.current) return;
 
     if (!mapInstance.current) {
-      const map = new maplibregl.Map({
-        container: mapContainer.current,
-        style: getMapTilerStyle(mapType),
-        center: [lng, lat],
-        zoom: 15.5,
-        attributionControl: false
-      });
+      try {
+        const initialStyle = keyAvailable && !useFallbackTiles
+          ? getMapTilerStyle(mapType)
+          : getFallbackMapStyle(mapType);
 
-      map.on('error', (e) => {
-        if (e && e.error && e.error.message) {
-          console.error('Map load error:', e.error.message);
-          setMapError(true);
-        }
-      });
+        const map = new maplibregl.Map({
+          container: mapContainer.current,
+          style: initialStyle,
+          center: [lng, lat],
+          zoom: 15.5,
+          attributionControl: false,
+        });
 
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        currentStyleRef.current = mapType;
 
-      markerInstance.current = new maplibregl.Marker({ color: '#0F2823' })
-        .setLngLat([lng, lat])
-        .addTo(map);
+        // Add standard navigation controls (zoom in / zoom out)
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-      mapInstance.current = map;
+        // Create custom MEDIMESH themed marker element
+        const pinEl = document.createElement('div');
+        pinEl.className = 'medimesh-map-pin-wrapper';
+        pinEl.setAttribute('role', 'img');
+        pinEl.setAttribute('aria-label', hospital?.name || 'Hospital location');
+        pinEl.innerHTML = `
+          <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: #0A7A6A; border: 3px solid #ffffff; box-shadow: 0 4px 16px rgba(10, 122, 106, 0.45); cursor: pointer; transition: transform 0.2s ease;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 6v12M6 12h12"/>
+            </svg>
+          </div>
+        `;
+
+        const popup = new maplibregl.Popup({ offset: 26, closeButton: false })
+          .setHTML(`
+            <div style="padding: 8px 10px; font-family: ui-sans-serif, system-ui, sans-serif;">
+              <p style="font-weight: 700; font-size: 14px; color: #171d1b; margin: 0; line-height: 1.3;">${hospital?.name || ''}</p>
+              <p style="font-size: 12px; color: #62716c; margin: 4px 0 0;">${hospital?.location?.locality || hospital?.location?.city || ''}</p>
+            </div>
+          `);
+
+        const marker = new maplibregl.Marker({ element: pinEl, anchor: 'center' })
+          .setLngLat([lng, lat])
+          .setPopup(popup)
+          .addTo(map);
+
+        markerInstance.current = marker;
+        mapInstance.current = map;
+
+        // Force resize when map finishes initial load and whenever style loads
+        map.once('load', () => {
+          map.resize();
+          requestAnimationFrame(() => map.resize());
+          setTimeout(() => map.resize(), 200);
+        });
+        map.on('style.load', () => {
+          map.resize();
+          requestAnimationFrame(() => map.resize());
+          setTimeout(() => map.resize(), 200);
+        });
+
+        // Graceful error recovery: if MapTiler fails with 401/403 or network error, switch to open tiles
+        map.on('error', (e) => {
+          const status = e?.error?.status;
+          const message = String(e?.error?.message || e?.message || '');
+          if (status === 401 || status === 403 || message.includes('Forbidden') || message.includes('Unauthorized') || message.includes('Key usage restricted')) {
+            if (!useFallbackTiles) {
+              console.warn('MapTiler key authorization restricted, switching to open fallback tiles:', message);
+              setUseFallbackTiles(true);
+              try {
+                map.setStyle(getFallbackMapStyle(mapType));
+              } catch (fallbackErr) {
+                console.error('Failed to apply fallback style:', fallbackErr);
+                setMapError(true);
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Failed to instantiate MapLibre map:', err);
+        setMapError(true);
+      }
     } else {
-      mapInstance.current.setStyle(getMapTilerStyle(mapType));
-    }
-  }, [canShowMap, mapType, lat, lng, setMapError]);
+      // Map instance already exists
+      const map = mapInstance.current;
 
-  // Handle cleanup on unmount
+      // Update center and marker if coordinates changed
+      const center = map.getCenter();
+      if (Math.abs(center.lng - lng) > 0.0001 || Math.abs(center.lat - lat) > 0.0001) {
+        map.flyTo({ center: [lng, lat], zoom: 15.5 });
+        if (markerInstance.current) {
+          markerInstance.current.setLngLat([lng, lat]);
+        }
+      }
+
+      // Update style if mapType or fallback mode changed
+      const desiredStyle = keyAvailable && !useFallbackTiles
+        ? getMapTilerStyle(mapType)
+        : getFallbackMapStyle(mapType);
+
+      if (currentStyleRef.current !== `${mapType}-${useFallbackTiles}`) {
+        currentStyleRef.current = `${mapType}-${useFallbackTiles}`;
+        try {
+          map.setStyle(desiredStyle);
+        } catch (styleErr) {
+          console.error('Error updating map style:', styleErr);
+        }
+      }
+    }
+  }, [canShowMap, mapType, useFallbackTiles, keyAvailable, lat, lng, hospital?.name, hospital?.location?.locality, hospital?.location?.city]);
+
+  // Automatic resize handling via ResizeObserver
+  useEffect(() => {
+    if (!mapContainer.current) return;
+
+    const observer = new ResizeObserver(() => {
+      if (mapInstance.current) {
+        mapInstance.current.resize();
+      }
+    });
+
+    observer.observe(mapContainer.current);
+
+    const handleWindowResize = () => {
+      if (mapInstance.current) {
+        mapInstance.current.resize();
+      }
+    };
+    window.addEventListener('resize', handleWindowResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+    };
+  }, [canShowMap]);
+
+  // Clean unmount to prevent memory leaks and WebGL context limits
   useEffect(() => {
     return () => {
+      if (markerInstance.current) {
+        markerInstance.current.remove();
+        markerInstance.current = null;
+      }
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;
@@ -66,46 +186,124 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
   }, []);
 
   return (
-    <section aria-labelledby="location-heading">
-      <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Getting there</p><h2 id="location-heading" className="mt-2 flex items-center gap-2 font-serif text-2xl font-semibold text-foreground"><MapPin className="h-5 w-5 text-primary" />Location and directions</h2></div>
-        <div className="inline-flex w-fit rounded-full border border-border bg-white/75 p-1" aria-label="Map style">
-          <button type="button" onClick={() => setMapType('roadmap')} aria-pressed={mapType === 'roadmap'} className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition ${mapType === 'roadmap' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}><Map className="h-3.5 w-3.5" />Map</button>
-          <button type="button" onClick={() => setMapType('satellite')} aria-pressed={mapType === 'satellite'} className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition ${mapType === 'satellite' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}><Satellite className="h-3.5 w-3.5" />Satellite</button>
+    <section aria-labelledby="location-heading" className="rounded-[24px] border border-border/80 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
+        <div>
+          <h2 id="location-heading" className="font-serif text-2xl font-bold text-foreground flex items-center gap-2.5">
+            <MapPin className="h-6 w-6 text-primary" />
+            Location & Directions
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Verified geographic placement and navigation coordinates
+          </p>
+        </div>
+
+        <div className="inline-flex w-fit rounded-full border border-border/80 bg-[#fdfbf7] p-1 shadow-2xs" aria-label="Map style selection">
+          <button
+            type="button"
+            onClick={() => setMapType('roadmap')}
+            aria-pressed={mapType === 'roadmap'}
+            className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition ${
+              mapType === 'roadmap' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Map className="h-3.5 w-3.5" />
+            Street View
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapType('satellite')}
+            aria-pressed={mapType === 'satellite'}
+            className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition ${
+              mapType === 'satellite' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Satellite className="h-3.5 w-3.5" />
+            Satellite
+          </button>
         </div>
       </div>
 
-      <div className="grid overflow-hidden rounded-[22px] border border-border/80 bg-white/75 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,.65fr)]">
-        <div className="relative min-h-[320px] bg-[#e8eee9] sm:min-h-[390px]">
+      <div className="grid gap-6 lg:grid-cols-12 items-stretch">
+        {/* Map column: 8 cols on desktop, height 380-440px */}
+        <div className="lg:col-span-8 overflow-hidden rounded-2xl border border-border/70 relative h-[380px] sm:h-[420px] lg:h-[440px] bg-[#e8eee9]">
           {canShowMap && !mapError && (
-            <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
+            <div ref={mapContainer} className="absolute inset-0 h-full w-full" style={{ width: '100%', height: '100%' }} />
           )}
           {(!canShowMap || mapError) && (
-            <div className="absolute inset-0 grid place-items-center p-8 text-center">
-              <div className="max-w-sm">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-primary/15 bg-white/80 text-primary shadow-sm">
+            <div className="absolute inset-0 grid place-items-center p-6 text-center">
+              <div className="max-w-md">
+                <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-primary/20 bg-white text-primary shadow-sm">
                   <MapPin className="h-6 w-6" />
                 </span>
-                <h3 className="mt-5 font-serif text-xl font-semibold text-foreground">
-                  {mapError ? "We couldn't load the map" : hasResolvedLocation ? 'Map preview is not configured' : 'Map location is not available for this hospital yet'}
+                <h3 className="mt-3 font-serif text-base font-semibold text-foreground">
+                  Coordinates not registered in published catalog
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {mapError ? "There was a network or configuration error while loading the interactive map." : hasResolvedLocation && !hasMapTilerKey()
-                    ? 'Add the MapTiler API key to show the interactive map. Directions can still open in Google Maps.'
-                    : 'MEDIMESH has an address for this profile, but no source-backed map identifier or coordinates. No pin is shown until the location is resolved.'}
+                <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                  This hospital listing does not have geographic coordinates attached. Navigation and street mapping remain accessible using the published address directly via Google Maps.
                 </p>
               </div>
             </div>
           )}
         </div>
 
-        <div className="flex flex-col p-5 sm:p-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Published address</p>
-          <p className="mt-2 text-sm font-medium leading-6 text-foreground">{fullAddress || 'Address not provided'}</p>
-          <p className="mt-4 text-xs leading-5 text-muted-foreground">{hasResolvedLocation ? 'The map destination is linked to a retained place identifier or stored coordinates.' : 'Directions use the published address as a search query and may require you to confirm the destination in Google Maps.'}</p>
-          <div className="mt-auto grid gap-3 pt-7">
-            <Button as="a" href={buildGoogleMapsUrl('directions', destination)} target="_blank" rel="noreferrer" disabled={!destination.query} className="w-full gap-2"><Navigation className="h-4 w-4" />Directions</Button>
-            <Button as="a" href={buildGoogleMapsUrl('search', destination)} target="_blank" rel="noreferrer" disabled={!destination.query} variant="secondary" className="w-full gap-2"><ExternalLink className="h-4 w-4" />Open in Google Maps</Button>
+        {/* Address and actions column: 4 cols on desktop */}
+        <div className="lg:col-span-4 flex flex-col justify-between rounded-2xl border border-border/70 bg-[#fdfbf7] p-6 sm:p-7">
+          <div className="space-y-4">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                Published Facility Address
+              </span>
+              <p className="mt-2 text-sm sm:text-base font-semibold text-foreground leading-relaxed">
+                {fullAddress || 'Address not published in catalog'}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>{hospital?.location?.locality || hospital?.location?.city || 'Navi Mumbai'}</span>
+              {hospital?.location?.pinCode && <span>• PIN {hospital.location.pinCode}</span>}
+            </div>
+
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-primary">
+              <div className="flex items-center gap-2 font-semibold">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>{hasResolvedLocation ? 'Verified Destination Pin' : 'Address Query Destination'}</span>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground leading-normal">
+                {hasResolvedLocation
+                  ? 'Direct destination route coordinates registered from published source.'
+                  : 'Directions query uses the published postal address in navigation.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-2.5 pt-4 border-t border-border/60">
+            <Button
+              as="a"
+              href={buildGoogleMapsUrl('directions', destination)}
+              target="_blank"
+              rel="noreferrer"
+              disabled={!destination.query}
+              size="md"
+              className="min-h-11 w-full justify-center gap-2 text-sm font-semibold shadow-sm"
+            >
+              <Navigation className="h-4 w-4" />
+              Get Directions
+            </Button>
+            <Button
+              as="a"
+              href={buildGoogleMapsUrl('search', destination)}
+              target="_blank"
+              rel="noreferrer"
+              disabled={!destination.query}
+              variant="outline"
+              size="md"
+              className="min-h-11 w-full justify-center gap-2 text-sm font-semibold border-border/80 bg-white hover:bg-surface"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open in Google Maps
+            </Button>
           </div>
         </div>
       </div>
