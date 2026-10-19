@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, ExternalLink, Map, MapPin, Navigation, Satellite } from 'lucide-react';
+import { CheckCircle2, ExternalLink, MapPin, Navigation } from 'lucide-react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Button from '../common/Button';
@@ -12,7 +12,6 @@ import {
 import { getFallbackMapStyle, getMapTilerStyle, hasMapTilerKey } from '../../lib/maps/mapTiler';
 
 export default function HospitalLocationPanel({ hospital, fullAddress }) {
-  const [mapType, setMapType] = useState('roadmap');
   const [useFallbackTiles, setUseFallbackTiles] = useState(false);
   const [mapError, setMapError] = useState(false);
 
@@ -22,7 +21,7 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
   const markerInstance = useRef(null);
-  const currentStyleRef = useRef('roadmap');
+  const currentFallbackRef = useRef(false);
 
   const validCoords = hasValidCoordinates(hospital);
   const lat = validCoords ? Number(hospital.map.latitude) : null;
@@ -39,8 +38,8 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
     if (!mapInstance.current) {
       try {
         const initialStyle = keyAvailable && !useFallbackTiles
-          ? getMapTilerStyle(mapType)
-          : getFallbackMapStyle(mapType);
+          ? getMapTilerStyle('satellite')
+          : getFallbackMapStyle('satellite');
 
         const map = new maplibregl.Map({
           container: mapContainer.current,
@@ -50,7 +49,7 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
           attributionControl: false,
         });
 
-        currentStyleRef.current = mapType;
+        currentFallbackRef.current = useFallbackTiles;
 
         // Add standard navigation controls (zoom in / zoom out)
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
@@ -105,7 +104,7 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
               console.warn('MapTiler key authorization restricted, switching to open fallback tiles:', message);
               setUseFallbackTiles(true);
               try {
-                map.setStyle(getFallbackMapStyle(mapType));
+                map.setStyle(getFallbackMapStyle('satellite'));
               } catch (fallbackErr) {
                 console.error('Failed to apply fallback style:', fallbackErr);
                 setMapError(true);
@@ -130,13 +129,12 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
         }
       }
 
-      // Update style if mapType or fallback mode changed
-      const desiredStyle = keyAvailable && !useFallbackTiles
-        ? getMapTilerStyle(mapType)
-        : getFallbackMapStyle(mapType);
-
-      if (currentStyleRef.current !== `${mapType}-${useFallbackTiles}`) {
-        currentStyleRef.current = `${mapType}-${useFallbackTiles}`;
+      // Update style if fallback mode changed
+      if (currentFallbackRef.current !== useFallbackTiles) {
+        currentFallbackRef.current = useFallbackTiles;
+        const desiredStyle = keyAvailable && !useFallbackTiles
+          ? getMapTilerStyle('satellite')
+          : getFallbackMapStyle('satellite');
         try {
           map.setStyle(desiredStyle);
         } catch (styleErr) {
@@ -144,7 +142,7 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
         }
       }
     }
-  }, [canShowMap, mapType, useFallbackTiles, keyAvailable, lat, lng, hospital?.name, hospital?.location?.locality, hospital?.location?.city]);
+  }, [canShowMap, useFallbackTiles, keyAvailable, lat, lng, hospital?.name, hospital?.location?.locality, hospital?.location?.city]);
 
   // Automatic resize handling via ResizeObserver
   useEffect(() => {
@@ -187,41 +185,14 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
 
   return (
     <section aria-labelledby="location-heading" className="rounded-[24px] border border-border/80 bg-white p-6 sm:p-8 shadow-sm space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
-        <div>
-          <h2 id="location-heading" className="font-serif text-2xl font-bold text-foreground flex items-center gap-2.5">
-            <MapPin className="h-6 w-6 text-primary" />
-            Location & Directions
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Verified geographic placement and navigation coordinates
-          </p>
-        </div>
-
-        <div className="inline-flex w-fit rounded-full border border-border/80 bg-[#fdfbf7] p-1 shadow-2xs" aria-label="Map style selection">
-          <button
-            type="button"
-            onClick={() => setMapType('roadmap')}
-            aria-pressed={mapType === 'roadmap'}
-            className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition ${
-              mapType === 'roadmap' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Map className="h-3.5 w-3.5" />
-            Street View
-          </button>
-          <button
-            type="button"
-            onClick={() => setMapType('satellite')}
-            aria-pressed={mapType === 'satellite'}
-            className={`inline-flex min-h-8 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition ${
-              mapType === 'satellite' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Satellite className="h-3.5 w-3.5" />
-            Satellite
-          </button>
-        </div>
+      <div className="pb-4 border-b border-border/60">
+        <h2 id="location-heading" className="font-serif text-2xl font-bold text-foreground flex items-center gap-2.5">
+          <MapPin className="h-6 w-6 text-primary" />
+          Location & Directions
+        </h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Verified geographic placement and navigation coordinates
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12 items-stretch">

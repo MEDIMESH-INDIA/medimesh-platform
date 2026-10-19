@@ -74,24 +74,32 @@ test('buildGoogleMapsUrl constructs valid directions and search URLs', () => {
   assert.equal(buildGoogleMapsUrl('directions', { query: '' }), null);
 });
 
-test('getMapTilerStyle returns well-formed streets and satellite URLs', () => {
-  const roadmapStyle = getMapTilerStyle('roadmap');
-  assert.match(roadmapStyle, /^https:\/\/api\.maptiler\.com\/maps\/streets-v2\/style\.json\?key=/);
+test('getMapTilerStyle returns well-formed satellite style by default and handles styles correctly', () => {
+  const defaultStyle = getMapTilerStyle();
+  assert.match(defaultStyle, /^https:\/\/api\.maptiler\.com\/maps\/satellite\/style\.json\?key=/);
 
   const satelliteStyle = getMapTilerStyle('satellite');
   assert.match(satelliteStyle, /^https:\/\/api\.maptiler\.com\/maps\/satellite\/style\.json\?key=/);
+
+  const roadmapStyle = getMapTilerStyle('roadmap');
+  assert.match(roadmapStyle, /^https:\/\/api\.maptiler\.com\/maps\/streets-v2\/style\.json\?key=/);
 });
 
-test('getFallbackMapStyle returns valid maplibre raster style specification', () => {
-  const roadmapFallback = getFallbackMapStyle('roadmap');
-  assert.equal(roadmapFallback.version, 8);
-  assert.ok(roadmapFallback.sources['esri-street']);
-  assert.equal(roadmapFallback.layers[0].type, 'raster');
+test('getFallbackMapStyle returns valid maplibre raster style specification with satellite as default', () => {
+  const defaultFallback = getFallbackMapStyle();
+  assert.equal(defaultFallback.version, 8);
+  assert.ok(defaultFallback.sources['esri-satellite']);
+  assert.equal(defaultFallback.layers[0].type, 'raster');
 
   const satelliteFallback = getFallbackMapStyle('satellite');
   assert.equal(satelliteFallback.version, 8);
   assert.ok(satelliteFallback.sources['esri-satellite']);
   assert.equal(satelliteFallback.layers[0].type, 'raster');
+
+  const roadmapFallback = getFallbackMapStyle('roadmap');
+  assert.equal(roadmapFallback.version, 8);
+  assert.ok(roadmapFallback.sources['esri-street']);
+  assert.equal(roadmapFallback.layers[0].type, 'raster');
 });
 
 test('hasMapTilerKey contract correctly identifies valid keys and guards against placeholders', () => {

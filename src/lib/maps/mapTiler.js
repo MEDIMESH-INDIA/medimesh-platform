@@ -7,12 +7,12 @@ export function hasMapTilerKey() {
   return Boolean(mapTilerKey) && mapTilerKey !== 'your_maptiler_api_key_here';
 }
 
-export function getMapTilerStyle(type = 'roadmap') {
-  if (type === 'satellite') return `https://api.maptiler.com/maps/satellite/style.json?key=${mapTilerKey}`;
-  return `https://api.maptiler.com/maps/streets-v2/style.json?key=${mapTilerKey}`;
+export function getMapTilerStyle(type = 'satellite') {
+  if (type === 'roadmap') return `https://api.maptiler.com/maps/streets-v2/style.json?key=${mapTilerKey}`;
+  return `https://api.maptiler.com/maps/satellite/style.json?key=${mapTilerKey}`;
 }
 
-export function getFallbackMapStyle(type = 'roadmap') {
+export function getFallbackMapStyle(type = 'satellite') {
   if (type === 'satellite') {
     return {
       version: 8,
