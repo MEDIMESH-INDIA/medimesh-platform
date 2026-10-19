@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Activity, BedDouble, Building2, ChevronDown, Filter, MapPin, Search, X } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
+import SectionEyebrow from '../../components/common/SectionEyebrow';
+import EmptyState from '../../components/common/EmptyState';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import HospitalCardSkeleton from '../../components/hospital/HospitalCardSkeleton';
 import CollapsibleFilter from '../../components/hospital/CollapsibleFilter';
@@ -40,7 +42,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
     filters,
     sort,
     mode,
-    pageSize: 12
+    pageSize: 12,
   });
 
   const { facets } = useHospitalFacets({ mode });
@@ -95,7 +97,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
     }
 
     setSearchParams(newParams);
-    if (key === 'q') setQuery(value); // Sync local state
+    if (key === 'q') setQuery(value);
   };
 
   const handleSearchSubmit = (e) => {
@@ -109,6 +111,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   };
 
   const hasActiveFilters = Object.values(filters).some(v => v !== '');
+  const activeFilterCount = Object.entries(filters).filter(([k, v]) => k !== 'q' && v !== '').length;
 
   const handleSave = async hospital => {
     const result = await toggleSave(hospital.slug);
@@ -131,42 +134,46 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
   return (
     <AppPageContainer className="discovery-page">
-      {/* Hero Search Area */}
+      {/* Search Introduction */}
       <div className="discovery-header mb-8">
-        <h1 className="text-[30px] md:text-[36px] lg:text-[42px] leading-tight font-serif font-bold text-foreground mb-3 text-left">
-          Explore Healthcare
+        <SectionEyebrow className="mb-2">Healthcare Directory</SectionEyebrow>
+        <h1 className="text-3xl md:text-4xl lg:text-[42px] leading-tight font-serif font-bold text-foreground mb-3 text-left">
+          Explore Hospitals & Medical Centers
         </h1>
-        <p className="text-muted-foreground text-left text-[16px] md:text-[18px] max-w-[700px] mb-6 leading-relaxed mx-0">
-          Explore hospitals across supported regions with structured information and transparent sources.
+        <p className="text-muted-foreground text-left text-base md:text-lg max-w-2xl mb-6 leading-relaxed">
+          Search accredited hospitals, emergency care facilities, and medical specialties across supported regions with verified public records.
         </p>
 
         <div className="w-full">
-          <form onSubmit={handleSearchSubmit} className="discovery-search relative flex items-center group w-full bg-white border border-border/80 hover:border-primary/30 rounded-[16px] shadow-[0_2px_12px_rgba(18,49,43,0.04)] focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 h-[56px]">
-            <div className="pl-4 pr-3 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center justify-center">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="discovery-search relative flex items-center group w-full bg-surface border border-border/80 hover:border-primary/40 rounded-2xl shadow-[0_4px_20px_rgba(10,122,106,0.05)] focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary transition-all duration-200 h-[58px]"
+          >
+            <div className="pl-4 pr-2 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center justify-center shrink-0">
               <Search className="w-5 h-5" />
             </div>
             <input
               type="search"
               aria-label="Search healthcare directory"
-              placeholder="Search by hospital name, city, or locality..."
-              className="flex-1 h-full bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:outline-none text-[15px] min-w-0"
+              placeholder="Search by hospital name, city, specialty, or locality..."
+              className="flex-1 h-full bg-transparent text-foreground placeholder:text-muted-foreground/65 focus:outline-none text-sm sm:text-base min-w-0 pr-2"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <div className="flex items-center pr-2 shrink-0 gap-1">
+            <div className="flex items-center pr-2 shrink-0 gap-1.5">
               {query && (
                 <button
                   type="button"
                   onClick={() => { setQuery(''); updateFilter('q', ''); }}
-                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors"
-                  aria-label="Clear search"
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface-elevated transition-colors"
+                  aria-label="Clear search text"
                 >
                   <X className="w-4 h-4" />
                 </button>
               )}
               <button
                 type="submit"
-                className="ml-1 px-5 h-[40px] bg-primary text-white font-semibold text-[14px] rounded-[10px] hover:bg-primary/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shadow-sm active:scale-[0.98] transition-all duration-150 whitespace-nowrap"
+                className="px-5 h-[42px] bg-primary text-white font-bold text-xs sm:text-sm rounded-xl hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm active:scale-95 transition-all duration-150 whitespace-nowrap"
               >
                 Search
               </button>
@@ -178,24 +185,28 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
       {/* Mobile Controls */}
       <div className="flex items-center gap-3 mb-6 lg:hidden">
         <button
+          type="button"
           onClick={() => setIsMobileFiltersOpen(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground"
+          className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-surface border border-border/80 rounded-xl text-sm font-semibold text-foreground shadow-sm active:scale-95 transition-all"
           aria-expanded={isMobileFiltersOpen}
         >
-          <Filter className="w-4 h-4" /> Filters
-          {hasActiveFilters && (
-            <span className="w-2 h-2 rounded-full bg-primary" />
+          <Filter className="w-4 h-4 text-primary" />
+          <span>Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-primary text-white">
+              {activeFilterCount}
+            </span>
           )}
         </button>
         <div className="flex-1 relative">
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="w-full pl-3 pr-8 py-2.5 bg-surface border border-border rounded-xl text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full pl-3.5 pr-8 py-3 bg-surface border border-border/80 rounded-xl text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/40 shadow-sm"
             aria-label="Sort hospitals"
           >
-            <option value="name_asc">Name A-Z</option>
-            <option value="name_desc">Name Z-A</option>
+            <option value="name_asc">Sort: Name A–Z</option>
+            <option value="name_desc">Sort: Name Z–A</option>
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         </div>
@@ -203,18 +214,41 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative">
         {/* Sidebar Filters */}
-        <FilterPanel open={isMobileFiltersOpen} onClose={() => setIsMobileFiltersOpen(false)} label="Healthcare filters">
-          <div className="flex items-center justify-between lg:hidden mb-6 shrink-0">
-            <h2 className="text-lg font-bold text-foreground">Filters</h2>
-            <button type="button" onClick={() => setIsMobileFiltersOpen(false)} className="p-2 hover:bg-surface rounded-lg" aria-label="Close filters">
-              <X className="w-5 h-5 text-muted-foreground" />
+        <FilterPanel open={isMobileFiltersOpen} onClose={() => setIsMobileFiltersOpen(false)} label="Hospital directory filters">
+          <div className="flex items-center justify-between lg:hidden mb-5 shrink-0 pb-3 border-b border-border/60">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-foreground">Filters</h2>
+              {activeFilterCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                  {activeFilterCount} active
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsMobileFiltersOpen(false)}
+              className="p-1.5 hover:bg-surface-elevated rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close filters"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex-1">
-            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 hidden lg:block">Filter by</h2>
+            <div className="hidden lg:flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Filter Facilities</h2>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="text-xs font-semibold text-primary hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               <CollapsibleFilter
                 title="City"
                 icon={MapPin}
@@ -224,7 +258,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 defaultOpen={true}
               />
               <CollapsibleFilter
-                title="Area"
+                title="Area / Locality"
                 icon={MapPin}
                 options={filters.city ? (facets.cityToLocalities?.[filters.city] || []) : (facets.localities || [])}
                 value={filters.locality}
@@ -232,7 +266,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 defaultOpen={true}
               />
               <CollapsibleFilter
-                title="Specialty"
+                title="Medical Specialty"
                 icon={Activity}
                 options={facets.specialties}
                 value={filters.specialty}
@@ -249,7 +283,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 formatOption={formatHospitalType}
               />
               <CollapsibleFilter
-                title="Facilities"
+                title="Facilities & Care"
                 icon={BedDouble}
                 options={facets.facilities}
                 value={filters.facility}
@@ -257,11 +291,21 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               />
             </div>
 
-            {/* Mobile apply button */}
-            <div className="mt-8 pt-6 border-t border-border lg:hidden pb-safe">
+            {/* Mobile apply and reset actions */}
+            <div className="mt-8 pt-4 border-t border-border/70 lg:hidden flex items-center gap-3 pb-safe">
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="flex-1 py-3 px-4 border border-border text-foreground font-semibold rounded-xl hover:bg-surface-elevated text-xs transition-colors text-center"
+                >
+                  Reset all
+                </button>
+              )}
               <button
+                type="button"
                 onClick={() => setIsMobileFiltersOpen(false)}
-                className="w-full py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors"
+                className="flex-1 py-3 px-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover text-xs shadow-sm transition-colors text-center"
               >
                 Apply Filters
               </button>
@@ -269,83 +313,108 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
           </div>
         </FilterPanel>
 
-        {/* Mobile Filter Backdrop */}
-
-
         {/* Main Content */}
         <section className="discovery-results flex-1 min-w-0 w-full flex flex-col" aria-labelledby="hospital-results-heading">
-          {/* Results Header */}
+          {/* Results Toolbar */}
           <div className="results-toolbar">
-            <div className="flex flex-col gap-1.5">
-              <h2 id="hospital-results-heading" className="text-sm font-semibold text-foreground">
-                {loading && hospitals.length === 0 ? 'Searching...' :
-                 `${totalCount ?? hospitals.length} hospital${(totalCount ?? hospitals.length) !== 1 ? 's' : ''} found`}
-              </h2>
-              {/* Active Filter Chips */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline gap-2">
+                <h2 id="hospital-results-heading" className="text-sm font-bold text-foreground">
+                  {loading && hospitals.length === 0 ? (
+                    'Searching hospitals...'
+                  ) : (
+                    <>
+                      <span className="text-primary font-bold">{totalCount ?? hospitals.length}</span>{' '}
+                      {(totalCount ?? hospitals.length) === 1 ? 'hospital' : 'hospitals'} found
+                    </>
+                  )}
+                </h2>
               </div>
-            <AnimatePresence>
+
+              {/* Active Filter Chips */}
+              <AnimatePresence>
                 {hasActiveFilters && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="flex flex-wrap items-center gap-1.5"
+                    className="flex flex-wrap items-center gap-1.5 pt-1"
                   >
                     {filters.q && (
-                      <span className="flex items-center gap-1.5 pl-3 pr-1 py-1 bg-primary/5 text-primary border border-primary/10 rounded-full text-[13px] font-medium">
-                        Search: &quot;{filters.q}&quot;
-                        <button type="button" onClick={() => { setQuery(''); updateFilter('q', ''); }} className="p-0.5 hover:bg-border/60 rounded-full" aria-label="Remove search filter"><X className="w-3 h-3" /></button>
+                      <span className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-semibold">
+                        <span>Search: &quot;{filters.q}&quot;</span>
+                        <button
+                          type="button"
+                          onClick={() => { setQuery(''); updateFilter('q', ''); }}
+                          className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                          aria-label="Remove search filter"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </span>
                     )}
                     {activeChips.map(chip => (
-                      <span key={chip.key} className="flex items-center gap-1.5 pl-3 pr-1 py-1 bg-primary/5 text-primary border border-primary/10 rounded-full text-[13px] font-medium">
-                        {chip.label}
-                        <button type="button" onClick={() => updateFilter(chip.key, '')} className="p-0.5 hover:bg-border/60 rounded-full" aria-label={`Remove ${chip.key} filter`}><X className="w-3 h-3" /></button>
+                      <span
+                        key={chip.key}
+                        className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-semibold"
+                      >
+                        <span>{chip.label}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateFilter(chip.key, '')}
+                          className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                          aria-label={`Remove ${chip.key} filter`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </span>
                     ))}
                     <button
+                      type="button"
                       onClick={clearAllFilters}
-                      className="text-[12px] font-medium text-primary hover:underline ml-1"
+                      className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors ml-1.5 underline decoration-muted-foreground/40 hover:decoration-primary"
                     >
-                      Clear all
+                      Clear all filters
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+
             <div className="desktop-sort hidden lg:flex items-center gap-2 shrink-0">
-              <span className="text-sm text-muted-foreground font-medium">Sort by:</span>
+              <span className="text-xs text-muted-foreground font-semibold">Sort by:</span>
               <div className="relative">
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
-                  className="pl-3 pr-8 py-2 bg-surface/50 hover:bg-surface border border-border/80 rounded-lg text-sm font-medium text-foreground focus:ring-2 focus:ring-primary/50 outline-none appearance-none cursor-pointer transition-colors"
+                  className="pl-3 pr-8 py-2 bg-surface hover:bg-surface-elevated border border-border/80 rounded-xl text-xs font-semibold text-foreground focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none appearance-none cursor-pointer shadow-sm transition-all"
                   aria-label="Sort hospitals"
                 >
                   <option value="name_asc">Name A–Z</option>
                   <option value="name_desc">Name Z–A</option>
                 </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
               </div>
             </div>
           </div>
 
           {error ? (
-            <div className="mb-6 py-6 px-4 text-center bg-red-50/50 rounded-2xl border border-red-200">
-              <h3 className="text-lg font-semibold text-red-800 mb-1">We couldn’t load the hospitals.</h3>
-              <p className="text-red-600/80 text-sm mb-4">Please try again in a moment.</p>
+            <div className="mb-6 p-6 text-center bg-red-50/70 rounded-2xl border border-red-200 shadow-sm">
+              <h3 className="text-base font-bold text-red-900 mb-1">We couldn’t load the hospital directory.</h3>
+              <p className="text-red-700/80 text-xs sm:text-sm mb-4">Please check your connection and try again.</p>
               <button
+                type="button"
                 onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-white border border-red-200 rounded-lg text-sm font-medium text-red-700 hover:bg-red-50 transition-colors"
+                className="px-4 py-2 bg-white border border-red-300 rounded-xl text-xs font-semibold text-red-800 hover:bg-red-50 transition-colors shadow-sm"
               >
-                Try again
+                Reload directory
               </button>
             </div>
           ) : null}
 
-          {/* Grid setup based on rules: Desktop (lg): 2 cols, Medium/Tablet: 1 col, Mobile: 1 col */}
+          {/* Results Grid */}
           <div className="hospital-grid mb-8">
             {loading && hospitals.length === 0 ? (
-              // Skeletons
               Array.from({ length: 6 }).map((_, i) => (
                 <HospitalCardSkeleton key={i} />
               ))
@@ -359,37 +428,41 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 />
               ))
             ) : (
-              <div className="col-span-full py-10 text-center bg-surface/30 rounded-[20px] border border-dashed border-border/60">
-                <div className="w-14 h-14 bg-surface rounded-full flex items-center justify-center mx-auto mb-4 border border-border/50 shadow-sm">
-                  <Search className="w-6 h-6 text-muted-foreground/60" />
-                </div>
-                <h3 className="text-base font-semibold text-foreground mb-1">
-                  {filters.q ? `No hospitals found for "${filters.q}".` : 'No hospitals match these filters.'}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-6">Try expanding your location or clearing specific requirements.</p>
-                <button
-                  onClick={clearAllFilters}
-                  className="px-5 py-2 bg-white border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface hover:border-border transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                >
-                  Clear filters
-                </button>
+              <div className="col-span-full">
+                <EmptyState
+                  icon={Building2}
+                  eyebrow="Directory Search"
+                  title={filters.q ? `No hospitals found for "${filters.q}"` : 'No hospitals match these filters'}
+                  description="We couldn't locate any facilities matching your current filter criteria. Try adjusting your location, clearing specific filters, or searching for a broader region."
+                  action={
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="px-5 py-2.5 bg-primary text-white font-semibold text-xs rounded-xl hover:bg-primary-hover shadow-sm transition-all active:scale-95"
+                    >
+                      Reset all filters
+                    </button>
+                  }
+                />
               </div>
             )}
           </div>
 
           {hasMore && (
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center pt-4">
               <button
+                type="button"
                 onClick={loadMore}
                 disabled={loading}
-                className="px-6 py-2.5 bg-surface border border-border/80 rounded-xl text-sm font-semibold text-foreground hover:bg-surface/80 hover:border-border transition-all shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="px-6 py-3 bg-surface border border-border/80 rounded-xl text-xs font-bold text-foreground hover:bg-surface-elevated hover:border-primary/40 transition-all shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-95"
               >
-                {loading ? 'Loading...' : `Load more hospitals`}
+                {loading ? 'Loading more hospitals...' : `Load more hospitals (showing ${hospitals.length} of ${totalCount})`}
               </button>
             </div>
           )}
         </section>
       </div>
+
       <CompareTray />
       <SignInPromptDialog open={signInPromptOpen} onClose={() => setSignInPromptOpen(false)} returnTo={`${location.pathname}${location.search}`} />
       <Toast message={toast?.message} tone={toast?.tone} onClose={() => setToast(null)} />

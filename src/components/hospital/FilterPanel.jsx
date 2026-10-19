@@ -34,14 +34,27 @@ export default function FilterPanel({ open, onClose, label, children }) {
     };
   }, [open, desktop]);
 
-  if (desktop) return <aside className="discovery-filters w-[248px] shrink-0" aria-label={label}>{children}</aside>;
+  if (desktop) {
+    return (
+      <aside className="discovery-filters w-[260px] shrink-0 sticky top-24 self-start" aria-label={label}>
+        {children}
+      </aside>
+    );
+  }
 
   return createPortal(
     <div hidden={!open} className="fixed inset-0 z-[70]">
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
-      <aside ref={panel} role="dialog" aria-modal="true" aria-label={label} className="discovery-filters absolute inset-y-0 left-0 w-full max-w-[360px] overflow-y-auto overscroll-contain border-r border-border bg-background p-5 shadow-xl">
+      <div className="absolute inset-0 bg-foreground/30 backdrop-blur-sm transition-opacity" onClick={onClose} aria-hidden="true" />
+      <aside
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        className="discovery-filters absolute inset-y-0 left-0 w-full max-w-[360px] flex flex-col overflow-y-auto overscroll-contain border-r border-border bg-background p-5 sm:p-6 shadow-2xl"
+      >
         {children}
       </aside>
-    </div>, document.body,
+    </div>,
+    document.body,
   );
 }
