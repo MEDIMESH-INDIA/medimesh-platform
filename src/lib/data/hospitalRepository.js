@@ -1,5 +1,6 @@
 import { demoHospitals } from '../../data/sihDemoHospitals';
 import { supabase } from '../supabase/client';
+import { uniqueCanonicalStrings } from './filterUtils';
 
 const BASE_SELECT = `
   id, slug, name, locality, city, district, state, country, hospital_type,
@@ -159,12 +160,12 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
 export async function getHospitalFacets({ mode = 'canonical' } = {}) {
   if (mode === 'demo') {
     return {
-      cities: [...new Set(demoHospitals.map(h => h.location).filter(Boolean))].sort(),
+      cities: uniqueCanonicalStrings(demoHospitals.map(h => h.location)),
       localities: [],
       cityToLocalities: {},
-      types: [...new Set(demoHospitals.map(h => h.type).filter(Boolean))].sort(),
-      specialties: [...new Set(demoHospitals.flatMap(h => h.specialties || []))].sort(),
-      facilities: [...new Set(demoHospitals.flatMap(h => h.facilities || []))].sort(),
+      types: uniqueCanonicalStrings(demoHospitals.map(h => h.type)),
+      specialties: uniqueCanonicalStrings(demoHospitals.flatMap(h => h.specialties || [])),
+      facilities: uniqueCanonicalStrings(demoHospitals.flatMap(h => h.facilities || [])),
     };
   }
 
@@ -175,24 +176,30 @@ export async function getHospitalFacets({ mode = 'canonical' } = {}) {
   if (error) throw error;
   const records = data || [];
 
-  const cityToLocalities = {};
+  const rawLocalities = [];
+  const cityToLocalitiesMap = {};
   records.forEach(h => {
-    if (h.city && h.locality) {
-      if (!cityToLocalities[h.city]) cityToLocalities[h.city] = new Set();
-      cityToLocalities[h.city].add(h.locality);
+    const city = h.city?.trim();
+    const locality = h.locality?.trim();
+    if (locality) rawLocalities.push(locality);
+    if (city && locality) {
+      if (!cityToLocalitiesMap[city]) cityToLocalitiesMap[city] = [];
+      cityToLocalitiesMap[city].push(locality);
     }
   });
-  Object.keys(cityToLocalities).forEach(k => {
-    cityToLocalities[k] = [...cityToLocalities[k]].sort();
+
+  const cityToLocalities = {};
+  Object.keys(cityToLocalitiesMap).forEach(k => {
+    cityToLocalities[k] = uniqueCanonicalStrings(cityToLocalitiesMap[k]);
   });
 
   return {
-    cities: [...new Set(records.map(h => h.city).filter(Boolean))].sort(),
-    localities: [...new Set(records.map(h => h.locality).filter(Boolean))].sort(),
+    cities: uniqueCanonicalStrings(records.map(h => h.city)),
+    localities: uniqueCanonicalStrings(rawLocalities),
     cityToLocalities,
-    types: [...new Set(records.map(h => h.hospital_type).filter(Boolean))].sort(),
-    specialties: [...new Set(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name)).filter(Boolean))].sort(),
-    facilities: [...new Set(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name)).filter(Boolean))].sort(),
+    types: uniqueCanonicalStrings(records.map(h => h.hospital_type)),
+    specialties: uniqueCanonicalStrings(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name))),
+    facilities: uniqueCanonicalStrings(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name))),
   };
 }
 

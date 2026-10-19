@@ -53,12 +53,15 @@ export default function DoctorDiscoverExperience() {
       const currentLocality = newParams.get('locality');
       if (currentLocality) {
         if (!value) {
-           newParams.delete('locality');
+          const allLocalities = facets.localities || [];
+          if (!allLocalities.includes(currentLocality)) {
+            newParams.delete('locality');
+          }
         } else {
-           const validLocalities = facets.cityToLocalities?.[value] || [];
-           if (validLocalities.length > 0 && !validLocalities.includes(currentLocality)) {
-             newParams.delete('locality');
-           }
+          const validLocalities = facets.cityToLocalities?.[value] || [];
+          if (!validLocalities.includes(currentLocality)) {
+            newParams.delete('locality');
+          }
         }
       }
     }
@@ -66,6 +69,17 @@ export default function DoctorDiscoverExperience() {
     setSearchParams(newParams);
     if (key === 'q') setQuery(value);
   };
+
+  useEffect(() => {
+    if (!filters.city || !filters.locality) return;
+    if (!facets.cityToLocalities || Object.keys(facets.cityToLocalities).length === 0) return;
+    const valid = facets.cityToLocalities[filters.city] || [];
+    if (!valid.includes(filters.locality)) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('locality');
+      setSearchParams(next, { replace: true });
+    }
+  }, [facets.cityToLocalities, filters.city, filters.locality, searchParams, setSearchParams]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -84,7 +98,7 @@ export default function DoctorDiscoverExperience() {
   if (filters.locality) activeChips.push({ key: 'locality', label: filters.locality });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
   if (filters.hospital) activeChips.push({ key: 'hospital', label: filters.hospital });
-  if (filters.language) activeChips.push({ key: 'language', label: filters.language });
+  if (filters.language) activeChips.push({ key: 'language', label: `Language: ${filters.language} (unsupported)` });
   if (filters.homeVisitsOnly) activeChips.push({ key: 'homeVisitsOnly', label: 'Home Visits Only' });
 
   return (
@@ -181,7 +195,7 @@ export default function DoctorDiscoverExperience() {
                   <input
                     type="checkbox"
                     className="sr-only peer"
-                    checked={filters.homeVisitsOnly === 'true'}
+                    checked={Boolean(filters.homeVisitsOnly)}
                     onChange={(e) => updateFilter('homeVisitsOnly', e.target.checked ? 'true' : '')}
                   />
                   <div className="w-9 h-5 bg-emerald-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
@@ -218,14 +232,6 @@ export default function DoctorDiscoverExperience() {
                 options={filters.city && facets.cityToLocalities?.[filters.city] ? facets.cityToLocalities[filters.city] : (facets.localities || [])}
                 value={filters.locality}
                 onChange={(val) => updateFilter('locality', val)}
-                defaultOpen={true}
-              />
-              <CollapsibleFilter
-                title="Language"
-                icon={Globe}
-                options={facets.languages || []}
-                value={filters.language}
-                onChange={(val) => updateFilter('language', val)}
                 defaultOpen={true}
               />
             </div>

@@ -5,6 +5,9 @@ const rowsFrom = value => Array.isArray(value) ? value.filter(Boolean) : [];
 const cleanSearch = value => String(value ?? '').replace(/[,().%*]/g, ' ').replace(/\s+/g, ' ').trim();
 const compareNames = (a, b) => (a.name || '').localeCompare(b.name || '');
 
+import { sortLabels, uniqueCanonicalStrings } from './filterUtils';
+export { sortLabels, uniqueCanonicalStrings };
+
 export function normalizeCanonicalDoctor(doc) {
   if (!doc) return null;
   const affiliations = rowsFrom(doc.doctor_affiliations_directory).map(item => ({
@@ -88,7 +91,26 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
       query = query.eq('city', filters.city);
     }
     if (filters.locality) {
-      query = query.eq('locality', filters.locality);
+      const trimmedLoc = String(filters.locality).trim();
+      const safeLoc = trimmedLoc.replace(/"/g, '');
+
+      // Check affiliations for matching hospital locality
+      const { data: affData, error: affErr } = await supabase
+        .from('doctor_affiliations_directory')
+        .select('doctor_id, hospitals!inner(locality)')
+        .eq('hospitals.locality', trimmedLoc);
+
+      if (affErr) {
+        console.warn('Error fetching affiliation localities:', affErr.message);
+      }
+
+      const affDocIds = [...new Set((affData || []).map(a => a.doctor_id).filter(Boolean))];
+
+      if (affDocIds.length > 0) {
+        query = query.or(`locality.eq."${safeLoc}",id.in.(${affDocIds.join(',')})`);
+      } else {
+        query = query.eq('locality', trimmedLoc);
+      }
     }
     if (filters.specialization) {
       query = query.ilike('specialization', `%${filters.specialization}%`);
@@ -112,7 +134,7 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
       query = query.order('full_name', { ascending: true });
     }
 
-    if (!filters.hospital && !filters.language) {
+    if (!filters.hospital) {
       query = query.range(offset, offset + pageSize - 1);
     }
 
@@ -120,7 +142,7 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
     let finalData = data;
     let finalCount = count;
 
-    if (!error && (filters.hospital || filters.language)) {
+    if (!error && filters.hospital) {
       // In-memory filter for relations since PostgREST nested filtering is limited
       const hospQ = (filters.hospital || '').toLowerCase();
       finalData = data.filter(doc => {
@@ -230,45 +252,116 @@ export async function getDoctorFacets() {
     try {
       const { data, error } = await supabase
         .from('doctors')
-        .select('locality, city, specialization, home_visit_service_areas, doctor_affiliations_directory(hospital_name, hospitals(name))')
+        .select(`
+          locality, city, specialization, home_visit_service_areas,
+          doctor_affiliations_directory(hospital_name, hospitals(name, locality, city))
+        `)
         .eq('publication_status', 'published');
 
       if (!error && data) {
-        const cities = [...new Set(data.map(d => d.city).filter(Boolean))].sort();
-        const localities = [...new Set(data.map(d => d.locality).filter(Boolean))].sort();
-        const cityToLocalities = {};
+        const rawCities = data.map(d => d.city).filter(Boolean);
+        const cities = uniqueCanonicalStrings(rawCities);
+
+        const rawLocalities = [];
+        const cityToLocalitiesMap = {};
+
         data.forEach(d => {
-          if (d.city && d.locality) {
-            if (!cityToLocalities[d.city]) cityToLocalities[d.city] = new Set();
-            cityToLocalities[d.city].add(d.locality);
+          const directLoc = d.locality?.trim();
+          if (directLoc) {
+            rawLocalities.push(directLoc);
+            if (d.city) {
+              if (!cityToLocalitiesMap[d.city]) cityToLocalitiesMap[d.city] = [];
+              cityToLocalitiesMap[d.city].push(directLoc);
+            }
+          }
+          if (Array.isArray(d.doctor_affiliations_directory)) {
+            d.doctor_affiliations_directory.forEach(a => {
+              const hospLoc = a.hospitals?.locality?.trim();
+              const hospCity = a.hospitals?.city?.trim() || d.city;
+              if (hospLoc) {
+                rawLocalities.push(hospLoc);
+                if (hospCity) {
+                  if (!cityToLocalitiesMap[hospCity]) cityToLocalitiesMap[hospCity] = [];
+                  cityToLocalitiesMap[hospCity].push(hospLoc);
+                }
+              }
+            });
           }
         });
-        Object.keys(cityToLocalities).forEach(k => {
-          cityToLocalities[k] = [...cityToLocalities[k]].sort();
+
+        const localities = uniqueCanonicalStrings(rawLocalities);
+        const cityToLocalities = {};
+        Object.keys(cityToLocalitiesMap).forEach(k => {
+          cityToLocalities[k] = uniqueCanonicalStrings(cityToLocalitiesMap[k]);
         });
 
-        const specializations = [...new Set(data.map(d => d.specialization).filter(Boolean))].sort();
-        const serviceAreas = [...new Set(data.flatMap(d => d.home_visit_service_areas || []).filter(Boolean))].sort();
+        const specializations = uniqueCanonicalStrings(data.map(d => d.specialization));
 
-        const hospitals = [...new Set(data.flatMap(d =>
+        const rawServiceAreas = [];
+        const cityToServiceAreasMap = {};
+        const homeVisitCities = new Set();
+
+        data.forEach(d => {
+          if (Array.isArray(d.home_visit_service_areas) && d.home_visit_service_areas.length > 0) {
+            if (d.city) homeVisitCities.add(d.city);
+            d.home_visit_service_areas.forEach(area => {
+              if (area && typeof area === 'string') {
+                const trimmed = area.trim();
+                if (trimmed) {
+                  rawServiceAreas.push(trimmed);
+                  if (d.city) {
+                    if (!cityToServiceAreasMap[d.city]) cityToServiceAreasMap[d.city] = [];
+                    cityToServiceAreasMap[d.city].push(trimmed);
+                  }
+                }
+              }
+            });
+          }
+        });
+
+        const serviceAreas = uniqueCanonicalStrings(rawServiceAreas);
+        const cityToServiceAreas = {};
+        Object.keys(cityToServiceAreasMap).forEach(k => {
+          cityToServiceAreas[k] = uniqueCanonicalStrings(cityToServiceAreasMap[k]);
+        });
+
+        const rawHospitals = data.flatMap(d =>
           d.doctor_affiliations_directory?.map(a => a.hospital_name || a.hospitals?.name) || []
-        ).filter(Boolean))].sort();
+        );
+        const hospitals = uniqueCanonicalStrings(rawHospitals);
 
-        return { cities, localities, cityToLocalities, specializations, hospitals, languages: ['English', 'Hindi', 'Marathi'], serviceAreas };
+        return {
+          cities,
+          localities,
+          cityToLocalities,
+          specializations,
+          hospitals,
+          serviceAreas,
+          cityToServiceAreas,
+          homeVisitCities: sortLabels(Array.from(homeVisitCities)),
+        };
       }
     } catch (err) {
       console.warn('Facets query error:', err);
     }
-    return { cities: [], localities: [], cityToLocalities: {}, specializations: [], hospitals: [], languages: [], serviceAreas: [] };
+    return {
+      cities: [],
+      localities: [],
+      cityToLocalities: {},
+      specializations: [],
+      hospitals: [],
+      serviceAreas: [],
+      cityToServiceAreas: {},
+      homeVisitCities: [],
+    };
   }
 
-  const cities = [...new Set(starterDoctors.map(d => d.location.city).filter(Boolean))].sort();
+  const cities = uniqueCanonicalStrings(starterDoctors.map(d => d.location.city));
   const localities = [];
   const cityToLocalities = {};
-  const specializations = [...new Set(starterDoctors.map(d => d.specialization).filter(Boolean))].sort();
-  const hospitals = [...new Set(starterDoctors.flatMap(d => d.affiliations.map(a => a.hospitalName)).filter(Boolean))].sort();
-  const languages = [...new Set(starterDoctors.flatMap(d => d.languages || []).filter(Boolean))].sort();
-  const serviceAreas = [...new Set(starterDoctors.flatMap(d => d.homeVisit?.serviceAreas || []).filter(Boolean))].sort();
+  const specializations = uniqueCanonicalStrings(starterDoctors.map(d => d.specialization));
+  const hospitals = uniqueCanonicalStrings(starterDoctors.flatMap(d => d.affiliations.map(a => a.hospitalName)));
+  const serviceAreas = uniqueCanonicalStrings(starterDoctors.flatMap(d => d.homeVisit?.serviceAreas || []));
 
   return {
     cities,
@@ -276,7 +369,8 @@ export async function getDoctorFacets() {
     cityToLocalities,
     specializations,
     hospitals,
-    languages,
     serviceAreas,
+    cityToServiceAreas: {},
+    homeVisitCities: [],
   };
 }

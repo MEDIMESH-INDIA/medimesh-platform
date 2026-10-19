@@ -57,6 +57,17 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
     };
   }, [isMobileFiltersOpen]);
 
+  // Deep-link and history sync: prune locality if not valid for selected city once facets load
+  useEffect(() => {
+    if (!filters.city || !filters.locality || !facets.cityToLocalities) return;
+    const validLocalities = facets.cityToLocalities[filters.city];
+    if (Array.isArray(validLocalities) && !validLocalities.includes(filters.locality)) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('locality');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [filters.city, filters.locality, facets.cityToLocalities, searchParams, setSearchParams]);
+
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
     if (value) {
@@ -69,12 +80,16 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
       const currentLocality = newParams.get('locality');
       if (currentLocality) {
         if (!value) {
-           newParams.delete('locality');
+          newParams.delete('locality');
         } else {
-           const validLocalities = facets.cityToLocalities?.[value] || [];
-           if (validLocalities.length > 0 && !validLocalities.includes(currentLocality)) {
-             newParams.delete('locality');
-           }
+          const validLocalities = facets.cityToLocalities?.[value];
+          if (Array.isArray(validLocalities)) {
+            if (!validLocalities.includes(currentLocality)) {
+              newParams.delete('locality');
+            }
+          } else {
+            newParams.delete('locality');
+          }
         }
       }
     }
@@ -211,7 +226,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
               <CollapsibleFilter
                 title="Area"
                 icon={MapPin}
-                options={filters.city && facets.cityToLocalities?.[filters.city] ? facets.cityToLocalities[filters.city] : (facets.localities || [])}
+                options={filters.city ? (facets.cityToLocalities?.[filters.city] || []) : (facets.localities || [])}
                 value={filters.locality}
                 onChange={(val) => updateFilter('locality', val)}
                 defaultOpen={true}

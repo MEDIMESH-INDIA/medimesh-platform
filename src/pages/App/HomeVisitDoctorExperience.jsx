@@ -1,7 +1,7 @@
 import FilterPanel from '../../components/hospital/FilterPanel';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, MapPin, Stethoscope, ShieldCheck, X, Filter, ChevronDown, Globe } from 'lucide-react';
+import { Search, MapPin, Stethoscope, ShieldCheck, X, Filter, ChevronDown } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import DoctorCard from '../../components/doctor/DoctorCard';
@@ -15,7 +15,7 @@ export default function HomeVisitDoctorExperience() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [sort, setSort] = useState('name_asc');
-  const [facets, setFacets] = useState({ cities: [], localities: [], cityToLocalities: {}, specializations: [], hospitals: [] });
+  const [facets, setFacets] = useState({ cities: [], serviceAreas: [], cityToServiceAreas: {}, homeVisitCities: [], specializations: [], hospitals: [] });
 
   const filters = {
     q: searchParams.get('q') || '',
@@ -48,9 +48,38 @@ export default function HomeVisitDoctorExperience() {
     } else {
       newParams.delete(key);
     }
+
+    if (key === 'city') {
+      const currentServiceArea = newParams.get('serviceArea');
+      if (currentServiceArea) {
+        if (!value) {
+          const allAreas = facets.serviceAreas || [];
+          if (!allAreas.includes(currentServiceArea)) {
+            newParams.delete('serviceArea');
+          }
+        } else {
+          const validAreas = facets.cityToServiceAreas?.[value] || [];
+          if (!validAreas.includes(currentServiceArea)) {
+            newParams.delete('serviceArea');
+          }
+        }
+      }
+    }
+
     setSearchParams(newParams);
     if (key === 'q') setQuery(value);
   };
+
+  useEffect(() => {
+    if (!filters.city || !filters.serviceArea) return;
+    if (!facets.cityToServiceAreas || Object.keys(facets.cityToServiceAreas).length === 0) return;
+    const valid = facets.cityToServiceAreas[filters.city] || [];
+    if (!valid.includes(filters.serviceArea)) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('serviceArea');
+      setSearchParams(next, { replace: true });
+    }
+  }, [facets.cityToServiceAreas, filters.city, filters.serviceArea, searchParams, setSearchParams]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -68,7 +97,7 @@ export default function HomeVisitDoctorExperience() {
   if (filters.city) activeChips.push({ key: 'city', label: filters.city });
   if (filters.serviceArea) activeChips.push({ key: 'serviceArea', label: filters.serviceArea });
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
-  if (filters.language) activeChips.push({ key: 'language', label: filters.language });
+  if (filters.language) activeChips.push({ key: 'language', label: `Language: ${filters.language} (unsupported)` });
 
   return (
     <AppPageContainer className="discovery-page">
@@ -164,15 +193,15 @@ export default function HomeVisitDoctorExperience() {
               <CollapsibleFilter
                 title="City"
                 icon={MapPin}
-                options={facets.cities}
+                options={facets.homeVisitCities?.length ? facets.homeVisitCities : facets.cities}
                 value={filters.city}
                 onChange={(val) => updateFilter('city', val)}
                 defaultOpen={true}
               />
               <CollapsibleFilter
-                title="Area / Locality"
+                title="Service Area"
                 icon={MapPin}
-                options={facets.serviceAreas || []}
+                options={filters.city ? (facets.cityToServiceAreas?.[filters.city] || []) : (facets.serviceAreas || [])}
                 value={filters.serviceArea}
                 onChange={(val) => updateFilter('serviceArea', val)}
                 defaultOpen={true}
@@ -183,14 +212,6 @@ export default function HomeVisitDoctorExperience() {
                 options={facets.specializations}
                 value={filters.specialization}
                 onChange={(val) => updateFilter('specialization', val)}
-                defaultOpen={true}
-              />
-              <CollapsibleFilter
-                title="Language"
-                icon={Globe}
-                options={facets.languages || []}
-                value={filters.language}
-                onChange={(val) => updateFilter('language', val)}
                 defaultOpen={true}
               />
             </div>

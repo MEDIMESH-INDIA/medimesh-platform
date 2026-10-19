@@ -1,46 +1,68 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { searchDoctors } from '../lib/data/doctorRepository';
 
 export function useDoctorSearch({ filters = {}, sort = 'name_asc', pageSize = 12 } = {}) {
+  const {
+    q = '',
+    city = '',
+    locality = '',
+    specialization = '',
+    hospital = '',
+    serviceArea = '',
+    homeVisitsOnly = false,
+  } = filters;
+
   const [doctors, setDoctors] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(false);
-  const [offset, setOffset] = useState(0);
+  const requestRef = useRef(0);
 
-  const filterKey = JSON.stringify(filters);
-
-  const fetchDoctors = useCallback(async (isLoadMore = false) => {
+  const fetchDoctors = useCallback(async (offset = 0, append = false) => {
+    const requestId = ++requestRef.current;
     try {
       setLoading(true);
       setError(null);
-      const currentOffset = isLoadMore ? offset : 0;
-      const res = await searchDoctors({ filters, sort, offset: currentOffset, pageSize });
-      
-      setDoctors(prev => isLoadMore ? [...prev, ...res.doctors] : res.doctors);
+      const res = await searchDoctors({
+        filters: { q, city, locality, specialization, hospital, serviceArea, homeVisitsOnly },
+        sort,
+        offset,
+        pageSize,
+      });
+
+      if (requestId !== requestRef.current) return;
+
+      setDoctors(prev => {
+        if (!append) return res.doctors;
+        const seen = new Set(prev.map(d => d.id || d.slug));
+        const newDocs = res.doctors.filter(d => !seen.has(d.id || d.slug));
+        return [...prev, ...newDocs];
+      });
       setTotalCount(res.totalCount);
       setHasMore(res.hasMore);
-      setOffset(currentOffset + res.doctors.length);
     } catch (err) {
+      if (requestId !== requestRef.current) return;
       console.error('Error fetching doctors:', err);
       setError(err);
+      if (!append) setDoctors([]);
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
-  }, [filters, sort, offset, pageSize]);
+  }, [q, city, locality, specialization, hospital, serviceArea, homeVisitsOnly, sort, pageSize]);
 
   useEffect(() => {
-    setOffset(0);
-    fetchDoctors(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKey, sort]);
+    setDoctors([]);
+    setTotalCount(0);
+    void fetchDoctors(0, false);
+    return () => { requestRef.current += 1; };
+  }, [fetchDoctors]);
 
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
-      fetchDoctors(true);
+      void fetchDoctors(doctors.length, true);
     }
-  }, [loading, hasMore, fetchDoctors]);
+  }, [doctors.length, fetchDoctors, hasMore, loading]);
 
   return { doctors, totalCount, loading, error, hasMore, loadMore };
 }
