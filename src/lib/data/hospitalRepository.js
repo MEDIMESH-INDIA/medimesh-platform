@@ -1,6 +1,7 @@
-import { demoHospitals } from '../../data/sihDemoHospitals';
-import { supabase } from '../supabase/client';
-import { uniqueCanonicalStrings } from './filterUtils';
+import { demoHospitals } from '../../data/sihDemoHospitals.js';
+import { supabase } from '../supabase/client.js';
+import { uniqueCanonicalStrings } from './filterUtils.js';
+import { getVerifiedHospitalCoordinates } from '../maps/verifiedHospitalCoordinates.js';
 
 const BASE_SELECT = `
   id, slug, name, locality, city, district, state, country, hospital_type,
@@ -18,6 +19,7 @@ const compareNames = (a, b) => (a.name || '').localeCompare(b.name || '');
 
 export function normalizeHospital(record, recordType = 'canonical') {
   const hospital = record ?? {};
+  const verified = getVerifiedHospitalCoordinates(hospital.id, hospital.slug);
   const specialties = rowsFrom(hospital.hospital_specialties)
     .map(item => item.specialties?.name)
     .filter(name => typeof name === 'string');
@@ -79,9 +81,9 @@ export function normalizeHospital(record, recordType = 'canonical') {
     },
     yearEstablished: hospital.year_established ?? null,
     map: {
-      latitude: hospital.latitude ?? null,
-      longitude: hospital.longitude ?? null,
-      placeId: hospital.google_place_id || null,
+      latitude: verified?.latitude ?? hospital.latitude ?? null,
+      longitude: verified?.longitude ?? hospital.longitude ?? null,
+      placeId: verified?.placeId ?? hospital.google_place_id ?? null,
     },
     imageUrl: hospital.image_url || hospital.imageUrl || hospital.image || hospital.photo || null,
     recordType,
