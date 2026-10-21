@@ -1,9 +1,14 @@
 /**
- * MEDIMESH Verified Hospital Coordinates Registry
- * 
- * Maps verified real-world facility coordinates for hospitals where legacy database
- * entries either had coarse locality centroids or demonstrable displacement.
- * Keyed by immutable hospital ID and slug for deterministic lookup without per-request geocoding.
+ * MEDIMESH Candidate Hospital Coordinate Overrides Registry
+ *
+ * Contains candidate coordinate overrides for hospitals where legacy database
+ * entries had coarse locality centroids or demonstrable displacement.
+ *
+ * IMPORTANT (Coordinate Trust Contract):
+ * These overrides represent candidate geolocations awaiting formal ground-truth
+ * verification and evidence ingestion. Under the coordinate trust contract,
+ * entries from this registry are tagged with origin: 'override' and status: 'unverified'
+ * until verified evidence is ingested into hospital_evidence.
  */
 
 export const VERIFIED_HOSPITAL_COORDINATES = {
@@ -153,16 +158,25 @@ export const VERIFIED_HOSPITAL_COORDINATES = {
 };
 
 /**
- * Returns verified facility coordinates for a hospital by id or slug if one exists.
+ * Returns candidate facility coordinates for a hospital by id or slug if one exists.
  * Preserves the original database coordinates whenever no correction override is needed.
+ * Returned entry includes origin: 'override' to distinguish it from database records.
  */
 export function getVerifiedHospitalCoordinates(id, slug) {
+  let matched = null;
   if (id && VERIFIED_HOSPITAL_COORDINATES[id]) {
-    return VERIFIED_HOSPITAL_COORDINATES[id];
+    matched = VERIFIED_HOSPITAL_COORDINATES[id];
+  } else if (slug && VERIFIED_HOSPITAL_COORDINATES[slug]) {
+    matched = VERIFIED_HOSPITAL_COORDINATES[slug];
   }
-  if (slug && VERIFIED_HOSPITAL_COORDINATES[slug]) {
-    return VERIFIED_HOSPITAL_COORDINATES[slug];
-  }
-  return null;
+
+  if (!matched) return null;
+
+  return {
+    ...matched,
+    origin: 'override',
+  };
 }
+
+export const getHospitalCoordinateOverride = getVerifiedHospitalCoordinates;
 

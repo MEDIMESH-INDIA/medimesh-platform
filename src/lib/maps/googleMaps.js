@@ -8,7 +8,8 @@ export function hasValidCoordinates(hospital) {
   if (!isValidCoordinate(lat) || !isValidCoordinate(lng)) return false;
   const numLat = Number(lat);
   const numLng = Number(lng);
-  return !(numLat === 0 && numLng === 0);
+  if (numLat === 0 && numLng === 0) return false;
+  return numLat >= -90 && numLat <= 90 && numLng >= -180 && numLng <= 180;
 }
 
 export function hasResolvedHospitalLocation(hospital) {

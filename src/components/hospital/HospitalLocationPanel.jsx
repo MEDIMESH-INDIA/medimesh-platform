@@ -28,6 +28,10 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
   const lng = validCoords ? Number(hospital.map.longitude) : null;
   const keyAvailable = hasMapTilerKey();
 
+  const coordTrust = hospital?.map?.trust;
+  const isVerifiedCoordinate = coordTrust?.status === 'verified';
+  const isCandidateOverride = coordTrust?.origin === 'override';
+
   // Map is displayable as long as coordinates exist
   const canShowMap = validCoords;
 
@@ -191,7 +195,11 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
           Location & Directions
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Verified geographic placement and navigation coordinates
+          {isVerifiedCoordinate
+            ? 'Verified geographic placement and navigation coordinates'
+            : validCoords
+              ? 'Geographic placement and navigation coordinates (spatial verification pending)'
+              : 'Facility address and directions'}
         </p>
       </div>
 
@@ -236,15 +244,43 @@ export default function HospitalLocationPanel({ hospital, fullAddress }) {
               {hospital?.location?.pinCode && <span>• PIN {hospital.location.pinCode}</span>}
             </div>
 
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-primary">
+            <div className={`rounded-xl border p-3.5 text-xs ${
+              isVerifiedCoordinate
+                ? 'border-primary/20 bg-primary/5 text-primary'
+                : validCoords
+                  ? 'border-amber-500/25 bg-amber-500/5 text-amber-900'
+                  : 'border-border/70 bg-surface/60 text-muted-foreground'
+            }`}>
               <div className="flex items-center gap-2 font-semibold">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>{hasResolvedLocation ? 'Verified Destination Pin' : 'Address Query Destination'}</span>
+                {isVerifiedCoordinate ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                ) : validCoords ? (
+                  <MapPin className="h-4 w-4 shrink-0 text-amber-600" />
+                ) : (
+                  <MapPin className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
+                <span>
+                  {isVerifiedCoordinate
+                    ? 'Verified Destination Pin'
+                    : isCandidateOverride
+                      ? 'Candidate Destination Pin (Unverified)'
+                      : validCoords
+                        ? 'Approximate Destination Pin (Unverified)'
+                        : hasResolvedLocation
+                          ? 'Place Destination Pin'
+                          : 'Address Query Destination'}
+                </span>
               </div>
               <p className="mt-1 text-[11px] text-muted-foreground leading-normal">
-                {hasResolvedLocation
-                  ? 'Direct destination route coordinates registered from published source.'
-                  : 'Directions query uses the published postal address in navigation.'}
+                {isVerifiedCoordinate
+                  ? 'Direct destination route coordinates verified by official source evidence.'
+                  : isCandidateOverride
+                    ? 'Candidate coordinates applied from local review registry; pending on-site evidence verification.'
+                    : validCoords
+                      ? 'Coordinates derived from locality registry; precise facility entrance pending verification.'
+                      : hasResolvedLocation
+                        ? 'Place identifier registered for direct navigation lookup.'
+                        : 'Directions query uses the published postal address in navigation.'}
               </p>
             </div>
           </div>

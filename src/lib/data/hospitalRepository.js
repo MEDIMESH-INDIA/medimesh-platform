@@ -2,13 +2,14 @@ import { demoHospitals } from '../../data/sihDemoHospitals.js';
 import { supabase } from '../supabase/client.js';
 import { uniqueCanonicalStrings } from './filterUtils.js';
 import { getVerifiedHospitalCoordinates } from '../maps/verifiedHospitalCoordinates.js';
+import { COORDINATE_ORIGIN, evaluateCoordinateTrust } from '../maps/coordinateTrust.js';
 
 const BASE_SELECT = `
   id, slug, name, locality, city, district, state, country, hospital_type,
   address_line_1, address_line_2, pin_code, public_phone, public_email, website, year_established,
   latitude, longitude, google_place_id,
   total_beds, icu_beds, emergency_department, ambulance_available,
-  hospital_evidence(checked_at, review_status, data_sources(name, source_type))
+  hospital_evidence(checked_at, review_status, supported_scope, data_sources(name, source_type))
 `;
 const LEGACY_BASE_SELECT = BASE_SELECT.replace(', google_place_id', '');
 const isMissingPlaceIdColumn = error => error?.code === '42703' || String(error?.message || '').includes('google_place_id');
@@ -19,7 +20,8 @@ const compareNames = (a, b) => (a.name || '').localeCompare(b.name || '');
 
 export function normalizeHospital(record, recordType = 'canonical') {
   const hospital = record ?? {};
-  const verified = getVerifiedHospitalCoordinates(hospital.id, hospital.slug);
+  const override = getVerifiedHospitalCoordinates(hospital.id, hospital.slug);
+  const evidenceRows = rowsFrom(hospital.hospital_evidence);
   const specialties = rowsFrom(hospital.hospital_specialties)
     .map(item => item.specialties?.name)
     .filter(name => typeof name === 'string');
@@ -31,8 +33,8 @@ export function normalizeHospital(record, recordType = 'canonical') {
     .filter(name => typeof name === 'string');
 
   let provenance = null;
-  if (rowsFrom(hospital.hospital_evidence).length > 0) {
-    const evidence = rowsFrom(hospital.hospital_evidence).sort((a, b) => {
+  if (evidenceRows.length > 0) {
+    const evidence = [...evidenceRows].sort((a, b) => {
       const order = { manually_reviewed: 1, source_matched: 2, self_reported: 3, unreviewed: 4 };
       const rankDifference = (order[a.review_status] || 99) - (order[b.review_status] || 99);
       if (rankDifference !== 0) return rankDifference;
@@ -48,6 +50,23 @@ export function normalizeHospital(record, recordType = 'canonical') {
       checkedAt: best.checked_at || null,
     };
   }
+
+  const hasOverride = Boolean(override && override.latitude != null && override.longitude != null);
+  const hasDbCoords = hospital.latitude != null || hospital.longitude != null;
+  const origin = hasOverride
+    ? COORDINATE_ORIGIN.OVERRIDE
+    : (hasDbCoords ? COORDINATE_ORIGIN.DATABASE : COORDINATE_ORIGIN.NONE);
+
+  const rawLat = hasOverride ? override.latitude : hospital.latitude ?? null;
+  const rawLng = hasOverride ? override.longitude : hospital.longitude ?? null;
+  const placeId = override?.placeId ?? hospital.google_place_id ?? null;
+
+  const trust = evaluateCoordinateTrust({
+    latitude: rawLat,
+    longitude: rawLng,
+    origin,
+    evidenceRows,
+  });
 
   return {
     id: hospital.id,
@@ -81,9 +100,12 @@ export function normalizeHospital(record, recordType = 'canonical') {
     },
     yearEstablished: hospital.year_established ?? null,
     map: {
-      latitude: verified?.latitude ?? hospital.latitude ?? null,
-      longitude: verified?.longitude ?? hospital.longitude ?? null,
-      placeId: verified?.placeId ?? hospital.google_place_id ?? null,
+      latitude: rawLat,
+      longitude: rawLng,
+      placeId,
+      status: trust.status,
+      origin: trust.origin,
+      trust,
     },
     imageUrl: hospital.image_url || hospital.imageUrl || hospital.image || hospital.photo || null,
     recordType,
@@ -91,6 +113,13 @@ export function normalizeHospital(record, recordType = 'canonical') {
 }
 
 export function normalizeDemoHospital(hospital) {
+  const trust = evaluateCoordinateTrust({
+    latitude: null,
+    longitude: null,
+    origin: COORDINATE_ORIGIN.NONE,
+    evidenceRows: [],
+  });
+
   return {
     id: hospital.id || hospital.slug,
     slug: hospital.slug,
@@ -109,7 +138,14 @@ export function normalizeDemoHospital(hospital) {
     } : null,
     contact: { phone: null, email: null, website: null },
     yearEstablished: null,
-    map: { latitude: null, longitude: null, placeId: null },
+    map: {
+      latitude: null,
+      longitude: null,
+      placeId: null,
+      status: trust.status,
+      origin: trust.origin,
+      trust,
+    },
     imageUrl: hospital.imageUrl || hospital.image || null,
     recordType: 'demo',
   };
