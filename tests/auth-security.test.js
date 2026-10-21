@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
 import {
   getAuthIdentityTransition,
   getProtectedRouteState,
@@ -125,4 +128,26 @@ test('identity transitions clear stale data and hydrate only new identities', ()
     shouldClearProfile: true,
     shouldLoadProfile: false,
   });
+});
+
+test('vercel.json defines SPA fallback rewrites for direct navigation and OAuth callbacks', () => {
+  const vercelConfigPath = path.resolve(process.cwd(), 'vercel.json');
+  assert.equal(fs.existsSync(vercelConfigPath), true, 'vercel.json must exist in project root');
+
+  const content = JSON.parse(fs.readFileSync(vercelConfigPath, 'utf8'));
+  assert.ok(Array.isArray(content.rewrites), 'rewrites must be an array');
+
+  const spaRewrite = content.rewrites.find(
+    r => (r.source === '/(.*)' || r.source === '/:match*') && r.destination === '/index.html'
+  );
+  assert.ok(spaRewrite, 'must contain a catch-all rewrite to /index.html');
+
+  // Verify regex behavior against auth routes
+  const pattern = new RegExp(`^${spaRewrite.source.replace('(.*)', '.*')}$`);
+  assert.match('/login', pattern);
+  assert.match('/register', pattern);
+  assert.match('/reset-password', pattern);
+  assert.match('/verify-email', pattern);
+  assert.match('/onboarding', pattern);
+  assert.match('/app', pattern);
 });

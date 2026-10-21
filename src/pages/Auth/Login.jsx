@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
 import FormField from '../../components/common/FormField';
@@ -21,7 +21,26 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loadingAction, setLoadingAction] = useState(null);
   const [error, setError] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
   const { signIn, signInWithGoogle } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const hashParams = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : location.hash);
+    const oauthErrorDescription = searchParams.get('error_description') || hashParams.get('error_description');
+    const oauthError = searchParams.get('error') || hashParams.get('error');
+    const message = searchParams.get('message');
+
+    if (oauthErrorDescription || oauthError) {
+      setError(oauthErrorDescription || oauthError);
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } else if (message) {
+      setInfoMessage(message);
+    }
+  }, [location]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -53,6 +72,7 @@ export default function Login() {
   return (
     <AuthLayout title="Sign in to MEDIMESH" subtitle="Continue your healthcare discovery journey.">
       <form onSubmit={handleLogin} className="space-y-5">
+        {infoMessage && <div className="rounded-[12px] border border-emerald-500/20 bg-emerald-50/80 p-3 text-sm text-emerald-800" role="status">{infoMessage}</div>}
         {error && <div className="rounded-[12px] border border-destructive/20 bg-red-50/80 p-3 text-sm text-destructive" role="alert">{error}</div>}
         <FormField id="email" label="Email" type="email" autoComplete="email" required placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} />
         <div>
