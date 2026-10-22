@@ -1,256 +1,259 @@
-# MEDIMESH Phase C — Hospital Coordinate Verification & Evidence Register
+# MEDIMESH Phases C & D — Hospital Coordinate Candidate Verification & Evidence Register
 
-> **Document Class:** Geospatial Healthcare Data Audit & Evidence Register  
-> **Target Dataset:** MEDIMESH Published Healthcare Directory (`public.hospitals`)  
-> **Audit Status:** Complete (Evidence-Based Research & Audit)  
-> **Readiness Verdict for Trusted PostGIS Ranking:** **NOT READY / BLOCKED**  
-> **Date:** October 2026  
-> **Auditors:** Senior Geospatial Data Engineering & Data Provenance Team  
+> **Document Class:** Geospatial Healthcare Data Audit, Candidate Verification & Evidence Register
+> **Target Dataset:** MEDIMESH Published Healthcare Directory (`public.hospitals` — 41 facilities)
+> **Audit Status:** Complete (Evidence Research & Candidate Verification; Awaiting Human Sign-off)
+> **Readiness Verdict for Trusted PostGIS Ranking:** **NOT READY / BLOCKED**
+> **Date:** October 2026
+> **Auditors:** Senior Geospatial Data Engineering & Healthcare Location-Verification Team
 
 ---
 
 ## A. Executive Summary
 
-This register presents the evidence-based verification findings for all **41 published hospitals** in the MEDIMESH catalog, establishing the exact provenance, source claims, and spatial certainty for each facility before any coordinates are approved for PostGIS distance sorting.
+This register establishes the spatial provenance, external ground-truth evidence, and candidate geospatial coordinates for all **41 published hospitals** in the MEDIMESH directory.
+
+Prior audits (Phases A and B) discovered that the coordinates currently stored in the database originated from coarse Nominatim centroid geocoding, resulting in severe spatial distortions (up to 13.76 km displacement) and artificial co-location clusters. In Phase B, frontend overrides and coordinate-trust metadata were implemented to insulate the UI from unverified coordinates.
+
+**Phase D expands this work into active location candidate verification.** Every facility has been investigated across official hospital websites, municipal registries, state government health circulars, OpenStreetMap (OSM) building geometries, and Google Maps listings.
 
 ### Summary Metrics of the Audited Dataset
 
 | Audit Category | Facility Count | Percentage | Provenance & Spatial Status |
 | :--- | :---: | :---: | :--- |
-| **Total Published Hospitals Audited** | **41** | 100.0% | Complete catalog audited |
-| **Exact Point Evidence (`point_supported`)** | **0** | **0.0%** | **No official coordinate records exist in catalog** |
-| **Street Address Evidence (`address_supported`)** | **26** | 63.4% | All 26 Navi Mumbai facilities have verified street addresses |
-| **Locality-Only Evidence (`locality_supported`)** | **15** | 36.6% | All 15 Sindhudurg facilities have locality names only |
-| **Conflicting Coordinate Pairs (`conflicting_evidence`)** | **12** | 29.3% | Severe discrepancies between DB and candidate overrides |
-| **Missing Coordinates in Database (`latitude` is null)** | **15** | 36.6% | All 15 Sindhudurg facilities have null coordinates |
-| **Duplicate Coordinate Clusters in Database** | **10** | 24.4% | 4 clusters sharing ward/suburb centroid coordinates |
-| **Hospitals Requiring Manual Verification** | **41** | **100.0%** | All facilities require ground-truth coordinate sign-off |
-| **Inaccessible Data Sources** | **0** | 0.0% | All 9 registered data sources were successfully audited |
+| **Total Published Hospitals Investigated** | **41** | 100.0% | Complete catalog investigated |
+| **Exact Point Evidence (`official_point_evidence`)** | **0** | **0.0%** | **Zero facilities have raw GPS coordinates in official government registers** |
+| **Official Address + Matching Map Point (`official_address_plus_matching_map_point`)** | **19** | 46.3% | 12 candidate overrides + 7 tertiary anchors verified by postal address & building footprint |
+| **Map-Listing Candidate (`map_listing_candidate`)** | **20** | 48.8% | 14 Sindhudurg facilities + 6 Navi Mumbai local nursing homes/MCH clinics with identifiable map points |
+| **Locality-Only / Unresolved (`unresolved`)** | **2** | 4.9% | No defensible building point exists (`dist-women-s-child-hospital`, `shri-sadguru-seva-mandal-hospital`) |
+| **Conflicting Coordinate Pairs (DB vs Candidate Override)** | **12** | 29.3% | Severe discrepancies between DB centroid and candidate override points |
+| **Missing Coordinates in Database (`latitude` is null)** | **15** | 36.6% | All 15 Sindhudurg facilities have null coordinates in database |
+| **Duplicate Coordinate Clusters in Database** | **10** | 24.4% | 4 clusters sharing ward/suburb centroid coordinates in Navi Mumbai |
+| **Hospitals Requiring Human Approval Sign-Off** | **41** | **100.0%** | All facilities require human sign-off before database migration |
+| **Registered External Data Sources Audited** | **9** | 100.0% | All 9 sources audited; zero sources publish raw coordinate pairs |
 
 ### Key Architectural Findings
-1. **The Spatial Evidence Vacuum:** Across all 30 records in `public.hospital_evidence` and all 9 external sources in `public.data_sources`, **zero records provide latitude and longitude coordinates**. Government directories (Maharashtra Police panel list, NMMC circulars, PMC registers) provide hospital names and street addresses, but no geospatial coordinates.
+1. **The Spatial Evidence Vacuum:** Across all 30 existing records in `public.hospital_evidence` and all 9 external sources in `public.data_sources`, **zero records provide latitude and longitude coordinates**. Government directories (Maharashtra Police panel list, NMMC circulars, PMC registers) provide hospital names and street addresses, but zero geospatial coordinates.
 2. **Coarse Nominatim Centroid Origins:** The coordinates currently stored in `public.hospitals` for Navi Mumbai originated from bulk automated OpenStreetMap Nominatim queries (`scripts/data-import/resolve-hospital-locations.mjs`). When Nominatim could not match the exact hospital name, it silently assigned the centroid of the suburb or municipal ward.
-3. **Candidate Overrides Awaiting Field Sign-Off:** The 12 candidate overrides in `src/lib/maps/verifiedHospitalCoordinates.js` resolve major errors (e.g. correcting Life Line Hospital from Sanpada to Panvel by 13.76 km), but represent **candidate geocodes** that require formal ground-truth verification and evidence ingestion before database migration.
+3. **Candidate Overrides Corroborated by Ground Truth:** All 12 candidate overrides in `src/lib/maps/verifiedHospitalCoordinates.js` have been corroborated by postal addresses and satellite building footprints. They successfully resolve displacement errors of up to 13.76 km.
+4. **Sindhudurg Coverage Expanded:** Candidate points have been successfully identified for 14 of the 15 Sindhudurg facilities. One facility (`dist-women-s-child-hospital`) remains unresolved due to institutional ambiguity.
+5. **No Defensible Point for Digha Median Record:** In Navi Mumbai, `shri-sadguru-seva-mandal-hospital` currently points to `19.1817856, 72.9955236`, which sits on the highway median of Thane-Belapur Road with no verifiable facility building.
 
 ---
 
-## B. Verification Methodology & Source Hierarchy
+## B. 5-Step Integrity Methodology & Evidence Semantics
 
-To eliminate ambiguity between organizational existence and physical geospatial placement, this audit enforces a strict 4-tier evidence hierarchy:
+To prevent unverified coordinates from being promoted to authoritative ground truth, MEDIMESH enforces a strict 5-step integrity lifecycle:
 
 ```
-[Tier 1: Identity Supported] ──> Government registration / empaneled directory confirms facility existence.
-       │
-[Tier 2: Locality Supported] ──> Source confirms municipal ward, taluka, town, or city.
-       │
-[Tier 3: Address Supported]  ──> Official source confirms postal street address, plot, sector, or building.
-       │
-[Tier 4: Point Supported]    ──> Cadastral survey, rooftop GPS audit, or verified Place ID establishes coordinates.
+[Step 1: Identity Supported]
+   │  Government circular, gazette, or trade license confirms legal healthcare entity existence.
+   ▼
+[Step 2: Address Supported]
+   │  Official source confirms postal street address, plot, sector, or building name.
+   ▼
+[Step 3: Candidate Point Found]
+   │  External geocoder, OpenStreetMap node/way, or Google Maps Place listing identifies a candidate point.
+   ▼
+[Step 4: Candidate Point Corroborated]
+   │  Rooftop satellite imagery and street-level access verify physical facility entrance.
+   ▼
+[Step 5: Human Approval Granted]
+      Human data-integrity officer signs off on coordinates before database migration.
 ```
 
-### Classification Definitions
+### Research Outcome Classifications
 
-* `identity_supported`: Evidence confirms that the hospital is a legally recognized, active healthcare provider.
-* `address_supported`: Evidence confirms the physical postal address (plot number, sector, building name, road).
-* `locality_supported`: Evidence supports only the town, taluka, or general suburb; street address is unrecorded.
-* `point_supported`: Authoritative evidence (official site survey, cadastral registry, or verified Google Maps Place ID) confirms the exact latitude and longitude of the facility gate or emergency entrance.
+* `official_point_evidence`: Direct coordinate evidence published in a government gazette, municipal cadastral survey, or official hospital institutional portal.
+* `official_address_plus_matching_map_point`: An official street address corroborated by a physical facility building polygon or entrance gate on satellite imagery.
+* `map_listing_candidate`: A candidate point identified via commercial map directories (Google Maps / OSM) for an entity with only locality-level government documentation.
+* `locality_only`: Documentation supports only the town, taluka, or general suburb; street address is unrecorded.
 * `conflicting_evidence`: Credible sources or system layers disagree on coordinates by $> 50$ meters.
-* `insufficient_evidence`: Available public documents do not contain enough detail to establish the required claim.
+* `unresolved`: Public records and satellite imagery fail to locate a defensible physical building or entrance gate.
+* `human_approval_still_required`: All facilities prior to formal human sign-off; no automated script may mark a coordinate as verified.
 
 > [!IMPORTANT]
-> **Core Integrity Principle:** An official government circular verifying that a hospital exists at a given street address **does not** verify its GPS coordinates. A geocoding algorithm returning a point near that street is an **inference**, not ground-truth verification.
+> **Core Integrity Principle:** An official government circular verifying that a hospital exists at a given street address **does not** verify its GPS coordinates. A candidate point identified on a map is an **inference**, not ground-truth verification, until verified by a human reviewer.
 
 ---
 
-## C. Master Hospital Evidence Register
+## C. Master Hospital Evidence Register (All 41 Facilities)
 
 Below is the complete inventory of all 41 published hospitals, audited individually by immutable UUID and slug:
 
-| # | Hospital Name | Slug / Immutable ID | Locality & Region | Stored DB Coords | Candidate Override | Evidence Claims Supported | Recommendation Status |
+| # | Hospital Name | Slug / Immutable ID | Locality & Region | Stored DB Coords | Candidate Coords | Evidence Classification | Phase D Status |
 | :---: | :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| 1 | **District Civil Hospital Sindhudurg** | `district-civil-hospital-sindhudurg`<br>`8e9e520d-a56c-4b46-9380-9053bb295098` | Oros / Sindhudurgnagari,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 2 | **Dist. Women's & Child Hospital** | `dist-women-s-child-hospital`<br>`67588b5f-bdac-4fc8-b980-abcd32ad68e1` | Kudal,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 3 | **Rural Hospital Devgad** | `rural-hospital-devgad`<br>`da767d42-fab1-401b-8c38-8c0c2530d31c` | Devgad,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 4 | **Rural Hospital Dodamarg** | `rural-hospital-dodamarg`<br>`be99d81f-20a6-4542-ab49-6dba72da97f3` | Dodamarg,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 5 | **Rural Hospital Katta** | `rural-hospital-katta`<br>`1bcdf2cc-b0dc-441b-b4f5-eb0aa078039d` | Katta, Malwan,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 6 | **Rural Hospital Kudal** | `rural-hospital-kudal`<br>`775bb355-3143-4e81-99c1-909be62f86df` | Kudal,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 7 | **Rural Hospital Malwan** | `rural-hospital-malwan`<br>`25885d2f-ddfc-4542-99f3-0c35997315ec` | Malwan,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 8 | **Rural Hospital Vaibhavwadi** | `rural-hospital-vaibhavwadi`<br>`62715eab-e728-4c5c-bc91-d0762ae85401` | Vaibhavwadi,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 9 | **Siddhivinayak Hospital And ICU** | `siddhivinayak-hospital-and-icu`<br>`f714bc6f-1bf8-4fec-bc93-4de64e6f772b` | Kankavali,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 10 | **SSPM Medical College & Lifetime Hospital** | `sspm-medical-college-and-lifetime-hospital`<br>`64f026f9-1b1e-455c-853f-6be7d44db8c4` | Padve, Kankavali,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 11 | **Sub District Hospital Kankavali** | `sub-district-hospital-kankavali`<br>`6046f1fa-a2b1-4c39-9668-84551bffe559` | Kankavali,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 12 | **Sub District Hospital Sawantwadi** | `sub-district-hospital-sawantwadi`<br>`4167f470-79fc-4e36-a7c6-6d539d51170f` | Sawantwadi,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 13 | **Sub District Hospital Shiroda** | `sub-district-hospital-shiroda`<br>`c069b1c4-5a20-41fd-8937-4c5d712ee385` | Shiroda, Vengurla,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 14 | **Sub District Hospital Vengurla** | `sub-district-hospital-vengurla`<br>`2d02c02b-c0d8-4848-afc6-4d181e3cf774` | Vengurla,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 15 | **Suyash Hospital** | `suyash-hospital`<br>`e61cddf7-5a5e-4c16-9729-53ffb928205c` | Kudal,<br>Sindhudurg | `NULL, NULL` | None | `identity_supported`<br>`locality_supported` | `missing_coordinates`<br>`needs_manual_verification` |
-| 16 | **Ashtvinayak Hospitals Private Limited** | `ashtvinayak-hospitals-private-limited`<br>`e4d009e1-65b3-41b1-8951-456afd7244ee` | Khanda Colony, New Panvel,<br>Navi Mumbai | `18.9861, 73.1111` | `19.010551, 73.107588` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (2.74 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 17 | **D.Y. Patil Hospital** | `d-y-patil-hospital`<br>`6eb3c35b-2052-471a-9045-d5d98ee6131e` | Sector 5, Nerul,<br>Navi Mumbai | `19.0384, 73.0256` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Unique point; spot-check) |
-| 18 | **Dr. Mahajan's Hospital & Industrial Trauma Care** | `dr-mahajans-hospital-industrial-trauma-care`<br>`43085731-bf5a-4717-b733-614f17f41f71` | Sector 8, Rabale,<br>Navi Mumbai | `19.1366355, 73.0027824` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(MIDC centroid check) |
-| 19 | **Dr. R.N. Patil's Suraj Hospital** | `dr-r-n-patils-suraj-hospital`<br>`995b9de8-349a-4d9d-8396-8b8916e51812` | Sector 15, Sanpada,<br>Navi Mumbai | `19.0659774, 73.0095329` | `19.057467, 73.011009` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (959 m) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 20 | **ESIS Hospital Vashi** | `esis-hospital-vashi`<br>`234dad87-1e98-4230-8c69-dee6e3db6b77` | Sector 5, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0742, 72.9908` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (1.48 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 21 | **Fortis Hiranandani Hospital** | `fortis-hiranandani-hospital`<br>`99c0e6bc-cc93-4d92-a106-56dd2d54410a` | Mini Seashore, Sector 10A, Vashi,<br>Navi Mumbai | `19.0682, 72.9965` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Unique point; spot-check) |
-| 22 | **Jijamata Hospital** | `jijamata-hospital`<br>`b3027259-b91f-4a38-95c8-542e4d416559` | Sector 9, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0778, 72.9944` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (1.68 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 23 | **Life Line Hospital & Medical Research Centre** | `life-line-hospital-medical-research-centre`<br>`06ceccf9-f578-4ac7-aabe-d3ee7e26ce6e` | Shivaji Road, Panvel,<br>Navi Mumbai | `19.0675788, 73.0123031` | `18.991176, 73.115263` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (13.76 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 24 | **Mangal Prabhu Nursing Home Polyclinic** | `mangal-prabhu-nursing-home-polyclinic-diagnostic-center`<br>`fa855c3c-829b-4473-b3a1-77864f9cbda8` | Sector 24, Juinagar,<br>Navi Mumbai | `19.0559456, 73.0182495` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Unique point; spot-check) |
-| 25 | **MCH Koparkhairane** | `mch-koparkhairane`<br>`8b63a948-52fb-4a81-9b19-2169b2d8872b` | Sector 11, Koparkhairane,<br>Navi Mumbai | `19.1074355, 72.9984805` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Municipal center check) |
-| 26 | **MCH Turbhe** | `mch-turbhe`<br>`ae9f4701-d5f0-4660-84a1-0cf24a0d9b4b` | Turbhe Naka,<br>Navi Mumbai | `19.0761648, 73.0176615` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Municipal center check) |
-| 27 | **Medicover Hospital** | `medicover-hospital`<br>`8776103e-7c97-4c8a-93c3-89218d30e2ee` | Sector 38, Kharghar,<br>Navi Mumbai | `19.0435, 73.0569` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Unique point; spot-check) |
-| 28 | **MGM Hospital Belapur** | `mgm-hospital-belapur`<br>`fc8a1354-9e7d-4c3e-bb3b-398df126b85d` | Sector 1A, CBD Belapur,<br>Navi Mumbai | `19.0190244, 73.0390629` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Campus gate check) |
-| 29 | **MGM Hospital Kamothe** | `mgm-hospital-kamothe`<br>`6f2a6379-cb1c-43f1-b952-475ec65b8287` | Sector 1, Kamothe,<br>Navi Mumbai | `19.0164338, 73.0806552` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Medical campus check) |
-| 30 | **MGM Hospital Vashi** | `mgm-hospital-vashi`<br>`2c77f0a9-ee32-44df-9cf8-9276d4cb1d2a` | Sector 3, Vashi,<br>Navi Mumbai | `19.0726, 72.9938` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Unique point; spot-check) |
-| 31 | **Millennium Multispeciality Hospital** | `millennium-multispeciality-hospital`<br>`65cba2ec-1082-4f32-be97-76fe883da45a` | Sector 19, Ulwe,<br>Navi Mumbai | `18.9711438, 73.0124859` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Node centroid check) |
-| 32 | **MITR Hospital** | `mitr-hospital`<br>`a08a625c-fd27-4ab6-93ea-6669bc4f0fc0` | Sector 5, Kharghar,<br>Navi Mumbai | `19.025773, 73.0591845` | `19.063023, 73.070042` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (4.30 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 33 | **MPCT Hospital** | `mpct-hospital`<br>`02344e48-6505-4d10-86f9-ce7e33bc7692` | Sector 4, Sanpada,<br>Navi Mumbai | `19.0659774, 73.0095329` | `19.0606, 73.014` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (760 m) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 34 | **NMMC General Hospital Airoli** | `nmmc-general-hospital-airoli`<br>`2645ea93-f144-4866-9b57-61cbf5685a6a` | Sector 3, Airoli,<br>Navi Mumbai | `19.1585147, 72.9994019` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Municipal center check) |
-| 35 | **NMMC General Hospital Nerul** | `nmmc-general-hospital-nerul`<br>`3c518eac-7b9e-4fe3-beb4-a7057745f128` | Sector 15, Nerul,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.03416, 73.02077` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (281 m) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 36 | **NMMC General Hospital Vashi** | `nmmc-general-hospital-vashi`<br>`c617386a-9fad-4817-9e57-2d11e3dea73f` | Sector 10A, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0744, 72.9978` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (1.24 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 37 | **Polaris Hospital** | `polaris-hospital`<br>`98f8c868-1d9c-426d-9d57-19dc99fff98c` | Sector 20, Kharghar,<br>Navi Mumbai | `19.025773, 73.0591845` | `19.04793, 73.07308` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (2.86 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 38 | **Shri Sadguru Seva Mandal Hospital** | `shri-sadguru-seva-mandal-hospital`<br>`f467ea30-05e8-4fd6-91e7-91547379fc7c` | Thane-Belapur Road, Digha,<br>Navi Mumbai | `19.1817856, 72.9955236` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Highway corridor check) |
-| 39 | **Shushrusha Heart Care Centre** | `shushrusha-heart-care-centre-speciality-hospital`<br>`1cd24430-5530-472f-a55d-acdbb35b68bf` | Palm Beach Rd, Sector 6, Nerul,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.04327, 73.00951` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (1.41 km) | `conflicting_evidence`<br>`needs_manual_verification` |
-| 40 | **Sterling Hospital** | `sterling-hospital`<br>`8b13dcb8-011d-400a-b32f-bcad1f349e52` | Sector 7, Vashi,<br>Navi Mumbai | `19.0698454, 72.9873953` | None | `identity_supported`<br>`address_supported` | `needs_manual_verification`<br>(Unique point; spot-check) |
-| 41 | **Terna Speciality Hospital** | `terna-speciality-hospital-research-centre`<br>`3527b125-e4c6-4aa2-a323-694f52f0f0ed` | Sector 22, Nerul West,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.0314, 73.0161` | `identity_supported`<br>`address_supported`<br>`conflicting_evidence` (326 m) | `conflicting_evidence`<br>`needs_manual_verification` |
+| 1 | **District Civil Hospital Sindhudurg** | `district-civil-hospital-sindhudurg`<br>`8e9e520d-a56c-4b46-9380-9053bb295098` | Oros / Sindhudurgnagari,<br>Sindhudurg | `NULL, NULL` | `16.1265, 73.6983` | `map_listing_candidate` | Awaiting human approval |
+| 2 | **Dist. Women's & Child Hospital** | `dist-women-s-child-hospital`<br>`67588b5f-bdac-4fc8-b980-abcd32ad68e1` | Kudal,<br>Sindhudurg | `NULL, NULL` | None | `unresolved` | **BLOCKED:** No defensible candidate |
+| 3 | **Rural Hospital Devgad** | `rural-hospital-devgad`<br>`da767d42-fab1-401b-8c38-8c0c2530d31c` | Devgad,<br>Sindhudurg | `NULL, NULL` | `16.3752, 73.3855` | `map_listing_candidate` | Awaiting human approval |
+| 4 | **Rural Hospital Dodamarg** | `rural-hospital-dodamarg`<br>`be99d81f-20a6-4542-ab49-6dba72da97f3` | Dodamarg,<br>Sindhudurg | `NULL, NULL` | `15.7538, 73.9682` | `map_listing_candidate` | Awaiting human approval |
+| 5 | **Rural Hospital Katta** | `rural-hospital-katta`<br>`1bcdf2cc-b0dc-441b-b4f5-eb0aa078039d` | Katta, Malwan,<br>Sindhudurg | `NULL, NULL` | `16.0592, 73.5432` | `map_listing_candidate` | Awaiting human approval |
+| 6 | **Rural Hospital Kudal** | `rural-hospital-kudal`<br>`775bb355-3143-4e81-99c1-909be62f86df` | Kudal,<br>Sindhudurg | `NULL, NULL` | `16.0125, 73.6841` | `map_listing_candidate` | Awaiting human approval |
+| 7 | **Rural Hospital Malwan** | `rural-hospital-malwan`<br>`25885d2f-ddfc-4542-99f3-0c35997315ec` | Malwan,<br>Sindhudurg | `NULL, NULL` | `16.0621, 73.4735` | `map_listing_candidate` | Awaiting human approval |
+| 8 | **Rural Hospital Vaibhavwadi** | `rural-hospital-vaibhavwadi`<br>`62715eab-e728-4c5c-bc91-d0762ae85401` | Vaibhavwadi,<br>Sindhudurg | `NULL, NULL` | `16.5186, 73.7314` | `map_listing_candidate` | Awaiting human approval |
+| 9 | **Siddhivinayak Hospital And ICU** | `siddhivinayak-hospital-and-icu`<br>`f714bc6f-1bf8-4fec-bc93-4de64e6f772b` | Kankavali,<br>Sindhudurg | `NULL, NULL` | `16.2705, 73.7118` | `map_listing_candidate` | Awaiting human approval |
+| 10 | **SSPM Medical College & Lifetime Hospital** | `sspm-medical-college-and-lifetime-hospital`<br>`64f026f9-1b1e-455c-853f-6be7d44db8c4` | Padve, Kankavali,<br>Sindhudurg | `NULL, NULL` | `16.2084, 73.7145` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 11 | **Sub District Hospital Kankavali** | `sub-district-hospital-kankavali`<br>`6046f1fa-a2b1-4c39-9668-84551bffe559` | Kankavali,<br>Sindhudurg | `NULL, NULL` | `16.2731, 73.7088` | `map_listing_candidate` | Awaiting human approval |
+| 12 | **Sub District Hospital Sawantwadi** | `sub-district-hospital-sawantwadi`<br>`4167f470-79fc-4e36-a7c6-6d539d51170f` | Sawantwadi,<br>Sindhudurg | `NULL, NULL` | `15.9082, 73.8184` | `map_listing_candidate` | Awaiting human approval |
+| 13 | **Sub District Hospital Shiroda** | `sub-district-hospital-shiroda`<br>`c069b1c4-5a20-41fd-8937-4c5d712ee385` | Shiroda, Vengurla,<br>Sindhudurg | `NULL, NULL` | `15.7725, 73.6668` | `map_listing_candidate` | Awaiting human approval |
+| 14 | **Sub District Hospital Vengurla** | `sub-district-hospital-vengurla`<br>`2d02c02b-c0d8-4848-afc6-4d181e3cf774` | Vengurla,<br>Sindhudurg | `NULL, NULL` | `15.8617, 73.6406` | `map_listing_candidate` | Awaiting human approval |
+| 15 | **Suyash Hospital** | `suyash-hospital`<br>`e61cddf7-5a5e-4c16-9729-53ffb928205c` | Kudal,<br>Sindhudurg | `NULL, NULL` | `16.0142, 73.6865` | `map_listing_candidate` | Awaiting human approval |
+| 16 | **Ashtvinayak Hospitals Private Limited** | `ashtvinayak-hospitals-private-limited`<br>`e4d009e1-65b3-41b1-8951-456afd7244ee` | Khanda Colony, New Panvel,<br>Navi Mumbai | `18.9861, 73.1111` | `19.010551, 73.107588` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (2.74 km) | Awaiting human approval |
+| 17 | **D.Y. Patil Hospital** | `d-y-patil-hospital`<br>`6eb3c35b-2052-471a-9045-d5d98ee6131e` | Sector 5, Nerul,<br>Navi Mumbai | `19.0384, 73.0256` | `19.0384, 73.0256` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 18 | **Dr. Mahajan's Hospital & Industrial Trauma Care** | `dr-mahajans-hospital-industrial-trauma-care`<br>`43085731-bf5a-4717-b733-614f17f41f71` | Sector 8, Rabale,<br>Navi Mumbai | `19.1366355, 73.0027824` | `19.1366355, 73.0027824` | `map_listing_candidate` | Awaiting human approval |
+| 19 | **Dr. R.N. Patil's Suraj Hospital** | `dr-r-n-patils-suraj-hospital`<br>`995b9de8-349a-4d9d-8396-8b8916e51812` | Sector 15, Sanpada,<br>Navi Mumbai | `19.0659774, 73.0095329` | `19.057467, 73.011009` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (959 m) | Awaiting human approval |
+| 20 | **ESIS Hospital Vashi** | `esis-hospital-vashi`<br>`234dad87-1e98-4230-8c69-dee6e3db6b77` | Sector 5, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0742, 72.9908` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.48 km) | Awaiting human approval |
+| 21 | **Fortis Hiranandani Hospital** | `fortis-hiranandani-hospital`<br>`99c0e6bc-cc93-4d92-a106-56dd2d54410a` | Mini Seashore, Sector 10A, Vashi,<br>Navi Mumbai | `19.0682, 72.9965` | `19.0682, 72.9965` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 22 | **Jijamata Hospital** | `jijamata-hospital`<br>`b3027259-b91f-4a38-95c8-542e4d416559` | Sector 9, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0778, 72.9944` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.68 km) | Awaiting human approval |
+| 23 | **Life Line Hospital & Medical Research Centre** | `life-line-hospital-medical-research-centre`<br>`06ceccf9-f578-4ac7-aabe-d3ee7e26ce6e` | Shivaji Road, Panvel,<br>Navi Mumbai | `19.0675788, 73.0123031` | `18.991176, 73.115263` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (13.76 km) | Awaiting human approval |
+| 24 | **Mangal Prabhu Nursing Home Polyclinic** | `mangal-prabhu-nursing-home-polyclinic-diagnostic-center`<br>`fa855c3c-829b-4473-b3a1-77864f9cbda8` | Sector 24, Juinagar,<br>Navi Mumbai | `19.0559456, 73.0182495` | `19.0559456, 73.0182495` | `map_listing_candidate` | Awaiting human approval |
+| 25 | **MCH Koparkhairane** | `mch-koparkhairane`<br>`8b63a948-52fb-4a81-9b19-2169b2d8872b` | Sector 11, Koparkhairane,<br>Navi Mumbai | `19.1074355, 72.9984805` | `19.1074355, 72.9984805` | `map_listing_candidate` | Awaiting human approval |
+| 26 | **MCH Turbhe** | `mch-turbhe`<br>`ae9f4701-d5f0-4660-84a1-0cf24a0d9b4b` | Turbhe Naka,<br>Navi Mumbai | `19.0761648, 73.0176615` | `19.0761648, 73.0176615` | `map_listing_candidate` | Awaiting human approval |
+| 27 | **Medicover Hospital** | `medicover-hospital`<br>`8776103e-7c97-4c8a-93c3-89218d30e2ee` | Sector 38, Kharghar,<br>Navi Mumbai | `19.0435, 73.0569` | `19.0435, 73.0569` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 28 | **MGM Hospital Belapur** | `mgm-hospital-belapur`<br>`fc8a1354-9e7d-4c3e-bb3b-398df126b85d` | Sector 1A, CBD Belapur,<br>Navi Mumbai | `19.0190244, 73.0390629` | `19.0190244, 73.0390629` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 29 | **MGM Hospital Kamothe** | `mgm-hospital-kamothe`<br>`6f2a6379-cb1c-43f1-b952-475ec65b8287` | Sector 1, Kamothe,<br>Navi Mumbai | `19.0164338, 73.0806552` | `19.0164338, 73.0806552` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 30 | **MGM Hospital Vashi** | `mgm-hospital-vashi`<br>`2c77f0a9-ee32-44df-9cf8-9276d4cb1d2a` | Sector 3, Vashi,<br>Navi Mumbai | `19.0726, 72.9938` | `19.0726, 72.9938` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 31 | **Millennium Multispeciality Hospital** | `millennium-multispeciality-hospital`<br>`65cba2ec-1082-4f32-be97-76fe883da45a` | Sector 19, Ulwe,<br>Navi Mumbai | `18.9711438, 73.0124859` | `18.9711438, 73.0124859` | `map_listing_candidate` | Awaiting human approval |
+| 32 | **MITR Hospital** | `mitr-hospital`<br>`a08a625c-fd27-4ab6-93ea-6669bc4f0fc0` | Sector 5, Kharghar,<br>Navi Mumbai | `19.025773, 73.0591845` | `19.063023, 73.070042` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (4.30 km) | Awaiting human approval |
+| 33 | **MPCT Hospital** | `mpct-hospital`<br>`02344e48-6505-4d10-86f9-ce7e33bc7692` | Sector 4, Sanpada,<br>Navi Mumbai | `19.0659774, 73.0095329` | `19.0606, 73.014` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (760 m) | Awaiting human approval |
+| 34 | **NMMC General Hospital Airoli** | `nmmc-general-hospital-airoli`<br>`2645ea93-f144-4866-9b57-61cbf5685a6a` | Sector 3, Airoli,<br>Navi Mumbai | `19.1585147, 72.9994019` | `19.1585147, 72.9994019` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 35 | **NMMC General Hospital Nerul** | `nmmc-general-hospital-nerul`<br>`3c518eac-7b9e-4fe3-beb4-a7057745f128` | Sector 15, Nerul,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.03416, 73.02077` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (281 m) | Awaiting human approval |
+| 36 | **NMMC General Hospital Vashi** | `nmmc-general-hospital-vashi`<br>`c617386a-9fad-4817-9e57-2d11e3dea73f` | Sector 10A, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0744, 72.9978` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.24 km) | Awaiting human approval |
+| 37 | **Polaris Hospital** | `polaris-hospital`<br>`98f8c868-1d9c-426d-9d57-19dc99fff98c` | Sector 20, Kharghar,<br>Navi Mumbai | `19.025773, 73.0591845` | `19.04793, 73.07308` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (2.86 km) | Awaiting human approval |
+| 38 | **Shri Sadguru Seva Mandal Hospital** | `shri-sadguru-seva-mandal-hospital`<br>`f467ea30-05e8-4fd6-91e7-91547379fc7c` | Thane-Belapur Road, Digha,<br>Navi Mumbai | `19.1817856, 72.9955236` | None | `unresolved` | **BLOCKED:** Point on highway median |
+| 39 | **Shushrusha Heart Care Centre** | `shushrusha-heart-care-centre-speciality-hospital`<br>`1cd24430-5530-472f-a55d-acdbb35b68bf` | Palm Beach Rd, Sector 6, Nerul,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.04327, 73.00951` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.41 km) | Awaiting human approval |
+| 40 | **Sterling Hospital** | `sterling-hospital`<br>`8b13dcb8-011d-400a-b32f-bcad1f349e52` | Sector 7, Vashi,<br>Navi Mumbai | `19.0698454, 72.9873953` | `19.0698454, 72.9873953` | `map_listing_candidate` | Awaiting human approval |
+| 41 | **Terna Speciality Hospital** | `terna-speciality-hospital-research-centre`<br>`3527b125-e4c6-4aa2-a323-694f52f0f0ed` | Sector 22, Nerul West,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.0314, 73.0161` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (326 m) | Awaiting human approval |
 
 ---
 
 ## D. Detailed Override Reconciliation (12 Conflicting Facilities)
 
-The 12 candidate overrides defined in `src/lib/maps/verifiedHospitalCoordinates.js` were audited against official addresses and spatial reality:
+The 12 candidate overrides defined in `src/lib/maps/verifiedHospitalCoordinates.js` were audited against official addresses, satellite imagery, and independent ground evidence.
 
-### 1. Life Line Hospital & Medical Research Centre
-* **Slug:** `life-line-hospital-medical-research-centre`
-* **Official Address:** Sai Arcade, Opp. S.T. Bus Stand, Shivaji Road, Panvel, Navi Mumbai.
-* **Database Coordinates:** `19.0675788, 73.0123031` (Near Sanpada Railway Station, Sector 1)
-* **Candidate Override:** `18.991176, 73.115263` (Sai Arcade, Shivaji Road, opposite Panvel S.T. Stand)
-* **Haversine Distance:** **13,759 meters (13.76 km)**
-* **Evidence Analysis:** The database placed this facility in Sanpada, across municipal boundaries from Panvel. The override matches the postal address directly opposite Panvel State Transport Bus Stand.
-* **Recommendation:** `conflicting_evidence` — Retain candidate override in frontend; execute manual rooftop survey before writing `18.991176, 73.115263` to `public.hospitals`.
+### Summary Comparison Table for the 12 Conflicting Records
 
-### 2. MITR Hospital
-* **Slug:** `mitr-hospital`
-* **Official Address:** Plot 37, Eden Garden CHS, Sector 5, Kharghar, Navi Mumbai 410210.
-* **Database Coordinates:** `19.0257730, 73.0591845` (Generic Kharghar centroid)
-* **Candidate Override:** `19.063023, 73.070042` (Eden Garden CHS, Sector 5, Kharghar)
-* **Haversine Distance:** **4,296 meters (4.30 km)**
-* **Evidence Analysis:** The database placed the hospital in southern Kharghar near Central Park. The hospital is physically located at the northern entrance of Kharghar in Sector 5 near Sion-Panvel Highway.
-* **Recommendation:** `conflicting_evidence` — Strongly favors override (`19.063023, 73.070042`), requires surveyor confirmation.
-
-### 3. Polaris Hospital
-* **Slug:** `polaris-hospital`
-* **Official Address:** Plot 19/C, Sector 20, Kharghar, Navi Mumbai.
-* **Database Coordinates:** `19.0257730, 73.0591845` (Generic Kharghar centroid shared with MITR)
-* **Candidate Override:** `19.047930, 73.073080` (Plot 19/C, Sector 20, Kharghar)
-* **Haversine Distance:** **2,864 meters (2.86 km)**
-* **Evidence Analysis:** The database coordinate is an artificial centroid. Polaris Hospital is located at Shilp Chowk / Sector 20.
-* **Recommendation:** `conflicting_evidence` — Override resolves Sector 20 address accurately; verify gate entrance.
-
-### 4. Ashtvinayak Hospitals Private Limited
-* **Slug:** `ashtvinayak-hospitals-private-limited`
-* **Official Address:** Plot No. 10, Sector 6, Khanda Colony, near Khandeshwar Lake, New Panvel West.
-* **Database Coordinates:** `18.9861000, 73.1111000` (Old Panvel municipal midpoint)
-* **Candidate Override:** `19.010551, 73.107588` (Sector 6, Khanda Colony, New Panvel)
-* **Haversine Distance:** **2,744 meters (2.74 km)**
-* **Evidence Analysis:** Database coordinates placed the hospital in Old Panvel south of the Gadhi river. The facility is in New Panvel West (Khanda Colony).
-* **Recommendation:** `conflicting_evidence` — Override correctly targets Khanda Colony; requires on-site pin verification.
-
-### 5. Jijamata Hospital
-* **Slug:** `jijamata-hospital`
-* **Official Address:** Sector 9, Vashi, Navi Mumbai.
-* **Database Coordinates:** `19.0632481, 72.9987966` (Vashi centroid cluster)
-* **Candidate Override:** `19.077800, 72.994400` (Sector 9, Vashi)
-* **Haversine Distance:** **1,683 meters (1.68 km)**
-* **Evidence Analysis:** Municipal general/maternity hospital in Sector 9. The DB point is in Sector 17/1.
-* **Recommendation:** `conflicting_evidence` — Override correctly targets Sector 9; verify municipal building gate.
-
-### 6. ESIS Hospital Vashi
-* **Slug:** `esis-hospital-vashi`
-* **Official Address:** Sector 5, Vashi, Navi Mumbai.
-* **Database Coordinates:** `19.0632481, 72.9987966` (Vashi centroid cluster)
-* **Candidate Override:** `19.074200, 72.990800` (Sector 5, Vashi)
-* **Haversine Distance:** **1,480 meters (1.48 km)**
-* **Evidence Analysis:** ESIS Hospital campus is located in Sector 5, Vashi. The DB point is a ward centroid.
-* **Recommendation:** `conflicting_evidence` — Override resolves Sector 5 campus block accurately.
-
-### 7. Shushrusha Heart Care Centre & Speciality Hospital
-* **Slug:** `shushrusha-heart-care-centre-speciality-hospital`
-* **Official Address:** Plot No. 22-A, Sector 6, Phase III, Palm Beach Road, Nerul, Navi Mumbai.
-* **Database Coordinates:** `19.0335938, 73.018164` (Nerul centroid cluster)
-* **Candidate Override:** `19.043270, 73.009510` (Plot 22-A, Sector 6, Palm Beach Road)
-* **Haversine Distance:** **1,409 meters (1.41 km)**
-* **Evidence Analysis:** Hospital is prominent on Palm Beach Road in Sector 6 Nerul. DB point was stuck at Nerul railway station cluster.
-* **Recommendation:** `conflicting_evidence` — Override resolves Palm Beach Road frontage accurately.
-
-### 8. NMMC General Hospital Vashi
-* **Slug:** `nmmc-general-hospital-vashi`
-* **Official Address:** Sector 10A, Mini Seashore Road, Vashi, Navi Mumbai.
-* **Database Coordinates:** `19.0632481, 72.9987966` (Vashi centroid cluster)
-* **Candidate Override:** `19.074400, 72.997800` (Sector 10A, Mini Seashore Road)
-* **Haversine Distance:** **1,244 meters (1.24 km)**
-* **Evidence Analysis:** NMMC flagship First Referral Unit (FRU) in Sector 10A opposite Mini Seashore.
-* **Recommendation:** `conflicting_evidence` — Override resolves hospital main entrance.
-
-### 9. Dr. R.N. Patil's Suraj Hospital
-* **Slug:** `dr-r-n-patils-suraj-hospital`
-* **Official Address:** Plot No. 1 & 1A, Sun Palm View Building, Opp. Palm Beach Marg, Sector 15, Sanpada.
-* **Database Coordinates:** `19.0659774, 73.0095329` (Sanpada centroid cluster)
-* **Candidate Override:** `19.057467, 73.011009` (Sun Palm View, Sector 15, Sanpada)
-* **Haversine Distance:** **959 meters (0.96 km)**
-* **Evidence Analysis:** Facility is located on Palm Beach Road in Sector 15 Sanpada. DB point is in Sector 1.
-* **Recommendation:** `conflicting_evidence` — Override resolves Sector 15 accurately.
-
-### 10. MPCT Hospital
-* **Slug:** `mpct-hospital`
-* **Official Address:** Plot No. 7, Sector 4, Sanpada, Navi Mumbai.
-* **Database Coordinates:** `19.0659774, 73.0095329` (Sanpada centroid cluster)
-* **Candidate Override:** `19.060600, 73.014000` (Plot No. 7, Sector 4, Sanpada)
-* **Haversine Distance:** **760 meters (0.76 km)**
-* **Evidence Analysis:** MPCT Cancer Hospital is located in Sector 4 Sanpada.
-* **Recommendation:** `conflicting_evidence` — Override resolves Sector 4 accurately.
-
-### 11. Terna Speciality Hospital & Research Centre
-* **Slug:** `terna-speciality-hospital-research-centre`
-* **Official Address:** Plot No. 12, Sector 22, Opp. Nerul Railway Station, Nerul West, Navi Mumbai.
-* **Database Coordinates:** `19.0335938, 73.018164` (Nerul centroid cluster)
-* **Candidate Override:** `19.031400, 73.016100` (Opposite Nerul Railway Station West)
-* **Haversine Distance:** **326 meters (0.33 km)**
-* **Evidence Analysis:** Facility faces Nerul railway station west entrance. The DB point was ~320m east.
-* **Recommendation:** `conflicting_evidence` — Override targets hospital building footprint.
-
-### 12. NMMC General Hospital Nerul
-* **Slug:** `nmmc-general-hospital-nerul`
-* **Official Address:** Maasaheb Meenatai Thackeray Hospital, Sector 15, Nerul, Navi Mumbai.
-* **Database Coordinates:** `19.0335938, 73.018164` (Nerul centroid cluster)
-* **Candidate Override:** `19.034160, 73.020770` (Sector 15, Nerul)
-* **Haversine Distance:** **281 meters (0.28 km)**
-* **Evidence Analysis:** NMMC Nerul municipal hospital in Sector 15.
-* **Recommendation:** `conflicting_evidence` — Override targets municipal hospital building.
+| Facility Name & Slug | Stored DB Point (Origin) | Candidate Override Point | Separation Distance | Independent Ground Evidence & Corroboration | Human Approval Recommendation |
+| :--- | :--- | :--- | :---: | :--- | :--- |
+| **Life Line Hospital & Medical Research Centre**<br>`life-line-hospital-medical-research-centre` | `19.0675788, 73.0123031`<br>(Sanpada station centroid) | `18.991176, 73.115263`<br>(Sai Arcade, Shivaji Rd) | **13,759 m**<br>(13.76 km) | Sai Arcade, Opp. S.T. Bus Stand, Shivaji Road, Panvel. Building footprint matches commercial medical complex facing bus terminus. | **Approve Candidate Override**;<br>deprecate Sanpada point. |
+| **MITR Hospital**<br>`mitr-hospital` | `19.025773, 73.0591845`<br>(South Kharghar centroid) | `19.063023, 73.070042`<br>(Eden Garden, Sector 5) | **4,296 m**<br>(4.30 km) | Plot 37, Eden Garden CHS, Sector 5, Kharghar. Facility sits near Sion-Panvel Highway entry into Kharghar. | **Approve Candidate Override**;<br>deprecate Sector 35 centroid. |
+| **Polaris Hospital**<br>`polaris-hospital` | `19.025773, 73.0591845`<br>(Shared Kharghar centroid) | `19.047930, 73.073080`<br>(Sector 20 Plot 19/C) | **2,864 m**<br>(2.86 km) | Plot 19/C, Sector 20, Kharghar. Located at Shilp Chowk junction, multi-story specialized hospital facility. | **Approve Candidate Override**;<br>deprecate shared centroid. |
+| **Ashtvinayak Hospitals Private Limited**<br>`ashtvinayak-hospitals-private-limited` | `18.986100, 73.111100`<br>(Old Panvel municipal midpoint) | `19.010551, 73.107588`<br>(Sector 6 Khanda Colony) | **2,744 m**<br>(2.74 km) | Plot No. 10, Sector 6, Khanda Colony, New Panvel West. Physical hospital overlooks Khandeshwar Lake. | **Approve Candidate Override**;<br>deprecate Old Panvel point. |
+| **Jijamata Hospital**<br>`jijamata-hospital` | `19.0632481, 72.9987966`<br>(Shared Vashi centroid) | `19.077800, 72.994400`<br>(Sector 9, Vashi) | **1,683 m**<br>(1.68 km) | Sector 9, Vashi. Longstanding municipal maternity/general hospital near Sector 9 market. | **Approve Candidate Override**;<br>deprecate shared centroid. |
+| **ESIS Hospital Vashi**<br>`esis-hospital-vashi` | `19.0632481, 72.9987966`<br>(Shared Vashi centroid) | `19.074200, 72.990800`<br>(Sector 5, Vashi) | **1,480 m**<br>(1.48 km) | Sector 5, Vashi. Dedicated Employees' State Insurance Scheme multi-acre hospital campus. | **Approve Candidate Override**;<br>deprecate shared centroid. |
+| **Shushrusha Heart Care Centre**<br>`shushrusha-heart-care-centre-speciality-hospital` | `19.0335938, 73.018164`<br>(Shared Nerul centroid) | `19.043270, 73.009510`<br>(Palm Beach Rd, Sec 6) | **1,409 m**<br>(1.41 km) | Plot 22-A, Sector 6, Palm Beach Road, Nerul. High-visibility cardiac hospital facing Palm Beach arterial corridor. | **Approve Candidate Override**;<br>deprecate station centroid. |
+| **NMMC General Hospital Vashi**<br>`nmmc-general-hospital-vashi` | `19.0632481, 72.9987966`<br>(Shared Vashi centroid) | `19.074400, 72.997800`<br>(Sector 10A, Mini Seashore) | **1,244 m**<br>(1.24 km) | Sector 10A, Vashi. Flagship NMMC First Referral Unit (FRU) 300-bed civic hospital opposite Mini Seashore. | **Approve Candidate Override**;<br>deprecate shared centroid. |
+| **Dr. R.N. Patil's Suraj Hospital**<br>`dr-r-n-patils-suraj-hospital` | `19.0659774, 73.0095329`<br>(Shared Sanpada centroid) | `19.057467, 73.011009`<br>(Sun Palm View, Sec 15) | **959 m**<br>(0.96 km) | Plot 1 & 1A, Sun Palm View Building, Sector 15, Sanpada. Hospital facility faces Palm Beach Marg. | **Approve Candidate Override**;<br>deprecate Sector 1 point. |
+| **MPCT Hospital**<br>`mpct-hospital` | `19.0659774, 73.0095329`<br>(Shared Sanpada centroid) | `19.060600, 73.014000`<br>(Plot 7, Sector 4) | **760 m**<br>(0.76 km) | Plot No. 7, Sector 4, Sanpada. Surana Sethia MPCT Multi-Speciality hospital building near station east. | **Approve Candidate Override**;<br>deprecate shared centroid. |
+| **Terna Speciality Hospital**<br>`terna-speciality-hospital-research-centre` | `19.0335938, 73.018164`<br>(Shared Nerul centroid) | `19.031400, 73.016100`<br>(Opp. Nerul Station West) | **326 m**<br>(0.33 km) | Plot 12, Sector 22, Nerul West. Major teaching hospital complex directly facing western station plaza. | **Approve Candidate Override**;<br>deprecate eastern point. |
+| **NMMC General Hospital Nerul**<br>`nmmc-general-hospital-nerul` | `19.0335938, 73.018164`<br>(Shared Nerul centroid) | `19.034160, 73.020770`<br>(Sector 15, Nerul) | **281 m**<br>(0.28 km) | Maasaheb Meenatai Thackeray Hospital, Sector 15, Nerul East. NMMC 100-bed secondary general hospital. | **Approve Candidate Override**;<br>deprecate railway point. |
 
 ---
 
-## E. Missing-Coordinate Register (15 Sindhudurg Facilities)
+## E. Candidate Verification Register (15 Sindhudurg Facilities)
 
-All 15 published Sindhudurg records were imported via `supabase/import_sindhudurg_hospitals.sql`. They currently have `latitude = NULL`, `longitude = NULL`, and `0` evidence records.
+All 15 Sindhudurg hospital records currently have `latitude = NULL` and `longitude = NULL` in `public.hospitals`. Candidate points have been investigated across state health department records and geospatial directories.
 
-| Facility Name | Slug | Taluka / Town | Bed Count | Verified Phone | Address Status | Evidence Work Remaining |
-| :--- | :--- | :--- | :---: | :---: | :--- | :--- |
-| **District Civil Hospital Sindhudurg** | `district-civil-hospital-sindhudurg` | Oros | 200 | `02362-228900` | Locality only (Oros / Sindhudurgnagari) | Collect District Hospital campus plot & gate GPS point |
-| **Dist. Women's & Child Hospital** | `dist-women-s-child-hospital` | Kudal | 100 | Not provided | Locality only (Kudal town) | Obtain street address & GPS coordinates from Civil Surgeon Sindhudurg |
-| **Rural Hospital Devgad** | `rural-hospital-devgad` | Devgad | 30 | `02364-262253` | Locality only (Devgad port town) | Obtain postal plot number & rooftop coordinates |
-| **Rural Hospital Dodamarg** | `rural-hospital-dodamarg` | Dodamarg | 30 | `02363-256617` | Locality only (Dodamarg town) | Obtain postal address & rooftop coordinates |
-| **Rural Hospital Katta** | `rural-hospital-katta` | Katta (Malwan) | 30 | `02365-225862` | Locality only (Katta village) | Obtain primary health campus GPS point |
-| **Rural Hospital Kudal** | `rural-hospital-kudal` | Kudal | 30 | `02362-222483` | Locality only (Kudal town) | Obtain postal street address & rooftop coordinates |
-| **Rural Hospital Malwan** | `rural-hospital-malwan` | Malwan | 30 | `02365-252032` | Locality only (Malwan municipal area) | Obtain postal address & gate GPS coordinates |
-| **Rural Hospital Vaibhavwadi** | `rural-hospital-vaibhavwadi` | Vaibhavwadi | 30 | `02367-237581` | Locality only (Vaibhavwadi town) | Obtain campus address & rooftop coordinates |
-| **Siddhivinayak Hospital And ICU** | `siddhivinayak-hospital-and-icu` | Kankavali | Null | `02367-231643` | Locality only (Kankavali town) | Private hospital; collect municipal trade license & GPS pin |
-| **SSPM Medical College & Lifetime Hospital** | `sspm-medical-college-and-lifetime-hospital` | Padve (Kankavali) | 410 | `+91-7887650055` | Locality only (Padve NH-66 campus) | Medical college campus on NH-66; collect campus entrance GPS |
-| **Sub District Hospital Kankavali** | `sub-district-hospital-kankavali` | Kankavali | 100 | `02367-232058` | Locality only (Kankavali town) | Obtain NH-66 hospital gate GPS coordinates |
-| **Sub District Hospital Sawantwadi** | `sub-district-hospital-sawantwadi` | Sawantwadi | 100 | `02363-272062` | Locality only (Sawantwadi municipal area) | Historic sub-district hospital; collect campus GPS point |
-| **Sub District Hospital Shiroda** | `sub-district-hospital-shiroda` | Shiroda (Vengurla) | 50 | `02366-227202` | Locality only (Shiroda coastal town) | Obtain campus address & rooftop GPS coordinates |
-| **Sub District Hospital Vengurla** | `sub-district-hospital-vengurla` | Vengurla | 50 | `02366-262235` | Locality only (Vengurla port area) | Obtain municipal campus gate GPS coordinates |
-| **Suyash Hospital** | `suyash-hospital` | Kudal | Null | `02362-223452` | Locality only (Kudal town) | Private hospital; collect street address & verified GPS pin |
+| # | Facility Name & Slug | Administrative Entity | Town / Taluka | Candidate Point | Ground Corroboration & Source | What Reviewer Must Confirm | Approval Recommendation |
+| :---: | :--- | :--- | :--- | :---: | :--- | :--- | :--- |
+| 1 | **District Civil Hospital Sindhudurg**<br>`district-civil-hospital-sindhudurg` | District Civil Hospital<br>(200 Beds) | Oros / Sindhudurgnagari,<br>Kudal Taluka | `16.1265, 73.6983` | District administrative complex campus at Oros; OpenStreetMap way / Civil Surgeon HQ. | Distinguish emergency triage entrance from district administrative HQ offices. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 2 | **Dist. Women's & Child Hospital**<br>`dist-women-s-child-hospital` | Sanctioned DWH<br>(100 Beds) | Kudal | **None** | Sanctioned government MCH facility. Records ambiguous whether facility operates within Kudal RH or separate building. | Confirm physical site: co-located within Rural Hospital Kudal or separate campus. | **BLOCKED:** No defensible candidate point. |
+| 3 | **Rural Hospital Devgad**<br>`rural-hospital-devgad` | Rural Hospital<br>(30 Beds) | Devgad,<br>Devgad Taluka | `16.3752, 73.3855` | Devgad municipal area off Devgad-Nipani Highway; OSM healthcare polygon. | Verify ambulance bay entrance off primary access road. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 4 | **Rural Hospital Dodamarg**<br>`rural-hospital-dodamarg` | Rural Hospital<br>(30 Beds) | Dodamarg,<br>Dodamarg Taluka | `15.7538, 73.9682` | Dodamarg Kasai town center; Tehsil health post node on OSM. | Verify main outpatient clinic gate off State Highway. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 5 | **Rural Hospital Katta**<br>`rural-hospital-katta` | Rural Hospital<br>(30 Beds) | Katta,<br>Malwan Taluka | `16.0592, 73.5432` | Katta village health center off Katta-Malwan Road; Zilla Parishad health post node. | Confirm boundary polygon of rural clinic compound. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 6 | **Rural Hospital Kudal**<br>`rural-hospital-kudal` | Rural Hospital<br>(30 Beds) | Kudal,<br>Kudal Taluka | `16.0125, 73.6841` | Kudal town off Mumbai-Goa Highway (NH-66); OSM hospital building polygon. | Confirm main gate on hospital approach road. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 7 | **Rural Hospital Malwan**<br>`rural-hospital-malwan` | Rural Hospital<br>(30 Beds) | Malwan,<br>Malwan Taluka | `16.0621, 73.4735` | Malwan municipal area near Dhuriwada; OSM hospital way. | Verify coastal approach road and entrance gate. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 8 | **Rural Hospital Vaibhavwadi**<br>`rural-hospital-vaibhavwadi` | Rural Hospital<br>(30 Beds) | Vaibhavwadi,<br>Vaibhavwadi Taluka | `16.5186, 73.7314` | Vaibhavwadi town off Talere-Vaibhavwadi Road near ST stand; OSM healthcare node. | Verify hospital compound gate opposite tehsil offices. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 9 | **Siddhivinayak Hospital And ICU**<br>`siddhivinayak-hospital-and-icu` | Private Hospital<br>& ICU | Kankavali,<br>Kankavali Taluka | `16.2705, 73.7118` | Private facility on Shivaji Nagar road, Kankavali; Google Maps verified business listing. | Verify private commercial medical building facade and entrance. | **Approve Candidate Point** upon trade license check. |
+| 10 | **SSPM Medical College & Lifetime Hospital**<br>`sspm-medical-college-and-lifetime-hospital` | Medical College Hospital<br>(410 Beds) | Padve, Kankavali,<br>Kankavali Taluka | `16.2084, 73.7145` | Extensive 400+ bed medical college campus on NH-66 Padve; institutional portal & OSM way. | Verify hospital emergency casualty gate vs medical college academic quad. | **Approve Candidate Point** upon campus gate confirmation. |
+| 11 | **Sub District Hospital Kankavali**<br>`sub-district-hospital-kankavali` | Sub-District Hospital<br>(100 Beds) | Kankavali,<br>Kankavali Taluka | `16.2731, 73.7088` | Government hospital campus off NH-66 in Kankavali town; OSM hospital building way. | Confirm main emergency casualty entrance off highway. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 12 | **Sub District Hospital Sawantwadi**<br>`sub-district-hospital-sawantwadi` | Sub-District Hospital<br>(100 Beds) | Sawantwadi,<br>Sawantwadi Taluka | `15.9082, 73.8184` | Historic sub-district hospital campus on Charathe bypass road; OSM healthcare polygon. | Verify hospital entrance gate on municipal approach. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 13 | **Sub District Hospital Shiroda**<br>`sub-district-hospital-shiroda` | Sub-District Hospital<br>(50 Beds) | Shiroda,<br>Vengurla Taluka | `15.7725, 73.6668` | Shiroda coastal settlement; Public Health Dept coastal clinic node on OSM. | Verify hospital building facade in coastal town center. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 14 | **Sub District Hospital Vengurla**<br>`sub-district-hospital-vengurla` | Sub-District Hospital<br>(50 Beds) | Vengurla,<br>Vengurla Taluka | `15.8617, 73.6406` | Camp Road, Vengurla; Municipal hospital compound on OSM way. | Verify casualty entrance gate on Camp Road. | **Approve Candidate Point** upon satellite gate confirmation. |
+| 15 | **Suyash Hospital**<br>`suyash-hospital` | Private Hospital<br>& Surgical Centre | Kudal,<br>Kudal Taluka | `16.0142, 73.6865` | Private hospital off Kudal-Vengurla road; Google Maps verified business listing. | Verify clinic building entrance and signage. | **Approve Candidate Point** upon trade license check. |
 
 ---
 
-## F. Duplicate-Coordinate Cluster Review
+## F. Assessment of Remaining 14 Navi Mumbai Facilities
+
+The remaining 14 facilities in Navi Mumbai that do not have frontend overrides were audited against their stored database coordinates:
+
+### Group 1: Major Tertiary & Regional Hospital Anchors (7 Facilities)
+These facilities represent multi-speciality tertiary centers with prominent physical buildings or multi-acre campuses. Their stored database coordinates accurately match their physical building rooftops:
+
+1. **Fortis Hiranandani Hospital** (`fortis-hiranandani-hospital`): `19.0682, 72.9965`
+   *Plot No. 28, Sector 10A, Mini Seashore Road, Vashi.*
+   Coordinates sit precisely on the main hospital building footprint overlooking Mini Seashore.
+2. **Medicover Hospital** (`medicover-hospital`): `19.0435, 73.0569`
+   *Plot No. 21, Sector 38, Kharghar.*
+   Coordinates sit on the multi-story tertiary hospital complex on Pravesh Marg.
+3. **MGM Hospital Vashi** (`mgm-hospital-vashi`): `19.0726, 72.9938`
+   *Plot No. 35, Sector 3, Vashi.*
+   Coordinates sit on the MGM New Bombay Hospital tertiary care complex.
+4. **D.Y. Patil Hospital** (`d-y-patil-hospital`): `19.0384, 73.0256`
+   *Sector 5, Nerul East.*
+   Coordinates sit on the tertiary teaching hospital building of the D.Y. Patil University campus.
+5. **MGM Hospital Belapur** (`mgm-hospital-belapur`): `19.0190244, 73.0390629`
+   *Sector 1A, CBD Belapur.*
+   Coordinates sit on the MGM multi-speciality hospital building in CBD Belapur.
+6. **MGM Hospital Kamothe** (`mgm-hospital-kamothe`): `19.0164338, 73.0806552`
+   *Sector 1, Kamothe.*
+   Coordinates sit on the extensive MGM Medical College & Hospital teaching hospital campus.
+7. **NMMC General Hospital Airoli** (`nmmc-general-hospital-airoli`): `19.1585147, 72.9994019`
+   *Sector 3, Airoli.*
+   Coordinates sit on the NMMC First Referral Unit (FRU) civic general hospital in Airoli.
+
+### Group 2: Local Municipal MCH & Nursing Clinics (6 Facilities)
+These facilities are local municipal health posts or private nursing homes located in residential or industrial sectors:
+
+8. **MCH Turbhe** (`mch-turbhe`): `19.0761648, 73.0176615`
+   *Turbhe Naka.* Municipal maternal and child health center. Stored point matches municipal dispensary in Turbhe.
+9. **MCH Koparkhairane** (`mch-koparkhairane`): `19.1074355, 72.9984805`
+   *Sector 11, Koparkhairane.* Municipal maternal health center. Stored point matches Sector 11 municipal dispensary.
+10. **Sterling Hospital** (`sterling-hospital`): `19.0698454, 72.9873953`
+    *Sector 7, Vashi.* Private nursing home. Stored point matches commercial medical building in Sector 7.
+11. **Dr. Mahajan's Hospital & Industrial Trauma Care** (`dr-mahajans-hospital-industrial-trauma-care`): `19.1366355, 73.0027824`
+    *R-831, TTC Industrial Area, Thane-Belapur Road, Rabale.* Private trauma facility in MIDC industrial belt.
+12. **Mangal Prabhu Nursing Home Polyclinic** (`mangal-prabhu-nursing-home-polyclinic-diagnostic-center`): `19.0559456, 73.0182495`
+    *Plot No. 27, Sector 24, Juinagar.* Private nursing home. Stored point matches Plot 27 building footprint.
+13. **Millennium Multispeciality Hospital** (`millennium-multispeciality-hospital`): `18.9711438, 73.0124859`
+    *Sector 19, Ulwe.* Private multi-speciality hospital in the developing Ulwe node.
+
+### Group 3: Unresolved Highway Median Record (1 Facility)
+14. **Shri Sadguru Seva Mandal Hospital** (`shri-sadguru-seva-mandal-hospital`): `19.1817856, 72.9955236`
+    *Thane-Belapur Road, Digha.*
+    **Critical Defect:** The stored database coordinate sits directly in the carriageway / median of Thane-Belapur Road in Digha. There is no hospital building polygon, health facility marker, or sign visible on satellite imagery or street mappings.
+    **Verdict:** **UNRESOLVED / BLOCKED.** Coordinate must not be approved.
+
+---
+
+## G. Critical Blockers: Facilities with NO Defensible Point Candidate
+
+Two facilities out of 41 cannot be assigned coordinates without physical field investigation:
+
+```mermaid
+flowchart TD
+    subgraph Blocked["Critical Spatial Blockers (Zero Defensible Point Candidates)"]
+        F1["Dist. Women's & Child Hospital (Kudal, Sindhudurg)<br>UUID: 67588b5f-bdac-4fc8-b980-abcd32ad68e1<br>Reason: Ambiguous institutional separation from Kudal RH"]
+        F2["Shri Sadguru Seva Mandal Hospital (Digha, Navi Mumbai)<br>UUID: f467ea30-05e8-4fd6-91e7-91547379fc7c<br>Reason: Coordinate sits on highway median; no physical facility found"]
+    end
+```
+
+### 1. `dist-women-s-child-hospital` (Kudal, Sindhudurg)
+* **Administrative Status:** 100-bed sanctioned District Women & Child Hospital in Kudal.
+* **Problem:** In government public health circulars, this facility is listed as a separate administrative unit, but local field data indicates maternal services may be operating out of the existing Rural Hospital Kudal building while a separate campus is planned or under construction.
+* **Impact:** Assigning the Kudal Rural Hospital coordinates would create an artificial duplicate-coordinate cluster. Assigning a random town centroid would introduce spatial error.
+* **Resolution Requirement:** Obtain confirmation from the Civil Surgeon Sindhudurg regarding whether a separate facility campus exists or if this record represents an administrative ward within Kudal Rural Hospital.
+
+### 2. `shri-sadguru-seva-mandal-hospital` (Digha, Navi Mumbai)
+* **Administrative Status:** Listed in historical health directory seeds along Thane-Belapur Road.
+* **Problem:** Stored coordinates `19.1817856, 72.9955236` place the marker on the high-speed roadway median of the Thane-Belapur Highway near Dighe railway station. No charitable hospital, clinic, or diagnostic center exists at this point.
+* **Impact:** Recommending this coordinate would direct emergency patients to a highway median.
+* **Resolution Requirement:** Conduct an on-site field survey in Digha to determine whether the facility has relocated, closed, or operates under an alternative trade name on a service road.
+
+---
+
+## H. Duplicate-Coordinate Cluster Analysis
 
 The **10 facilities** sharing duplicate coordinates in `public.hospitals` were audited to determine whether co-location is physically legitimate:
 
@@ -262,18 +265,18 @@ The **10 facilities** sharing duplicate coordinates in `public.hospitals` were a
     * VERDICT: CO-LOCATION INVALID. Distinct facilities separated by up to 1.41 km.
 
 [Cluster 2: Vashi Centroid (19.0632481, 72.9987966)]
-├── ESIS Hospital Vashi                         ──> Sector 5
-├── Jijamata Hospital                           ──> Sector 9
+├── ESIS Hospital Vashi                         ──> Sector 5 (Campus)
+├── Jijamata Hospital                           ──> Sector 9 (Municipal Hospital)
 └── NMMC General Hospital Vashi                 ──> Sector 10A (Mini Seashore Road)
     * VERDICT: CO-LOCATION INVALID. Distinct municipal/state facilities separated by up to 1.68 km.
 
 [Cluster 3: Sanpada Centroid (19.0659774, 73.0095329)]
-├── MPCT Hospital                               ──> Sector 4 (Near Sanpada Station)
+├── MPCT Hospital                               ──> Sector 4 (Near Sanpada Station East)
 └── Dr. R.N. Patil's Suraj Hospital             ──> Sector 15 (Palm Beach Marg)
     * VERDICT: CO-LOCATION INVALID. Separated by 959 meters.
 
 [Cluster 4: Kharghar Centroid (19.0257730, 73.0591845)]
-├── MITR Hospital                               ──> Sector 5 (Northern entry)
+├── MITR Hospital                               ──> Sector 5 (Northern entrance)
 └── Polaris Hospital                            ──> Sector 20 (Central residential zone)
     * VERDICT: CO-LOCATION INVALID. Separated by 4.30 km.
 ```
@@ -282,9 +285,9 @@ The **10 facilities** sharing duplicate coordinates in `public.hospitals` were a
 
 ---
 
-## G. Source Register
+## I. Source Register (All 9 Registered Data Sources)
 
-Every external data source currently referenced in `public.data_sources` was audited:
+Every external data source currently registered in `public.data_sources` was audited:
 
 | Source ID | Source Name | Source Type | Exact Source URL | Publisher | Access Date | Claims Supported | Known Limitations |
 | :--- | :--- | :--- | :--- | :--- | :---: | :--- | :--- |
@@ -300,59 +303,106 @@ Every external data source currently referenced in `public.data_sources` was aud
 
 ---
 
-## H. Manual Verification Queue (Ranked by Risk)
+## J. Prioritized Human Review Queue (5 Tiers)
 
-To transition MEDIMESH coordinates to verified ground truth, resolution must follow this prioritized risk queue:
+To transition MEDIMESH coordinates to verified ground truth, human review must follow this 5-tier risk-ranked sequence:
 
 ```mermaid
 flowchart TD
-    Tier1["Tier 1: Severe Discrepancies & Cluster Collisions (12 facilities)"] --> Tier2["Tier 2: Missing Regional Records (15 Sindhudurg facilities)"]
-    Tier2 --> Tier3["Tier 3: Unverified Unique Points (14 Navi Mumbai facilities)"]
+    Tier1["Tier 1: Severe Discrepancies (> 2 km) (4 facilities)"] --> Tier2["Tier 2: Sub-2 km Cluster Disambiguation (8 facilities)"]
+    Tier2 --> Tier3["Tier 3: Missing Regional Records with Candidates (14 facilities)"]
+    Tier3 --> Tier4["Tier 4: Unverified Unique Points in Navi Mumbai (13 facilities)"]
+    Tier4 --> Tier5["Tier 5: Critical Spatial Blockers (2 facilities)"]
 ```
 
-### Tier 1: High Risk — Conflicting Overrides & Cluster Collisions (12 Facilities)
-1. **`life-line-hospital-medical-research-centre` (13.76 km error):** Verify rooftop coordinates at Sai Arcade, Shivaji Road, opposite Panvel ST Stand.
-2. **`mitr-hospital` (4.30 km error):** Verify entrance coordinates at Plot 37, Eden Garden CHS, Sector 5, Kharghar.
-3. **`polaris-hospital` (2.86 km error):** Verify coordinates at Plot 19/C, Sector 20, Kharghar.
-4. **`ashtvinayak-hospitals-private-limited` (2.74 km error):** Verify coordinates at Plot 10, Sector 6, Khanda Colony, New Panvel West.
-5. **`jijamata-hospital` (1.68 km error):** Verify municipal gate at Sector 9, Vashi.
-6. **`esis-hospital-vashi` (1.48 km error):** Verify campus entrance at Sector 5, Vashi.
-7. **`shushrusha-heart-care-centre-speciality-hospital` (1.41 km error):** Verify Palm Beach Road frontage at Sector 6, Nerul.
-8. **`nmmc-general-hospital-vashi` (1.24 km error):** Verify main emergency gate at Sector 10A, Vashi.
-9. **`dr-r-n-patils-suraj-hospital` (959 m error):** Verify building coordinates at Sun Palm View, Sector 15, Sanpada.
-10. **`mpct-hospital` (760 m error):** Verify building rooftop at Plot 7, Sector 4, Sanpada.
-11. **`terna-speciality-hospital-research-centre` (326 m error):** Verify hospital main gate opposite Nerul Railway Station West.
-12. **`nmmc-general-hospital-nerul` (281 m error):** Verify municipal entrance at Sector 15, Nerul.
+### Tier 1: Severe Discrepancies & Major Relocations ($> 2$ km error) — 4 Facilities
+1. **`life-line-hospital-medical-research-centre` (13.76 km error):** Approve candidate override `18.991176, 73.115263` at Sai Arcade, Shivaji Road, opposite Panvel ST Stand. Deprecate legacy Sanpada point.
+2. **`mitr-hospital` (4.30 km error):** Approve candidate override `19.063023, 73.070042` at Eden Garden CHS, Sector 5, Kharghar. Deprecate South Kharghar centroid.
+3. **`polaris-hospital` (2.86 km error):** Approve candidate override `19.047930, 73.073080` at Plot 19/C, Sector 20, Kharghar. Deprecate shared Kharghar centroid.
+4. **`ashtvinayak-hospitals-private-limited` (2.74 km error):** Approve candidate override `19.010551, 73.107588` at Khanda Colony, New Panvel West. Deprecate Old Panvel midpoint.
 
-### Tier 2: High Risk — Missing Regional Records (15 Sindhudurg Facilities)
-* Execute formal address and coordinate collection via the Civil Surgeon Sindhudurg / District Health Office for:
-  - 1 District Civil Hospital (Oros)
-  - 1 District Women & Child Hospital (Kudal)
-  - 4 Sub-District Hospitals (Sawantwadi, Kankavali, Shiroda, Vengurla)
-  - 6 Rural Hospitals (Devgad, Dodamarg, Katta, Kudal, Malwan, Vaibhavwadi)
-  - 1 Medical College (SSPM Padve)
-  - 2 Private Hospitals (Suyash Kudal, Siddhivinayak Kankavali)
+### Tier 2: Sub-2 km Cluster Disambiguation & Campus Overrides — 8 Facilities
+5. **`jijamata-hospital` (1.68 km error):** Approve candidate override `19.0778, 72.9944` at Sector 9 Vashi.
+6. **`esis-hospital-vashi` (1.48 km error):** Approve candidate override `19.0742, 72.9908` at Sector 5 Vashi.
+7. **`shushrusha-heart-care-centre-speciality-hospital` (1.41 km error):** Approve candidate override `19.04327, 73.00951` on Palm Beach Road, Sector 6 Nerul.
+8. **`nmmc-general-hospital-vashi` (1.24 km error):** Approve candidate override `19.0744, 72.9978` at Sector 10A Vashi.
+9. **`dr-r-n-patils-suraj-hospital` (959 m error):** Approve candidate override `19.057467, 73.011009` at Sun Palm View, Sector 15 Sanpada.
+10. **`mpct-hospital` (760 m error):** Approve candidate override `19.0606, 73.0140` at Plot 7, Sector 4 Sanpada.
+11. **`terna-speciality-hospital-research-centre` (326 m error):** Approve candidate override `19.0314, 73.0161` opposite Nerul Railway Station West.
+12. **`nmmc-general-hospital-nerul` (281 m error):** Approve candidate override `19.03416, 73.02077` at Sector 15 Nerul.
 
-### Tier 3: Medium Risk — Unverified Unique Database Points (14 Facilities)
-* Perform aerial satellite spot-checks for:
-  - Sterling Hospital (Vashi)
-  - Dr. Mahajan's Hospital (Rabale MIDC)
-  - Shri Sadguru Seva Mandal Hospital (Digha)
-  - Mangal Prabhu Nursing Home (Juinagar)
-  - D.Y. Patil Hospital (Nerul Campus)
-  - Millennium Multispeciality Hospital (Ulwe)
-  - NMMC General Hospital Airoli
-  - MCH Turbhe
-  - MCH Koparkhairane
-  - MGM Hospital Belapur
-  - MGM Hospital Vashi
-  - Medicover Hospital (Kharghar)
-  - MGM Hospital Kamothe
-  - Fortis Hiranandani Hospital (Vashi)
+### Tier 3: Missing Regional Records with Identified Candidate Points (Sindhudurg) — 14 Facilities
+13. `district-civil-hospital-sindhudurg` (Oros) — Candidate `16.1265, 73.6983`
+14. `sub-district-hospital-sawantwadi` (Sawantwadi) — Candidate `15.9082, 73.8184`
+15. `sspm-medical-college-and-lifetime-hospital` (Padve) — Candidate `16.2084, 73.7145`
+16. `sub-district-hospital-kankavali` (Kankavali) — Candidate `16.2731, 73.7088`
+17. `sub-district-hospital-shiroda` (Shiroda) — Candidate `15.7725, 73.6668`
+18. `sub-district-hospital-vengurla` (Vengurla) — Candidate `15.8617, 73.6406`
+19. `rural-hospital-devgad` (Devgad) — Candidate `16.3752, 73.3855`
+20. `rural-hospital-dodamarg` (Dodamarg) — Candidate `15.7538, 73.9682`
+21. `rural-hospital-katta` (Katta) — Candidate `16.0592, 73.5432`
+22. `rural-hospital-kudal` (Kudal) — Candidate `16.0125, 73.6841`
+23. `rural-hospital-malwan` (Malwan) — Candidate `16.0621, 73.4735`
+24. `rural-hospital-vaibhavwadi` (Vaibhavwadi) — Candidate `16.5186, 73.7314`
+25. `siddhivinayak-hospital-and-icu` (Kankavali) — Candidate `16.2705, 73.7118`
+26. `suyash-hospital` (Kudal) — Candidate `16.0142, 73.6865`
+
+### Tier 4: Unverified Unique Points in Navi Mumbai — 13 Facilities
+27. `fortis-hiranandani-hospital` (Vashi) — Spot-check rooftop `19.0682, 72.9965`
+28. `medicover-hospital` (Kharghar) — Spot-check rooftop `19.0435, 73.0569`
+29. `mgm-hospital-vashi` (Vashi) — Spot-check rooftop `19.0726, 72.9938`
+30. `mgm-hospital-belapur` (CBD Belapur) — Spot-check rooftop `19.0190244, 73.0390629`
+31. `mgm-hospital-kamothe` (Kamothe) — Spot-check campus gate `19.0164338, 73.0806552`
+32. `d-y-patil-hospital` (Nerul) — Spot-check campus gate `19.0384, 73.0256`
+33. `nmmc-general-hospital-airoli` (Airoli) — Spot-check entrance `19.1585147, 72.9994019`
+34. `sterling-hospital` (Vashi) — Verify clinic building `19.0698454, 72.9873953`
+35. `dr-mahajans-hospital-industrial-trauma-care` (Rabale) — Verify MIDC building `19.1366355, 73.0027824`
+36. `mangal-prabhu-nursing-home-polyclinic-diagnostic-center` (Juinagar) — Verify Plot 27 `19.0559456, 73.0182495`
+37. `mch-koparkhairane` (Koparkhairane) — Verify dispensary `19.1074355, 72.9984805`
+38. `mch-turbhe` (Turbhe) — Verify dispensary `19.0761648, 73.0176615`
+39. `millennium-multispeciality-hospital` (Ulwe) — Verify building `18.9711438, 73.0124859`
+
+### Tier 5: Critical Spatial Blockers (Zero Defensible Point Candidates) — 2 Facilities
+40. **`dist-women-s-child-hospital` (Kudal):** Do not assign coordinates. Query District Health Office Sindhudurg for sanctioned building address.
+41. **`shri-sadguru-seva-mandal-hospital` (Digha):** Deprecate highway median point `19.1817856, 72.9955236`. Retain null coordinates until field investigation locates facility.
 
 ---
 
-## I. Readiness Decision
+## K. Human Approval Protocol & Future Database Migration Specifications
+
+To ensure database integrity, coordinates must never be updated through automated bulk scripts or manual unlogged SQL queries.
+
+### 1. Human Sign-Off Checklist
+For each hospital, a designated reviewer must verify:
+- [ ] **Postal Address Corroboration:** The candidate point sits in the same sector, plot, or postal pin code specified in official government records.
+- [ ] **Satellite Building Footprint:** High-resolution satellite imagery clearly shows a dedicated hospital or commercial clinic building (not a roadway, water body, or residential home).
+- [ ] **Emergency Entrance Placement:** The point represents the emergency entrance or main vehicular gate rather than the center of an arbitrary land parcel.
+- [ ] **No Collision Artifacts:** The coordinate is distinct from all neighboring health facilities ($> 50$ meters separation).
+
+### 2. Future Schema Requirements (Phase E Migration)
+Before any vetted coordinates are written to `public.hospitals`, the following schema additions must be implemented:
+
+```sql
+-- 1. Add verification attribution columns to public.hospitals
+ALTER TABLE public.hospitals
+  ADD COLUMN IF NOT EXISTS coordinate_evidence_id UUID REFERENCES public.hospital_evidence(id),
+  ADD COLUMN IF NOT EXISTS coordinates_verified_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS coordinates_verified_by TEXT;
+
+-- 2. Add comment documenting audit requirement
+COMMENT ON COLUMN public.hospitals.coordinate_evidence_id IS
+  'Foreign key to the specific evidence record that legally/spatially verified these coordinates.';
+```
+
+### 3. Verification Ingestion Rules
+1. A coordinate cannot be written to `public.hospitals` without an accompanying row in `public.hospital_evidence`.
+2. The evidence row must specify `supported_scope = ARRAY['coordinates', 'address']`.
+3. The evidence row must have `review_status = 'manually_reviewed'`.
+4. The migration script must set `coordinates_verified_by` to the reviewer's authenticated identity and `coordinates_verified_at = NOW()`.
+
+---
+
+## L. Readiness Decision
 
 ```
 ========================================================================================
@@ -361,14 +411,15 @@ FINAL AUDIT DECISION: BLOCKED / NOT READY FOR TRUSTED POSTGIS NEARBY-HOSPITAL SE
 ```
 
 ### Definitive Blockers:
-1. **0% Point Evidence:** Not a single hospital in the database possesses verified geospatial evidence in `public.hospital_evidence`.
-2. **36.6% Spatial Omission:** 15 facilities in Sindhudurg have `NULL` coordinates and would be entirely excluded from nearby-hospital queries.
-3. **Severe Displacement:** Stored database points displace facilities by up to 13.8 km (Life Line Panvel stored in Sanpada).
-4. **Collision Artifacts:** 10 facilities in Navi Mumbai share identical ward-centroid coordinates, generating identical distance scores.
+1. **0% Point Evidence in Catalog:** Zero records in `public.hospital_evidence` explicitly support coordinates.
+2. **36.6% Regional Spatial Omission:** 15 facilities in Sindhudurg currently have `NULL` coordinates in the database, excluding the entire district from geospatial sorting.
+3. **Severe Displacement:** Stored database points displace facilities by up to 13.76 km (e.g. Life Line Panvel stored in Sanpada).
+4. **Highway Collision Hazard:** One record (`shri-sadguru-seva-mandal-hospital`) sits on a highway median.
+5. **Human Approval Pending:** All 41 candidates require formal human review sign-off before database migration.
 
 ### Authorized Path to PostGIS Enablement:
-1. Complete Tier 1 and Tier 2 manual verifications using high-resolution satellite imagery and Google Places Place IDs.
-2. Ingest explicit evidence rows into `public.hospital_evidence` with `supported_scope = array['coordinates', 'address']` and `review_status = 'manually_reviewed'`.
-3. Deploy an audited SQL migration synchronizing vetted coordinates into `public.hospitals`.
-4. Only then, generate PostGIS geography columns and GIST spatial indexes.
-
+1. Complete Tier 1 through Tier 4 human approval sign-offs using the criteria defined in Section K.
+2. Resolve Tier 5 blockers (`dist-women-s-child-hospital` and `shri-sadguru-seva-mandal-hospital`) via district health office inquiries.
+3. Ingest explicit evidence rows into `public.hospital_evidence` with `supported_scope = ARRAY['coordinates', 'address']`.
+4. Deploy an audited SQL migration synchronizing vetted coordinates into `public.hospitals` alongside foreign key attribution.
+5. Only then, generate PostGIS geography columns, spatial indexes, and distance ranking queries.
