@@ -100,29 +100,29 @@ Below is the complete inventory of all 41 published hospitals, audited individua
 | 15 | **Suyash Hospital** | `suyash-hospital`<br>`e61cddf7-5a5e-4c16-9729-53ffb928205c` | Kudal,<br>Sindhudurg | `NULL, NULL` | `16.0142, 73.6865` | `map_listing_candidate` | Awaiting human approval |
 | 16 | **Ashtvinayak Hospitals Private Limited** | `ashtvinayak-hospitals-private-limited`<br>`e4d009e1-65b3-41b1-8951-456afd7244ee` | Khanda Colony, New Panvel,<br>Navi Mumbai | `18.9861, 73.1111` | `19.010551, 73.107588` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (2.74 km) | Awaiting human approval |
 | 17 | **D.Y. Patil Hospital** | `d-y-patil-hospital`<br>`6eb3c35b-2052-471a-9045-d5d98ee6131e` | Sector 5, Nerul,<br>Navi Mumbai | `19.0384, 73.0256` | `19.0384, 73.0256` | `official_address_plus_matching_map_point` | Awaiting human approval |
-| 18 | **Dr. Mahajan's Hospital & Industrial Trauma Care** | `dr-mahajans-hospital-industrial-trauma-care`<br>`43085731-bf5a-4717-b733-614f17f41f71` | Sector 8, Rabale,<br>Navi Mumbai | `19.1366355, 73.0027824` | `19.1366355, 73.0027824` | `map_listing_candidate` | Awaiting human approval |
+| 18 | **Dr. Mahajan's Hospital & Industrial Trauma Care** | `dr-mahajans-hospital-industrial-trauma-care`<br>`574d86dd-0cd9-4637-b9be-c914e114ea80` | Sector 8, Rabale,<br>Navi Mumbai | `19.1366355, 73.0027824` | `19.1366355, 73.0027824` | `map_listing_candidate` | Awaiting human approval |
 | 19 | **Dr. R.N. Patil's Suraj Hospital** | `dr-r-n-patils-suraj-hospital`<br>`995b9de8-349a-4d9d-8396-8b8916e51812` | Sector 15, Sanpada,<br>Navi Mumbai | `19.0659774, 73.0095329` | `19.057467, 73.011009` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (959 m) | Awaiting human approval |
 | 20 | **ESIS Hospital Vashi** | `esis-hospital-vashi`<br>`234dad87-1e98-4230-8c69-dee6e3db6b77` | Sector 5, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0742, 72.9908` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.48 km) | Awaiting human approval |
 | 21 | **Fortis Hiranandani Hospital** | `fortis-hiranandani-hospital`<br>`99c0e6bc-cc93-4d92-a106-56dd2d54410a` | Mini Seashore, Sector 10A, Vashi,<br>Navi Mumbai | `19.0682, 72.9965` | `19.0682, 72.9965` | `official_address_plus_matching_map_point` | Awaiting human approval |
 | 22 | **Jijamata Hospital** | `jijamata-hospital`<br>`b3027259-b91f-4a38-95c8-542e4d416559` | Sector 9, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0778, 72.9944` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.68 km) | Awaiting human approval |
 | 23 | **Life Line Hospital & Medical Research Centre** | `life-line-hospital-medical-research-centre`<br>`06ceccf9-f578-4ac7-aabe-d3ee7e26ce6e` | Shivaji Road, Panvel,<br>Navi Mumbai | `19.0675788, 73.0123031` | `18.991176, 73.115263` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (13.76 km) | Awaiting human approval |
-| 24 | **Mangal Prabhu Nursing Home Polyclinic** | `mangal-prabhu-nursing-home-polyclinic-diagnostic-center`<br>`fa855c3c-829b-4473-b3a1-77864f9cbda8` | Sector 24, Juinagar,<br>Navi Mumbai | `19.0559456, 73.0182495` | `19.0559456, 73.0182495` | `map_listing_candidate` | Awaiting human approval |
-| 25 | **MCH Koparkhairane** | `mch-koparkhairane`<br>`8b63a948-52fb-4a81-9b19-2169b2d8872b` | Sector 11, Koparkhairane,<br>Navi Mumbai | `19.1074355, 72.9984805` | `19.1074355, 72.9984805` | `map_listing_candidate` | Awaiting human approval |
-| 26 | **MCH Turbhe** | `mch-turbhe`<br>`ae9f4701-d5f0-4660-84a1-0cf24a0d9b4b` | Turbhe Naka,<br>Navi Mumbai | `19.0761648, 73.0176615` | `19.0761648, 73.0176615` | `map_listing_candidate` | Awaiting human approval |
+| 24 | **Mangal Prabhu Nursing Home Polyclinic** | `mangal-prabhu-nursing-home-polyclinic-diagnostic-center`<br>`e33f001f-998d-48cf-b7a9-71fcd3ce66bb` | Sector 24, Juinagar,<br>Navi Mumbai | `19.0559456, 73.0182495` | `19.0559456, 73.0182495` | `map_listing_candidate` | Awaiting human approval |
+| 25 | **MCH Koparkhairane** | `mch-koparkhairane`<br>`29ef27ce-9561-4948-a119-3f04caefcfbf` | Sector 11, Koparkhairane,<br>Navi Mumbai | `19.1074355, 72.9984805` | `19.1074355, 72.9984805` | `map_listing_candidate` | Awaiting human approval |
+| 26 | **MCH Turbhe** | `mch-turbhe`<br>`dc275c3c-4ceb-4314-83ab-73717fe28ca9` | Turbhe Naka,<br>Navi Mumbai | `19.0761648, 73.0176615` | `19.0761648, 73.0176615` | `map_listing_candidate` | Awaiting human approval |
 | 27 | **Medicover Hospital** | `medicover-hospital`<br>`8776103e-7c97-4c8a-93c3-89218d30e2ee` | Sector 38, Kharghar,<br>Navi Mumbai | `19.0435, 73.0569` | `19.0435, 73.0569` | `official_address_plus_matching_map_point` | Awaiting human approval |
-| 28 | **MGM Hospital Belapur** | `mgm-hospital-belapur`<br>`fc8a1354-9e7d-4c3e-bb3b-398df126b85d` | Sector 1A, CBD Belapur,<br>Navi Mumbai | `19.0190244, 73.0390629` | `19.0190244, 73.0390629` | `official_address_plus_matching_map_point` | Awaiting human approval |
-| 29 | **MGM Hospital Kamothe** | `mgm-hospital-kamothe`<br>`6f2a6379-cb1c-43f1-b952-475ec65b8287` | Sector 1, Kamothe,<br>Navi Mumbai | `19.0164338, 73.0806552` | `19.0164338, 73.0806552` | `official_address_plus_matching_map_point` | Awaiting human approval |
-| 30 | **MGM Hospital Vashi** | `mgm-hospital-vashi`<br>`2c77f0a9-ee32-44df-9cf8-9276d4cb1d2a` | Sector 3, Vashi,<br>Navi Mumbai | `19.0726, 72.9938` | `19.0726, 72.9938` | `official_address_plus_matching_map_point` | Awaiting human approval |
-| 31 | **Millennium Multispeciality Hospital** | `millennium-multispeciality-hospital`<br>`65cba2ec-1082-4f32-be97-76fe883da45a` | Sector 19, Ulwe,<br>Navi Mumbai | `18.9711438, 73.0124859` | `18.9711438, 73.0124859` | `map_listing_candidate` | Awaiting human approval |
+| 28 | **MGM Hospital Belapur** | `mgm-hospital-belapur`<br>`3117d059-cf3b-4537-98bb-fd12f3e88cc1` | Sector 1A, CBD Belapur,<br>Navi Mumbai | `19.0190244, 73.0390629` | `19.0190244, 73.0390629` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 29 | **MGM Hospital Kamothe** | `mgm-hospital-kamothe`<br>`0af52738-381c-4aab-a6fa-9676986bcc32` | Sector 1, Kamothe,<br>Navi Mumbai | `19.0164338, 73.0806552` | `19.0164338, 73.0806552` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 30 | **MGM Hospital Vashi** | `mgm-hospital-vashi`<br>`0ff989da-ca31-41d5-b62e-3860790eb139` | Sector 3, Vashi,<br>Navi Mumbai | `19.0726, 72.9938` | `19.0726, 72.9938` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 31 | **Millennium Multispeciality Hospital** | `millennium-multispeciality-hospital`<br>`b18658e2-4712-4b4d-a7ac-ed079c73d71a` | Sector 19, Ulwe,<br>Navi Mumbai | `18.9711438, 73.0124859` | `18.9711438, 73.0124859` | `map_listing_candidate` | Awaiting human approval |
 | 32 | **MITR Hospital** | `mitr-hospital`<br>`a08a625c-fd27-4ab6-93ea-6669bc4f0fc0` | Sector 5, Kharghar,<br>Navi Mumbai | `19.025773, 73.0591845` | `19.063023, 73.070042` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (4.30 km) | Awaiting human approval |
 | 33 | **MPCT Hospital** | `mpct-hospital`<br>`02344e48-6505-4d10-86f9-ce7e33bc7692` | Sector 4, Sanpada,<br>Navi Mumbai | `19.0659774, 73.0095329` | `19.0606, 73.014` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (760 m) | Awaiting human approval |
-| 34 | **NMMC General Hospital Airoli** | `nmmc-general-hospital-airoli`<br>`2645ea93-f144-4866-9b57-61cbf5685a6a` | Sector 3, Airoli,<br>Navi Mumbai | `19.1585147, 72.9994019` | `19.1585147, 72.9994019` | `official_address_plus_matching_map_point` | Awaiting human approval |
+| 34 | **NMMC General Hospital Airoli** | `nmmc-general-hospital-airoli`<br>`5b5a0d35-faec-4960-8165-217b97e40a71` | Sector 3, Airoli,<br>Navi Mumbai | `19.1585147, 72.9994019` | `19.1585147, 72.9994019` | `official_address_plus_matching_map_point` | Awaiting human approval |
 | 35 | **NMMC General Hospital Nerul** | `nmmc-general-hospital-nerul`<br>`3c518eac-7b9e-4fe3-beb4-a7057745f128` | Sector 15, Nerul,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.03416, 73.02077` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (281 m) | Awaiting human approval |
 | 36 | **NMMC General Hospital Vashi** | `nmmc-general-hospital-vashi`<br>`c617386a-9fad-4817-9e57-2d11e3dea73f` | Sector 10A, Vashi,<br>Navi Mumbai | `19.0632481, 72.9987966` | `19.0744, 72.9978` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.24 km) | Awaiting human approval |
 | 37 | **Polaris Hospital** | `polaris-hospital`<br>`98f8c868-1d9c-426d-9d57-19dc99fff98c` | Sector 20, Kharghar,<br>Navi Mumbai | `19.025773, 73.0591845` | `19.04793, 73.07308` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (2.86 km) | Awaiting human approval |
-| 38 | **Shri Sadguru Seva Mandal Hospital** | `shri-sadguru-seva-mandal-hospital`<br>`f467ea30-05e8-4fd6-91e7-91547379fc7c` | Thane-Belapur Road, Digha,<br>Navi Mumbai | `19.1817856, 72.9955236` | None | `unresolved` | **BLOCKED:** Point on highway median |
+| 38 | **Shri Sadguru Seva Mandal Hospital** | `shri-sadguru-seva-mandal-hospital`<br>`77dbf511-1cea-48fb-b55d-eecd181da3b4` | Thane-Belapur Road, Digha,<br>Navi Mumbai | `19.1817856, 72.9955236` | None | `unresolved` | **BLOCKED:** Point on highway median |
 | 39 | **Shushrusha Heart Care Centre** | `shushrusha-heart-care-centre-speciality-hospital`<br>`1cd24430-5530-472f-a55d-acdbb35b68bf` | Palm Beach Rd, Sector 6, Nerul,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.04327, 73.00951` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (1.41 km) | Awaiting human approval |
-| 40 | **Sterling Hospital** | `sterling-hospital`<br>`8b13dcb8-011d-400a-b32f-bcad1f349e52` | Sector 7, Vashi,<br>Navi Mumbai | `19.0698454, 72.9873953` | `19.0698454, 72.9873953` | `map_listing_candidate` | Awaiting human approval |
+| 40 | **Sterling Hospital** | `sterling-hospital`<br>`a94ffd5c-8b92-42cb-bfb9-c568f1e82468` | Sector 7, Vashi,<br>Navi Mumbai | `19.0698454, 72.9873953` | `19.0698454, 72.9873953` | `map_listing_candidate` | Awaiting human approval |
 | 41 | **Terna Speciality Hospital** | `terna-speciality-hospital-research-centre`<br>`3527b125-e4c6-4aa2-a323-694f52f0f0ed` | Sector 22, Nerul West,<br>Navi Mumbai | `19.0335938, 73.018164` | `19.0314, 73.0161` | `official_address_plus_matching_map_point`<br>`conflicting_evidence` (326 m) | Awaiting human approval |
 
 ---
@@ -235,7 +235,7 @@ Two facilities out of 41 cannot be assigned coordinates without physical field i
 flowchart TD
     subgraph Blocked["Critical Spatial Blockers (Zero Defensible Point Candidates)"]
         F1["Dist. Women's & Child Hospital (Kudal, Sindhudurg)<br>UUID: 67588b5f-bdac-4fc8-b980-abcd32ad68e1<br>Reason: Ambiguous institutional separation from Kudal RH"]
-        F2["Shri Sadguru Seva Mandal Hospital (Digha, Navi Mumbai)<br>UUID: f467ea30-05e8-4fd6-91e7-91547379fc7c<br>Reason: Coordinate sits on highway median; no physical facility found"]
+        F2["Shri Sadguru Seva Mandal Hospital (Digha, Navi Mumbai)<br>UUID: 77dbf511-1cea-48fb-b55d-eecd181da3b4<br>Reason: Coordinate sits on highway median; no physical facility found"]
     end
 ```
 
@@ -581,3 +581,73 @@ Not a single coordinate in `public.hospitals` or `src/lib/maps/verifiedHospitalC
 * **Tier 5 (Critical Blockers — Zero Defensible Points): 2 Facilities** — `dist-women-s-child-hospital` (Kudal) and `shri-sadguru-seva-mandal-hospital` (Digha).
 
 **PostGIS Gateway Rule:** No PostGIS spatial queries or distance ordering may be enabled until a designated human reviewer executes the sign-off protocol defined in Section K for Tiers 1 through 4, resolves Tier 5 blockers, and an audited migration populates `coordinate_evidence_id` and `coordinates_verified_by` in `public.hospitals`.
+
+
+---
+
+## N. Phase D.2: Hospital Coordinate Human-Review Queue & Reviewer Protocol
+
+> **Deliverable File:** [`docs/architecture/hospital-coordinate-review-queue.csv`](file:///home/parth/Desktop/CODE%20PLAYGROUND/HACKATHON%20PROJECTS/MEDICARE/medicare-platform/docs/architecture/hospital-coordinate-review-queue.csv)
+> **Inventory Scope:** Exactly 41 unique published hospitals matched by immutable UUID and slug
+> **Status:** Awaiting Human Review Execution (All approved coordinate fields initialized to blank)
+
+To operationalize the human verification workflow before database migration, the structured review inventory has been generated as a standard RFC 4180 CSV file containing 21 standard audit columns.
+
+### N.1 CSV Column Schema & Semantics
+
+| # | Column Header | Data Type | Source & Semantics | Reviewer Ingestion Rules |
+| :-: | :--- | :--- | :--- | :--- |
+| 1 | `hospital_id` | UUID | `public.hospitals.id` (Immutable primary key) | Do not edit. Used for foreign key joining. |
+| 2 | `slug` | Text | `public.hospitals.slug` (Unique human identifier) | Do not edit. Matches code references. |
+| 3 | `hospital_name` | Text | `public.hospitals.name` | Formal legal entity name. |
+| 4 | `district` | Text | `public.hospitals.district` (Sindhudurg or blank) | Administrative district. |
+| 5 | `locality` | Text | `public.hospitals.locality` | Municipal ward, suburb, or taluka. |
+| 6 | `supported_address` | Text | Evidence-backed street address or locality | Basis for physical location match. |
+| 7 | `database_latitude` | Numeric | `public.hospitals.latitude` | Stored legacy coordinate (or blank if null). |
+| 8 | `database_longitude` | Numeric | `public.hospitals.longitude` | Stored legacy coordinate (or blank if null). |
+| 9 | `candidate_latitude` | Numeric | Candidate latitude from overrides or map research | Candidate point under review (blank if unresolved). |
+| 10 | `candidate_longitude` | Numeric | Candidate longitude from overrides or map research | Candidate point under review (blank if unresolved). |
+| 11 | `candidate_source_url` | URL | OpenStreetMap or Google Maps platform element link | Direct platform inspection link for reviewer. |
+| 12 | `additional_source_url` | URL | Official circular, hospital portal, or PDF register | Document establishing entity identity/address. |
+| 13 | `evidence_classification` | Enum | Phase D audit classification | Mutually exclusive research category. |
+| 14 | `coordinate_discrepancy_meters` | Integer | Haversine distance between DB point and candidate | Magnitude of spatial displacement. |
+| 15 | `known_data_gaps` | Text | Itemized uncertainties and field verification gaps | Specific points reviewer must confirm. |
+| 16 | `review_decision` | Enum | Human reviewer verdict (Allowed options below) | **Populated by human reviewer.** |
+| 17 | `approved_latitude` | Numeric | Legally approved latitude for database migration | **Populated by human reviewer only upon approval.** |
+| 18 | `approved_longitude` | Numeric | Legally approved longitude for database migration | **Populated by human reviewer only upon approval.** |
+| 19 | `reviewer` | Text | Full name, email, or authenticated reviewer ID | Audit attribution. |
+| 20 | `reviewed_at` | ISO Timestamp | Date and time of review completion | Timestamp of formal sign-off. |
+| 21 | `review_notes` | Text | Reviewer justification and verification notes | Evidence trail explaining decision. |
+
+---
+
+### N.2 Allowed Review Decisions
+
+Reviewers must select exactly one of the following four allowed decisions for each record:
+
+1. **`approved`**:
+   - **Criteria:** The reviewer has directly opened the candidate source link, verified high-resolution satellite imagery, confirmed that the point sits on the facility rooftop or emergency entrance gate, and verified that the street address matches official government or hospital publications.
+   - **Action:** The reviewer inputs the finalized coordinates into `approved_latitude` and `approved_longitude`, enters their name in `reviewer`, stamps the timestamp in `reviewed_at`, and adds verification notes in `review_notes`.
+
+2. **`rejected`**:
+   - **Criteria:** The candidate point is demonstrably erroneous (e.g. sits in a roadway median, water body, residential building, or wrong taluka/suburb).
+   - **Action:** The reviewer sets `review_decision = rejected`. `approved_latitude` and `approved_longitude` **must remain blank**.
+
+3. **`needs_more_evidence`**:
+   - **Criteria:** The candidate point is plausible but ambiguous (e.g. marks a large multi-acre campus where the hospital block cannot be distinguished from academic/hostel buildings, or marks a village market where a private clinic storefront cannot be verified).
+   - **Action:** The reviewer sets `review_decision = needs_more_evidence`. `approved_latitude` and `approved_longitude` **must remain blank** pending on-site survey or municipal trade license review.
+
+4. **`unresolved`**:
+   - **Criteria:** The hospital entity has zero defensible point candidate due to physical or institutional ambiguity (specifically `dist-women-s-child-hospital` and `shri-sadguru-seva-mandal-hospital`).
+   - **Action:** The reviewer sets `review_decision = unresolved`. `approved_latitude` and `approved_longitude` **must remain blank**.
+
+---
+
+### N.3 Mandatory Human-Reviewer Guidelines
+
+> [!CAUTION]
+> **Core Non-Approval Rule:** A candidate point **must not be approved** solely because its address and map listing appear consistent. Automated inferences are not ground truth. The reviewer must personally inspect the linked source URL, verify the physical structure, and record the exact basis of confirmation.
+
+* **Never Auto-Copy:** Candidate coordinates must never be automatically scripted into approved coordinates.
+* **Preserve Distinctions:** Database coordinates, candidate coordinates, and approved coordinates represent three distinct operational tiers.
+* **Unresolved Blocker Rule:** For unresolved records, approved coordinates must remain blank. PostGIS spatial indexing will reject any migration attempting to write unvetted or blank coordinates to production geography columns.
