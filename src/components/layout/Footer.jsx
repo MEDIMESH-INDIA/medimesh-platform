@@ -1,8 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Container from "../common/Container";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthGate } from "../../hooks/useAuthGate";
+import { useCompare } from "../../hooks/useCompare";
 
 const footerLinks = [
   { name: "Discover", href: "/discover" },
@@ -17,7 +18,11 @@ const footerLinks = [
 export default function Footer() {
   const { user } = useAuth();
   const { requireAuth } = useAuthGate();
+  const { compareList } = useCompare();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const hasCompareTray = compareList.length > 0 && location.pathname !== '/compare' && location.pathname !== '/app/compare';
 
   const handleFooterLinkClick = (e, link) => {
     if (link.href === '/compare' && !user) {
@@ -31,7 +36,7 @@ export default function Footer() {
     }
   };
   return (
-    <footer className="relative z-20 overflow-hidden border-t border-white/10 bg-[#17211f] py-8 text-white md:py-9">
+    <footer className={`relative z-20 overflow-hidden border-t border-white/10 bg-[#17211f] py-8 text-white md:py-9 transition-[padding] duration-200 ${hasCompareTray ? 'pb-28 sm:pb-32' : ''}`}>
       <Container>
         <div className="grid gap-6 border-b border-white/10 pb-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>

@@ -1,9 +1,8 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck, CalendarCheck2, Inbox, Compass } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
-import CompareTray from '../hospital/CompareTray';
 import MEDIMESHBackground from './MEDIMESHBackground';
 import MedimeshLogo from '../brand/MedimeshLogo';
 import UserAvatar from '../common/UserAvatar';
@@ -14,6 +13,8 @@ export default function AppShell() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const toggleButtonRef = useRef(null);
+  const wasOpenRef = useRef(false);
   const [compareCount, setCompareCount] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('compareList') || '[]').length;
@@ -23,6 +24,38 @@ export default function AppShell() {
   });
 
   const dashboardPath = getRoleDashboardPath(role);
+
+  // Auto-close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll and listen for Escape when mobile menu is open
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
+  // Focus restoration to toggle button when mobile menu closes
+  useEffect(() => {
+    if (wasOpenRef.current && !mobileMenuOpen) {
+      toggleButtonRef.current?.focus();
+    }
+    wasOpenRef.current = mobileMenuOpen;
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const update = () => {
@@ -102,6 +135,7 @@ export default function AppShell() {
             <MedimeshLogo variant="mark" size="md" />
           </Link>
           <button 
+            ref={toggleButtonRef}
             className="text-foreground p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
@@ -111,6 +145,15 @@ export default function AppShell() {
           </button>
         </div>
       </header>
+
+      {/* Overlay for mobile sidebar navigation */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/25 backdrop-blur-xs z-35 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Sidebar Navigation */}
       <aside className={`
@@ -181,16 +224,8 @@ export default function AppShell() {
 
       {/* Main Content Area */}
       <main className={`flex-1 min-w-0 min-h-screen flex flex-col bg-transparent relative z-10 ${hasCompareTray ? 'pb-28 md:pb-36' : 'pb-8'}`}>
-        {/* Overlay for mobile menu */}
-        {mobileMenuOpen && (
-          <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          ></div>
-        )}
         <Outlet />
       </main>
-      <CompareTray />
     </div>
   );
 }

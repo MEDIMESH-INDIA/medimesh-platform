@@ -8,7 +8,6 @@ import EmptyState from '../../components/common/EmptyState';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import HospitalCardSkeleton from '../../components/hospital/HospitalCardSkeleton';
 import CollapsibleFilter from '../../components/hospital/CollapsibleFilter';
-import CompareTray from '../../components/hospital/CompareTray';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
@@ -494,8 +493,6 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         </section>
       </div>
 
-      {/* Render CompareTray only on public routes to avoid duplicate instance with AppShell */}
-      {!location.pathname.startsWith('/app') && <CompareTray />}
       <Toast message={toast?.message} tone={toast?.tone} onClose={() => setToast(null)} />
     </AppPageContainer>
   );

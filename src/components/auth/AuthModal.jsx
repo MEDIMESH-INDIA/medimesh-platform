@@ -50,15 +50,20 @@ export default function AuthModal({
     }
   }, [open, initialMode]);
 
-  // Handle escape key and focus
+  // Handle escape key, focus, and background scroll locking
   useEffect(() => {
     if (!open) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     closeBtnRef.current?.focus();
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [open, onClose]);
 
   if (!open) return null;

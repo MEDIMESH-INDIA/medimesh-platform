@@ -13,10 +13,15 @@ export default function HospitalChooserModal({ isOpen, onClose, replaceSlug = nu
 
   useEffect(() => {
     if (!isOpen) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     searchRef.current?.focus();
     const closeOnEscape = event => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;

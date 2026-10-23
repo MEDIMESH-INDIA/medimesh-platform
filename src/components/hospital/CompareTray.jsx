@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GitCompare, X, ArrowRight } from 'lucide-react';
 import { useCompare } from '../../hooks/useCompare';
@@ -13,30 +13,29 @@ export default function CompareTray() {
 
   const isAppRoute = location.pathname.startsWith('/app');
 
-  useEffect(() => {
-    if (compareList.length > 0 && location.pathname !== '/app/compare' && location.pathname !== '/compare') {
-      document.body.classList.add('has-compare-tray');
-    } else {
-      document.body.classList.remove('has-compare-tray');
-    }
-    return () => { document.body.classList.remove('has-compare-tray'); };
-  }, [compareList.length, location.pathname]);
+  if (compareList.length === 0 || location.pathname === '/app/compare' || location.pathname === '/compare') {
+    return null;
+  }
 
-  if (compareList.length === 0 || location.pathname === '/app/compare' || location.pathname === '/compare') return null;
+  if (typeof document === 'undefined') {
+    return null;
+  }
 
-  return (
+  const trayElement = (
     <AnimatePresence>
-      <motion.div
-        initial={{ y: 12, opacity: 0 }}
+      <motion.aside
+        role="region"
+        aria-label="Hospital comparison bar"
+        initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 12, opacity: 0 }}
+        exit={{ y: 20, opacity: 0 }}
         transition={{ duration: 0.18, ease: 'easeOut' }}
-        className={`fixed inset-x-0 bottom-3 md:bottom-5 z-40 pointer-events-none flex justify-center px-3 sm:px-4 w-full ${isAppRoute ? 'md:left-64 md:w-[calc(100%-256px)]' : ''}`}
+        className={`fixed inset-x-0 bottom-3 md:bottom-5 z-40 pointer-events-none flex justify-center px-3 sm:px-4 w-full pb-[env(safe-area-inset-bottom,0px)] ${isAppRoute ? 'md:left-64 md:w-[calc(100%-256px)]' : ''}`}
       >
-        <div className="compare-tray bg-surface/95 backdrop-blur-xl shadow-[0_12px_36px_rgba(10,122,106,0.12)] border border-border/90 rounded-2xl p-2.5 sm:px-4 sm:py-2.5 w-full max-w-[760px] pointer-events-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 transition-all">
+        <div className="compare-tray bg-surface/95 backdrop-blur-xl shadow-[0_12px_36px_rgba(10,122,106,0.14)] border border-border/90 rounded-2xl p-2.5 sm:px-4 sm:py-2.5 w-full max-w-[760px] pointer-events-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 transition-all">
           <div className="flex items-center justify-between w-full sm:w-auto sm:shrink-0 sm:pr-3.5 sm:border-r border-border/70">
             <h3 className="font-bold text-xs sm:text-sm text-foreground flex items-center gap-1.5">
-              <GitCompare className="w-4 h-4 text-primary shrink-0" />
+              <GitCompare className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
               <span>Compare</span>
             </h3>
             <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full ml-2">
@@ -55,15 +54,15 @@ export default function CompareTray() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ opacity: 0, width: 0 }}
-                    className="flex items-center gap-1.5 bg-surface-elevated/75 border border-border/80 px-2.5 py-1 rounded-xl shrink-0 transition-colors hover:bg-surface-elevated"
+                    className="flex items-center gap-1.5 bg-surface-elevated/85 border border-border/80 px-2.5 py-1 rounded-xl shrink-0 transition-colors hover:bg-surface-elevated max-w-[140px] sm:max-w-[180px]"
                   >
-                    <span className="text-xs font-semibold text-foreground truncate max-w-[120px] sm:max-w-[160px]">
+                    <span className="text-xs font-semibold text-foreground truncate" title={name}>
                       {name}
                     </span>
                     <button
                       type="button"
                       onClick={() => removeHospital(slug)}
-                      className="text-muted-foreground hover:text-red-600 rounded-full p-0.5 hover:bg-red-50 transition-colors ml-0.5"
+                      className="text-muted-foreground hover:text-red-600 rounded-full p-0.5 hover:bg-red-50 transition-colors shrink-0 ml-0.5 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                       title="Remove from comparison"
                       aria-label={`Remove ${name} from comparison`}
                     >
@@ -107,11 +106,13 @@ export default function CompareTray() {
               disabled={compareList.length < 2}
             >
               <span>Compare</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
           </div>
         </div>
-      </motion.div>
+      </motion.aside>
     </AnimatePresence>
   );
+
+  return createPortal(trayElement, document.body);
 }

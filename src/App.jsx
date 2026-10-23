@@ -60,6 +60,7 @@ import Onboarding from "./pages/App/Onboarding";
 import HomeVisitBooking from "./pages/App/Patient/HomeVisitBooking";
 import PatientHomeVisitBookings from "./pages/App/Patient/HomeVisitBookings";
 import PatientHomeVisitBookingDetail from "./pages/App/Patient/HomeVisitBookingDetail";
+import CompareTray from "./components/hospital/CompareTray";
 
 function App() {
   return (
@@ -263,6 +264,7 @@ function App() {
         <Route path="/app/settings" element={<Settings />} />
       </Route>
     </Routes>
+    <CompareTray />
     </AuthGateProvider>
   );
 }

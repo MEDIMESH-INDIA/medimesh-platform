@@ -9,6 +9,8 @@ export default function ConfirmationDialog({ open, title, description, confirmLa
 
   useEffect(() => {
     if (!open) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     returnFocusRef.current = document.activeElement;
     closeRef.current?.focus();
     const handleKeyDown = event => {
@@ -24,6 +26,7 @@ export default function ConfirmationDialog({ open, title, description, confirmLa
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
+      document.body.style.overflow = originalOverflow;
       document.removeEventListener('keydown', handleKeyDown);
       returnFocusRef.current?.focus?.();
     };

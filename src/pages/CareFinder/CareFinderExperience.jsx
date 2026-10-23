@@ -23,7 +23,6 @@ import FrostedPanel from '../../components/common/FrostedPanel';
 import LoadingState from '../../components/common/LoadingState';
 import EmptyState from '../../components/common/EmptyState';
 import CareFinderCard from '../../components/careFinder/CareFinderCard';
-import CompareTray from '../../components/hospital/CompareTray';
 import {
   getCareFinderOptions,
   executeCareFinder,
@@ -31,7 +30,6 @@ import {
 import {
   CRITERION_MODE,
 } from '../../lib/careFinder/careFinderMatching';
-import { useCompare } from '../../hooks/useCompare';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthGate } from '../../hooks/useAuthGate';
 import { formatHospitalType } from '../../lib/utils/formatters';
@@ -48,7 +46,6 @@ export default function CareFinderExperience({ mode = 'canonical' }) {
   const { user, authLoading } = useAuth();
   const { openAuthModal } = useAuthGate();
   const location = useLocation();
-  const { compareList } = useCompare();
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(0);
@@ -1046,9 +1043,6 @@ export default function CareFinderExperience({ mode = 'canonical' }) {
           ) : null}
         </section>
       )}
-
-      {/* Persistent Compare Tray if hospitals have been added to compare */}
-      {compareList.length > 0 && <CompareTray />}
     </AppPageContainer>
   );
 }

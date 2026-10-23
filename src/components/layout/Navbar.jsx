@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../../utils/cn";
@@ -32,6 +32,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const toggleButtonRef = useRef(null);
+  const wasOpenRef = useRef(false);
   const { user, profile, role } = useAuth();
   const { requireAuth } = useAuthGate();
 
@@ -76,6 +78,7 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Lock body scroll and listen for Escape when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
     const closeOnEscape = (event) => {
@@ -88,11 +91,32 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
+  // Focus restoration to hamburger toggle button when mobile menu closes
+  useEffect(() => {
+    if (wasOpenRef.current && !isMobileMenuOpen) {
+      toggleButtonRef.current?.focus();
+    }
+    wasOpenRef.current = isMobileMenuOpen;
+  }, [isMobileMenuOpen]);
+
+  // Auto-close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const dashboardLink = role ? (getRoleDashboardPath(role) ?? '/app') : '/login';
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-3 sm:pt-4">
-      <Container>
+      {/* Backdrop overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-xs xl:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <Container className="relative z-10">
         <div
           className={cn(
             "relative rounded-[20px] border border-white/80 bg-[#fdfbf7]/78 px-3 shadow-[0_3px_16px_rgba(18,49,43,0.04)] backdrop-blur-2xl transition-all duration-300 sm:px-4",
@@ -149,6 +173,7 @@ export default function Navbar() {
             </div>
 
             <button
+              ref={toggleButtonRef}
               type="button"
               className="grid min-h-11 min-w-11 place-items-center rounded-[12px] text-foreground transition-colors hover:bg-white xl:hidden"
               onClick={() => setIsMobileMenuOpen((open) => !open)}
@@ -164,7 +189,7 @@ export default function Navbar() {
             id="mobile-navigation"
             className={cn(
               "absolute inset-x-0 top-[72px] max-h-[calc(100dvh-110px)] overflow-y-auto origin-top rounded-[20px] border border-white/80 bg-[#fdfbf7]/95 p-4 shadow-[0_22px_60px_rgba(18,49,43,0.12)] backdrop-blur-2xl transition duration-200 xl:hidden",
-              isMobileMenuOpen ? "visible scale-y-100 opacity-100" : "invisible scale-y-95 opacity-0",
+              isMobileMenuOpen ? "visible scale-y-100 opacity-100" : "invisible scale-y-95 opacity-0 pointer-events-none",
             )}
           >
             <ul className="grid gap-1">
@@ -181,14 +206,46 @@ export default function Navbar() {
                 </li>
               ))}
             </ul>
-            <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4">
+            <div className="mt-4 border-t border-border pt-4">
               {user ? (
-                <Button className="col-span-2" as={Link} to={dashboardLink} onClick={() => setIsMobileMenuOpen(false)}>Open MEDIMESH</Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-surface/80 p-2.5">
+                    <UserAvatar
+                      src={profile?.avatar_url}
+                      alt={profile?.display_name || user?.email || 'User'}
+                      name={profile?.display_name || user?.email}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-foreground">
+                        {profile?.display_name || user?.email}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                      {role && (
+                        <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                          {role}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button as={Link} to={dashboardLink} onClick={() => setIsMobileMenuOpen(false)}>
+                      Dashboard
+                    </Button>
+                    <Button as={Link} to={`${dashboardLink}/profile`} variant="outline" onClick={() => setIsMobileMenuOpen(false)}>
+                      Profile
+                    </Button>
+                  </div>
+                </div>
               ) : (
-                <>
-                  <Button as={Link} to="/login" variant="outline" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Button>
-                  <Button as={Link} to="/register" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Button>
-                </>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button as={Link} to="/login" variant="outline" onClick={() => setIsMobileMenuOpen(false)}>
+                    Sign In
+                  </Button>
+                  <Button as={Link} to="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    Get Started
+                  </Button>
+                </div>
               )}
             </div>
           </div>

@@ -178,9 +178,7 @@
    would squeeze cards or leave them wider than the remaining content. */
 
 
-body.has-compare-tray { padding-bottom: 120px; }
 @media (max-width: 639px) {
-  body.has-compare-tray { padding-bottom: 160px; }
   .compare-tray { gap: 8px; }
   .results-toolbar { grid-template-columns: minmax(0, 1fr); }
 }
