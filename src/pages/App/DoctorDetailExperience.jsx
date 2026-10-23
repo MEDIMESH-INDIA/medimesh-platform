@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Stethoscope, Award, MapPin, Building2, ShieldCheck, CheckCircle2, Share2, AlertCircle, Database, Home, CalendarDays, ClipboardList } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import FrostedPanel from '../../components/common/FrostedPanel';
@@ -7,10 +7,13 @@ import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import { useDoctorDetail } from '../../hooks/useDoctorDetail';
 import { getHomeVisitEligibility } from '../../lib/doctors/homeVisitEligibility';
+import { useAuthGate } from '../../hooks/useAuthGate';
 
 export default function DoctorDetailExperience() {
   const { slug } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { requireAuth } = useAuthGate();
   const basePath = location.pathname.startsWith('/app') ? '/app' : '';
   const { doctor, loading, error } = useDoctorDetail(slug);
   const [copied, setCopied] = useState(false);
@@ -78,9 +81,16 @@ export default function DoctorDetailExperience() {
   const isHomeVisitScheduled = Boolean(homeVisit?.days?.length && homeVisit?.startTime && homeVisit?.endTime);
   const eligibility = getHomeVisitEligibility(doctor);
   const isBookable = eligibility.eligible;
-  const bookingPath = basePath
-    ? `/app/doctors/${doctor.slug}/book-home-visit`
-    : `/login?redirect=${encodeURIComponent(`/app/doctors/${doctor.slug}/book-home-visit`)}`;
+  const targetBookingPath = `/app/doctors/${doctor.slug}/book-home-visit`;
+
+  const handleBookHomeVisit = () => {
+    requireAuth({
+      action: () => navigate(targetBookingPath),
+      message: `Sign in or create an account to book a home visit with ${name}.`,
+      returnTo: targetBookingPath,
+      resumeAction: () => navigate(targetBookingPath),
+    });
+  };
 
   const isVerified = source.reviewStatus === 'verified';
   const verificationText = isVerified ? 'Verified Practitioner' : 'Verification pending';
@@ -318,7 +328,7 @@ export default function DoctorDetailExperience() {
 
               <div className="mt-6">
                 {isBookable ? (
-                  <Button as={Link} to={bookingPath} className="w-full gap-2 justify-center"><CalendarDays className="h-4 w-4" />Book Home Visit</Button>
+                  <Button type="button" onClick={handleBookHomeVisit} className="w-full gap-2 justify-center"><CalendarDays className="h-4 w-4" />Book Home Visit</Button>
                 ) : (
                   <div className="rounded-xl bg-surface border border-border/70 p-3 text-center">
                     <p className="text-xs font-medium text-muted-foreground">{eligibility.message}</p>

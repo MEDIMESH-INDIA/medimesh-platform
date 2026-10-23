@@ -13,9 +13,9 @@ import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
 import { useCompare } from '../../hooks/useCompare';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import { formatHospitalType } from '../../lib/utils/formatters';
 import { AnimatePresence, motion } from 'framer-motion';
-import SignInPromptDialog from '../../components/common/SignInPromptDialog';
 import Toast from '../../components/common/Toast';
 
 export default function DiscoverExperience({ mode = 'canonical' }) {
@@ -23,12 +23,12 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   const location = useLocation();
   const { savedSlugs, toggleSave } = useSavedHospitals();
   const { compareList } = useCompare();
+  const { requireAuth } = useAuthGate();
 
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
 
   const [sort, setSort] = useState('name_asc');
-  const [signInPromptOpen, setSignInPromptOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   const filters = {
@@ -116,15 +116,40 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   const activeFilterCount = Object.entries(filters).filter(([k, v]) => k !== 'q' && v !== '').length;
   const isComparing = compareList.length > 0;
 
-  const handleSave = async hospital => {
-    const result = await toggleSave(hospital.slug);
-    if (result?.requiresAuth) {
-      setSignInPromptOpen(true);
-    } else if (result?.error) {
-      setToast({ message: 'We couldn’t update your saved hospitals. Please try again.', tone: 'error' });
-    } else if (typeof result?.saved === 'boolean') {
-      setToast({ message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`, tone: 'success' });
-    }
+  const handleSave = async (hospital) => {
+    requireAuth({
+      action: async () => {
+        const result = await toggleSave(hospital.slug);
+        if (result?.error) {
+          setToast({ message: 'We couldn’t update your saved hospitals. Please try again.', tone: 'error' });
+        } else if (typeof result?.saved === 'boolean') {
+          setToast({
+            message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`,
+            tone: 'success',
+          });
+        }
+      },
+      message: 'Sign in to save hospitals to your personal shortlist.',
+      returnTo: `${location.pathname}${location.search}`,
+      resumeAction: async () => {
+        const result = await toggleSave(hospital.slug);
+        if (typeof result?.saved === 'boolean') {
+          setToast({
+            message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`,
+            tone: 'success',
+          });
+        }
+      },
+    });
+  };
+
+  const handleLoadMore = () => {
+    requireAuth({
+      action: loadMore,
+      message: 'Create a free account to continue exploring hospitals and keep your discovery journey organized.',
+      returnTo: `${location.pathname}${location.search}`,
+      resumeAction: loadMore,
+    });
   };
 
   // Build Results Header chips logic
@@ -458,7 +483,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
             <div className="flex justify-center pt-2">
               <button
                 type="button"
-                onClick={loadMore}
+                onClick={handleLoadMore}
                 disabled={loading}
                 className="px-5 py-2.5 bg-surface border border-border/80 rounded-xl text-xs font-bold text-foreground hover:bg-surface-elevated hover:border-primary/40 transition-all shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-95"
               >
@@ -471,7 +496,6 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
       {/* Render CompareTray only on public routes to avoid duplicate instance with AppShell */}
       {!location.pathname.startsWith('/app') && <CompareTray />}
-      <SignInPromptDialog open={signInPromptOpen} onClose={() => setSignInPromptOpen(false)} returnTo={`${location.pathname}${location.search}`} />
       <Toast message={toast?.message} tone={toast?.tone} onClose={() => setToast(null)} />
     </AppPageContainer>
   );

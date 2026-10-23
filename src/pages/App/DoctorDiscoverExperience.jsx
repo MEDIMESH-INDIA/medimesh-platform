@@ -1,6 +1,6 @@
 import FilterPanel from '../../components/hospital/FilterPanel';
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Search, MapPin, Stethoscope, Building2, X, Filter, ChevronDown, Home } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppPageContainer from '../../components/layout/AppPageContainer';
@@ -11,9 +11,12 @@ import DoctorCardSkeleton from '../../components/doctor/DoctorCardSkeleton';
 import CollapsibleFilter from '../../components/hospital/CollapsibleFilter';
 import { useDoctorSearch } from '../../hooks/useDoctorSearch';
 import { getDoctorFacets } from '../../lib/data/doctorRepository';
+import { useAuthGate } from '../../hooks/useAuthGate';
 
 export default function DoctorDiscoverExperience() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const { requireAuth } = useAuthGate();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [sort, setSort] = useState('name_asc');
@@ -40,6 +43,15 @@ export default function DoctorDiscoverExperience() {
     sort,
     pageSize: 12,
   });
+
+  const handleLoadMore = () => {
+    requireAuth({
+      action: loadMore,
+      message: 'Sign in or create an account to continue exploring doctors.',
+      returnTo: `${location.pathname}${location.search}`,
+      resumeAction: loadMore,
+    });
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -456,7 +468,7 @@ export default function DoctorDiscoverExperience() {
             <div className="flex justify-center pt-4">
               <button
                 type="button"
-                onClick={loadMore}
+                onClick={handleLoadMore}
                 disabled={loading}
                 className="px-6 py-3 bg-surface border border-border/80 rounded-xl text-xs font-bold text-foreground hover:bg-surface-elevated hover:border-primary/40 transition-all shadow-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-95"
               >

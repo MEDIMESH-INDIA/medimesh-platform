@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { AuthGateProvider } from "./contexts/AuthGateContext";
 import LandingPage from "./pages/LandingPage/LandingPage";
 
 // Auth Components
@@ -62,7 +63,8 @@ import PatientHomeVisitBookingDetail from "./pages/App/Patient/HomeVisitBookingD
 
 function App() {
   return (
-    <Routes>
+    <AuthGateProvider>
+      <Routes>
       {/* Public/Landing Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
@@ -261,6 +263,7 @@ function App() {
         <Route path="/app/settings" element={<Settings />} />
       </Route>
     </Routes>
+    </AuthGateProvider>
   );
 }
 

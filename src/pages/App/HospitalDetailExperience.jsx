@@ -25,7 +25,6 @@ import AppPageContainer from '../../components/layout/AppPageContainer';
 import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
 import FrostedPanel from '../../components/common/FrostedPanel';
-import SignInPromptDialog from '../../components/common/SignInPromptDialog';
 import Toast from '../../components/common/Toast';
 import TrustMetadata from '../../components/hospital/TrustMetadata';
 import HospitalLocationPanel from '../../components/hospital/HospitalLocationPanel';
@@ -33,6 +32,7 @@ import HospitalHeroImage from '../../components/hospital/HospitalHeroImage';
 import { useCompare } from '../../hooks/useCompare';
 import { useHospitalDetail } from '../../hooks/useHospitalDetail';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import { formatHospitalType } from '../../lib/utils/formatters';
 
 const availability = value => (value === true ? 'Available' : value === false ? 'Unavailable' : 'Not provided');
@@ -53,14 +53,34 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
   const { hospital, loading, error, notFound } = useHospitalDetail(slug, { mode });
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
   const { savedSlugs, toggleSave } = useSavedHospitals();
-  const [signInPromptOpen, setSignInPromptOpen] = useState(false);
+  const { requireAuth } = useAuthGate();
   const [toast, setToast] = useState(null);
 
-  const handleSave = async () => {
-    const result = await toggleSave(slug);
-    if (result?.requiresAuth) setSignInPromptOpen(true);
-    else if (result?.error) setToast({ message: 'We couldn’t update your saved hospitals. Please try again.', tone: 'error' });
-    else if (typeof result?.saved === 'boolean') setToast({ message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`, tone: 'success' });
+  const handleSave = () => {
+    requireAuth({
+      action: async () => {
+        const result = await toggleSave(slug);
+        if (result?.error) {
+          setToast({ message: 'We couldn’t update your saved hospitals. Please try again.', tone: 'error' });
+        } else if (typeof result?.saved === 'boolean') {
+          setToast({
+            message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`,
+            tone: 'success',
+          });
+        }
+      },
+      message: 'Sign in to save hospitals to your personal shortlist.',
+      returnTo: `${route.pathname}${route.search}`,
+      resumeAction: async () => {
+        const result = await toggleSave(slug);
+        if (typeof result?.saved === 'boolean') {
+          setToast({
+            message: result.saved ? `${hospital.name} saved.` : `${hospital.name} removed from saved hospitals.`,
+            tone: 'success',
+          });
+        }
+      },
+    });
   };
 
   const handleCompare = () => {
@@ -462,7 +482,6 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
       {/* Refined Source Transparency Card */}
       <TrustMetadata provenance={provenance} compact={false} />
 
-      <SignInPromptDialog open={signInPromptOpen} onClose={() => setSignInPromptOpen(false)} returnTo={route.pathname} />
       <Toast message={toast?.message} tone={toast?.tone} onClose={() => setToast(null)} />
     </AppPageContainer>
   );

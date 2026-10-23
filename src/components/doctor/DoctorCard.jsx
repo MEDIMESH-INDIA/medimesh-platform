@@ -1,10 +1,13 @@
 import { MapPin, Building2, Stethoscope, ShieldCheck, ArrowRight, Award, Home, CalendarDays } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import FrostedPanel from '../common/FrostedPanel';
 import { getHomeVisitEligibility } from '../../lib/doctors/homeVisitEligibility';
+import { useAuthGate } from '../../hooks/useAuthGate';
 
 export default function DoctorCard({ doctor = {} }) {
   const locationPath = useLocation().pathname;
+  const navigate = useNavigate();
+  const { requireAuth } = useAuthGate();
   const basePath = locationPath.startsWith('/app') ? '/app' : '';
 
   const {
@@ -38,9 +41,16 @@ export default function DoctorCard({ doctor = {} }) {
   const primaryAffiliation = Array.isArray(affiliations) && affiliations[0];
   const eligibility = getHomeVisitEligibility(doctor);
   const isBookable = eligibility.eligible;
-  const bookingPath = basePath
-    ? `/app/doctors/${slug}/book-home-visit`
-    : `/login?redirect=${encodeURIComponent(`/app/doctors/${slug}/book-home-visit`)}`;
+  const targetBookingPath = `/app/doctors/${slug}/book-home-visit`;
+
+  const handleBookClick = () => {
+    requireAuth({
+      action: () => navigate(targetBookingPath),
+      message: `Sign in or create an account to book a home visit with ${name}.`,
+      returnTo: targetBookingPath,
+      resumeAction: () => navigate(targetBookingPath),
+    });
+  };
 
   return (
     <FrostedPanel
@@ -149,13 +159,14 @@ export default function DoctorCard({ doctor = {} }) {
 
         <div className="flex flex-wrap items-center gap-2 w-full">
           {isBookable ? (
-            <Link
-              to={bookingPath}
+            <button
+              type="button"
+              onClick={handleBookClick}
               className="flex-1 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-primary-hover active:scale-95"
             >
               <CalendarDays className="h-3.5 w-3.5" />
               <span>Book home visit</span>
-            </Link>
+            </button>
           ) : homeVisit?.enabled ? (
             <span className="text-[11px] text-muted-foreground/70 italic py-1">{eligibility.message}</span>
           ) : null}
