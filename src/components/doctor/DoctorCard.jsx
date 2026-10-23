@@ -1,6 +1,7 @@
 import { MapPin, Building2, Stethoscope, ShieldCheck, ArrowRight, Award, Home, CalendarDays } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import FrostedPanel from '../common/FrostedPanel';
+import { getHomeVisitEligibility } from '../../lib/doctors/homeVisitEligibility';
 
 export default function DoctorCard({ doctor = {} }) {
   const locationPath = useLocation().pathname;
@@ -35,7 +36,8 @@ export default function DoctorCard({ doctor = {} }) {
   const locString = locParts.length > 0 ? locParts.join(', ') : 'Practice location not specified';
 
   const primaryAffiliation = Array.isArray(affiliations) && affiliations[0];
-  const isBookable = Boolean(homeVisit?.enabled && homeVisit?.days?.length && homeVisit?.startTime && homeVisit?.endTime);
+  const eligibility = getHomeVisitEligibility(doctor);
+  const isBookable = eligibility.eligible;
   const bookingPath = basePath
     ? `/app/doctors/${slug}/book-home-visit`
     : `/login?redirect=${encodeURIComponent(`/app/doctors/${slug}/book-home-visit`)}`;
@@ -155,7 +157,7 @@ export default function DoctorCard({ doctor = {} }) {
               <span>Book home visit</span>
             </Link>
           ) : homeVisit?.enabled ? (
-            <span className="text-[11px] text-muted-foreground/70 italic py-1">Online schedule not configured</span>
+            <span className="text-[11px] text-muted-foreground/70 italic py-1">{eligibility.message}</span>
           ) : null}
 
           <Link

@@ -1,11 +1,11 @@
-import { starterDoctors } from '../../data/starterDoctors';
-import { supabase } from '../supabase/client';
+import { starterDoctors } from '../../data/starterDoctors.js';
+import { supabase } from '../supabase/client.js';
 
 const rowsFrom = value => Array.isArray(value) ? value.filter(Boolean) : [];
 const cleanSearch = value => String(value ?? '').replace(/[,().%*]/g, ' ').replace(/\s+/g, ' ').trim();
 const compareNames = (a, b) => (a.name || '').localeCompare(b.name || '');
 
-import { sortLabels, uniqueCanonicalStrings } from './filterUtils';
+import { sortLabels, uniqueCanonicalStrings } from './filterUtils.js';
 export { sortLabels, uniqueCanonicalStrings };
 
 export function normalizeCanonicalDoctor(doc) {
@@ -33,6 +33,10 @@ export function normalizeCanonicalDoctor(doc) {
     registrationYear: doc.registration_year || null,
     specialization,
     yearsOfExperience: doc.experience_years ?? null,
+    publicationStatus: doc.publication_status || 'draft',
+    verificationStatus: doc.verification_status || 'unreviewed',
+    claimedByUserId: doc.claimed_by_user_id || null,
+    isClaimed: Boolean(doc.claimed_by_user_id),
     location: {
       city: doc.city || null,
       locality: primaryAffiliation?.hospitals?.locality || doc.locality || null,
@@ -74,6 +78,7 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
       .select(`
         id, slug, full_name, experience_years, specialization, locality,
         city, state, medical_registration_number, publication_status, verification_status, created_at,
+        claimed_by_user_id,
         offers_home_visits, professional_phone, whatsapp_number,
         home_visit_contact_public, home_visit_service_areas, home_visit_days,
         home_visit_start_time, home_visit_end_time, home_visit_fee, home_visit_note,
@@ -219,6 +224,7 @@ export async function getDoctorBySlug(slug) {
       .select(`
         id, slug, full_name, experience_years, specialization, locality,
         city, state, medical_registration_number, medical_council, registration_year, source_dataset, publication_status, verification_status, created_at,
+        claimed_by_user_id,
         offers_home_visits, professional_phone, whatsapp_number,
         home_visit_contact_public, home_visit_service_areas, home_visit_days,
         home_visit_start_time, home_visit_end_time, home_visit_fee, home_visit_note,

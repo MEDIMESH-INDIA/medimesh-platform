@@ -13,6 +13,10 @@ import {
   createHomeVisitBooking,
   getUnavailableHomeVisitSlots,
 } from '../../../lib/data/homeVisitBookingRepository';
+import {
+  getHomeVisitEligibility,
+  validateHomeVisitAppointment,
+} from '../../../lib/doctors/homeVisitEligibility';
 
 const STEPS = ['Date', 'Time', 'Address', 'Review'];
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -67,13 +71,18 @@ export default function HomeVisitBooking() {
   const [submitError, setSubmitError] = useState('');
   const [createdBooking, setCreatedBooking] = useState(null);
 
-  const isBookable = Boolean(
-    doctor?.homeVisit?.enabled
-    && doctor?.homeVisit?.days?.length
-    && doctor?.homeVisit?.startTime
-    && doctor?.homeVisit?.endTime,
-  );
+  const eligibility = useMemo(() => getHomeVisitEligibility(doctor), [doctor]);
+  const isBookable = eligibility.eligible;
   const dates = useMemo(() => availableDates(doctor?.homeVisit?.days || []), [doctor?.homeVisit?.days]);
+  const isPastSlot = timeString => {
+    if (!date) return false;
+    const now = new Date();
+    const todayKey = toDateKey(now);
+    if (date !== todayKey) return false;
+    const slotMinutes = timeToMinutes(timeString);
+    const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+    return slotMinutes <= currentMinutes;
+  };
   const times = useMemo(() => {
     if (!doctor?.homeVisit?.startTime || !doctor?.homeVisit?.endTime) return [];
     const start = timeToMinutes(doctor.homeVisit.startTime);
@@ -108,6 +117,15 @@ export default function HomeVisitBooking() {
   };
 
   const submit = async () => {
+    const appointmentValidation = validateHomeVisitAppointment({
+      doctor,
+      date,
+      startTime: time,
+    });
+    if (!appointmentValidation.valid) {
+      setSubmitError(appointmentValidation.message);
+      return;
+    }
     setSubmitting(true);
     setSubmitError('');
     try {
@@ -123,7 +141,7 @@ export default function HomeVisitBooking() {
 
   if (loading) return <AppPageContainer><LoadingState label="Preparing the visit calendar…" /></AppPageContainer>;
   if (error || !doctor) return <AppPageContainer><EmptyState icon={Stethoscope} eyebrow="Home visits" title="Doctor unavailable" description="This practitioner profile could not be loaded." action={<Button as={Link} to="/app/home-visits">Browse home visits</Button>} /></AppPageContainer>;
-  if (!isBookable) return <AppPageContainer><EmptyState icon={CalendarDays} eyebrow="Schedule unavailable" title="Online booking is not open yet" description="This doctor has not published a complete, claimed home-visit schedule. MEDIMESH will not invent appointment times." action={<Button as={Link} to={`/app/doctors/${doctor.slug}`}>Return to profile</Button>} /></AppPageContainer>;
+  if (!isBookable) return <AppPageContainer><EmptyState icon={CalendarDays} eyebrow="Booking unavailable" title="Online booking is not open" description={eligibility.message} action={<Button as={Link} to={`/app/doctors/${doctor.slug}`}>Return to profile</Button>} /></AppPageContainer>;
 
   if (createdBooking) {
     return (
@@ -166,7 +184,7 @@ export default function HomeVisitBooking() {
           <FrostedPanel className="mt-6 rounded-[24px] p-5 sm:p-7">
             {step === 0 && <div><h2 className="font-serif text-2xl font-semibold">Select a visit date</h2><p className="mt-2 text-sm text-muted-foreground">Only days published by the doctor are shown.</p><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">{dates.map(item => { const value = toDateKey(item); return <button key={value} type="button" onClick={() => setDate(value)} className={`min-h-20 rounded-2xl border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${date === value ? 'border-primary bg-primary text-white shadow-lg' : 'border-border bg-white/70 hover:border-primary/30'}`}><span className="block text-xs opacity-75">{item.toLocaleDateString('en-IN', { weekday: 'long' })}</span><span className="mt-1 block font-serif text-lg font-semibold">{item.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span></button>; })}</div></div>}
 
-            {step === 1 && <div><h2 className="font-serif text-2xl font-semibold">Choose a 30-minute window</h2><p className="mt-2 text-sm text-muted-foreground">Unavailable requests are disabled without revealing patient information.</p>{checkingSlots ? <LoadingState label="Checking this date…" /> : <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">{times.map(item => { const disabled = unavailable.includes(item); return <button key={item} type="button" disabled={disabled} onClick={() => setTime(item)} className={`min-h-12 rounded-xl border px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:border-border/50 disabled:bg-surface disabled:text-muted-foreground/50 ${time === item ? 'border-primary bg-primary text-white' : 'border-border bg-white/70 hover:border-primary/30'}`}>{displayTime(item)}{disabled && <span className="block text-[9px] font-medium">Unavailable</span>}</button>; })}</div>}</div>}
+            {step === 1 && <div><h2 className="font-serif text-2xl font-semibold">Choose a 30-minute window</h2><p className="mt-2 text-sm text-muted-foreground">Unavailable requests are disabled without revealing patient information.</p>{checkingSlots ? <LoadingState label="Checking this date…" /> : <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">{times.map(item => { const isUnavailable = unavailable.includes(item); const isPast = isPastSlot(item); const disabled = isUnavailable || isPast; return <button key={item} type="button" disabled={disabled} onClick={() => setTime(item)} className={`min-h-12 rounded-xl border px-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:border-border/50 disabled:bg-surface disabled:text-muted-foreground/50 ${time === item ? 'border-primary bg-primary text-white' : 'border-border bg-white/70 hover:border-primary/30'}`}>{displayTime(item)}{disabled && <span className="block text-[9px] font-medium">{isUnavailable ? 'Unavailable' : 'Passed'}</span>}</button>; })}</div>}</div>}
 
             {step === 2 && <div><h2 className="font-serif text-2xl font-semibold">Where should the doctor visit?</h2><p className="mt-2 text-sm text-muted-foreground">Your full address is private and visible only to you and the assigned doctor.</p><div className="mt-6 grid gap-5 sm:grid-cols-2"><FormField id="visit-address" label="Address line 1" value={address.line1} onChange={event => setAddress(current => ({ ...current, line1: event.target.value }))} className="sm:col-span-2" required maxLength={240} /><FormField id="visit-address-2" label="Address line 2 (optional)" value={address.line2} onChange={event => setAddress(current => ({ ...current, line2: event.target.value }))} className="sm:col-span-2" maxLength={240} /><FormField id="visit-locality" label="Locality" value={address.locality} onChange={event => setAddress(current => ({ ...current, locality: event.target.value }))} required maxLength={120} /><FormField id="visit-city" label="City" value={address.city} onChange={event => setAddress(current => ({ ...current, city: event.target.value }))} required maxLength={120} /><FormField id="visit-postal" label="PIN code (optional)" inputMode="numeric" pattern="[0-9]{6}" value={address.postalCode} onChange={event => setAddress(current => ({ ...current, postalCode: event.target.value.replace(/\D/g, '').slice(0, 6) }))} error={address.postalCode && !/^[0-9]{6}$/.test(address.postalCode) ? 'Enter a 6-digit PIN code.' : undefined} /><FormField id="visit-landmark" label="Landmark (optional)" value={address.landmark} onChange={event => setAddress(current => ({ ...current, landmark: event.target.value }))} maxLength={160} /><FormField id="visit-note" as="textarea" rows={4} label="Note for the doctor (optional)" helpText={`${note.length}/1000 · Avoid sharing emergency or highly sensitive details here.`} value={note} onChange={event => setNote(event.target.value)} maxLength={1000} className="sm:col-span-2" /></div></div>}
 

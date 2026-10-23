@@ -6,6 +6,7 @@ import FrostedPanel from '../../components/common/FrostedPanel';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import { useDoctorDetail } from '../../hooks/useDoctorDetail';
+import { getHomeVisitEligibility } from '../../lib/doctors/homeVisitEligibility';
 
 export default function DoctorDetailExperience() {
   const { slug } = useParams();
@@ -75,7 +76,8 @@ export default function DoctorDetailExperience() {
     : 'Recently';
 
   const isHomeVisitScheduled = Boolean(homeVisit?.days?.length && homeVisit?.startTime && homeVisit?.endTime);
-  const isBookable = homeVisit?.enabled && isHomeVisitScheduled;
+  const eligibility = getHomeVisitEligibility(doctor);
+  const isBookable = eligibility.eligible;
   const bookingPath = basePath
     ? `/app/doctors/${doctor.slug}/book-home-visit`
     : `/login?redirect=${encodeURIComponent(`/app/doctors/${doctor.slug}/book-home-visit`)}`;
@@ -319,7 +321,7 @@ export default function DoctorDetailExperience() {
                   <Button as={Link} to={bookingPath} className="w-full gap-2 justify-center"><CalendarDays className="h-4 w-4" />Book Home Visit</Button>
                 ) : (
                   <div className="rounded-xl bg-surface border border-border/70 p-3 text-center">
-                    <p className="text-xs font-medium text-muted-foreground">Booking schedule not published yet.</p>
+                    <p className="text-xs font-medium text-muted-foreground">{eligibility.message}</p>
                   </div>
                 )}
               </div>
