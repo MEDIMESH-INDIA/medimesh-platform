@@ -16,6 +16,7 @@ import {
 import FrostedPanel from '../common/FrostedPanel';
 import { formatHospitalType } from '../../lib/utils/formatters';
 import { useCompare } from '../../hooks/useCompare';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import { MATCH_DISPOSITION } from '../../lib/careFinder/careFinderMatching';
 
 export default function CareFinderCard({ matchResult }) {
@@ -24,6 +25,7 @@ export default function CareFinderCard({ matchResult }) {
   const basePath = locationPath.startsWith('/app') ? '/app' : '';
 
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
+  const { requireAuth } = useAuthGate();
 
   const {
     hospital = {},
@@ -187,8 +189,16 @@ export default function CareFinderCard({ matchResult }) {
           type="button"
           onClick={(e) => {
             e.preventDefault();
-            if (compared) removeHospital(slug);
-            else if (canAdd) addHospital(hospital);
+            if (compared) {
+              removeHospital(slug);
+            } else if (canAdd) {
+              requireAuth({
+                action: () => addHospital(hospital),
+                resumeAction: () => addHospital(hospital),
+                title: 'Compare Hospitals',
+                message: 'Sign in or create an account to compare hospitals side-by-side.',
+              });
+            }
           }}
           disabled={!compared && !canAdd}
           title={!compared && !canAdd ? 'Comparison limited to 3 hospitals' : ''}

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Compass,
   ArrowRight,
@@ -31,6 +32,8 @@ import {
   CRITERION_MODE,
 } from '../../lib/careFinder/careFinderMatching';
 import { useCompare } from '../../hooks/useCompare';
+import { useAuth } from '../../hooks/useAuth';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import { formatHospitalType } from '../../lib/utils/formatters';
 
 const STEPS = [
@@ -42,6 +45,9 @@ const STEPS = [
 ];
 
 export default function CareFinderExperience({ mode = 'canonical' }) {
+  const { user, authLoading } = useAuth();
+  const { openAuthModal } = useAuthGate();
+  const location = useLocation();
   const { compareList } = useCompare();
 
   // Wizard state
@@ -55,6 +61,17 @@ export default function CareFinderExperience({ mode = 'canonical' }) {
     types: [],
   });
   const [optionsLoading, setOptionsLoading] = useState(true);
+
+  // Prompt unauthenticated visitors when accessing Care Finder
+  useEffect(() => {
+    if (!authLoading && !user) {
+      openAuthModal({
+        title: 'Care Finder',
+        message: 'Sign in or create an account to use Care Finder for guided hospital matching.',
+        returnTo: `${location.pathname}${location.search}`,
+      });
+    }
+  }, [authLoading, user, openAuthModal, location.pathname, location.search]);
 
   // Criteria state
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -79,8 +96,9 @@ export default function CareFinderExperience({ mode = 'canonical' }) {
   const [searchError, setSearchError] = useState(null);
   const [results, setResults] = useState(null);
 
-  // Load directory options on mount
+  // Load directory options on mount only when authenticated
   useEffect(() => {
+    if (!user) return undefined;
     let active = true;
     setOptionsLoading(true);
     getCareFinderOptions({ mode })
@@ -94,7 +112,7 @@ export default function CareFinderExperience({ mode = 'canonical' }) {
         if (active) setOptionsLoading(false);
       });
     return () => { active = false; };
-  }, [mode]);
+  }, [mode, user]);
 
   // Available localities based on selected city
   const availableLocalities = useMemo(() => {
@@ -242,6 +260,81 @@ export default function CareFinderExperience({ mode = 'canonical' }) {
       [facName]: mode,
     }));
   };
+
+  if (authLoading) {
+    return (
+      <AppPageContainer className="py-16">
+        <LoadingState label="Checking Care Finder permissions…" />
+      </AppPageContainer>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AppPageContainer className="py-12">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 text-primary">
+            <Compass className="h-8 w-8" />
+          </div>
+          <h1 className="mt-6 font-serif text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+            Guided Hospital Matching
+          </h1>
+          <p className="mt-3 text-base text-muted-foreground">
+            Care Finder helps you identify hospitals tailored to your clinical requirements, facility preferences, and locality with complete explainability and transparency. Sign in or create a MEDIMESH account to get started.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              type="button"
+              onClick={() =>
+                openAuthModal({
+                  title: 'Care Finder',
+                  message: 'Sign in or create an account to use Care Finder for guided hospital matching.',
+                  returnTo: `${location.pathname}${location.search}`,
+                })
+              }
+              className="gap-2 px-6"
+            >
+              <span>Sign in to continue</span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button
+              as={Link}
+              to="/discover"
+              variant="outline"
+              className="px-6"
+            >
+              Explore public directory
+            </Button>
+          </div>
+
+          <div className="mt-12 grid gap-4 text-left sm:grid-cols-3">
+            <div className="rounded-2xl border border-border/80 bg-surface/80 p-5">
+              <Stethoscope className="h-5 w-5 text-primary mb-2" />
+              <h3 className="text-sm font-semibold text-foreground">Clinical Needs</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Match verified medical specialties and critical service capabilities.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/80 bg-surface/80 p-5">
+              <Sparkles className="h-5 w-5 text-primary mb-2" />
+              <h3 className="text-sm font-semibold text-foreground">Explainable Matches</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                See exactly why each hospital appears with confirmed and unverified indicators.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/80 bg-surface/80 p-5">
+              <ShieldAlert className="h-5 w-5 text-primary mb-2" />
+              <h3 className="text-sm font-semibold text-foreground">Zero False Guarantees</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Missing data is never treated as positive or negative match.
+              </p>
+            </div>
+          </div>
+        </div>
+      </AppPageContainer>
+    );
+  }
 
   if (optionsLoading) {
     return (

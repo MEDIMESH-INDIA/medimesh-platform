@@ -1,6 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Container from "../common/Container";
+import { useAuth } from "../../hooks/useAuth";
+import { useAuthGate } from "../../hooks/useAuthGate";
 
 const footerLinks = [
   { name: "Discover", href: "/discover" },
@@ -13,6 +15,21 @@ const footerLinks = [
 ];
 
 export default function Footer() {
+  const { user } = useAuth();
+  const { requireAuth } = useAuthGate();
+  const navigate = useNavigate();
+
+  const handleFooterLinkClick = (e, link) => {
+    if (link.href === '/compare' && !user) {
+      e.preventDefault();
+      requireAuth({
+        title: 'Compare Hospitals',
+        message: 'Sign in or create an account to compare hospitals side-by-side.',
+        returnTo: '/compare',
+        action: () => navigate('/compare'),
+      });
+    }
+  };
   return (
     <footer className="relative z-20 overflow-hidden border-t border-white/10 bg-[#17211f] py-8 text-white md:py-9">
       <Container>
@@ -33,7 +50,17 @@ export default function Footer() {
         <div className="flex flex-col gap-4 pt-4 lg:flex-row lg:items-center lg:justify-between">
           <nav aria-label="Footer navigation">
             <ul className="flex flex-wrap gap-x-6 gap-y-3">
-              {footerLinks.map((link) => <li key={link.name}><Link to={link.href} className="inline-flex min-h-11 items-center text-xs font-semibold text-white/55 transition hover:text-white">{link.name}</Link></li>)}
+              {footerLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.href}
+                    onClick={(e) => handleFooterLinkClick(e, link)}
+                    className="inline-flex min-h-11 items-center text-xs font-semibold text-white/55 transition hover:text-white"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
           <div className="flex flex-col gap-2 text-[10px] font-medium text-white/55 sm:flex-row sm:gap-5">

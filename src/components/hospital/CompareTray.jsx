@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GitCompare, X, ArrowRight } from 'lucide-react';
 import { useCompare } from '../../hooks/useCompare';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CompareTray() {
   const navigate = useNavigate();
   const location = useLocation();
   const { compareList, removeHospital, clearComparison } = useCompare();
+  const { requireAuth } = useAuthGate();
 
   const isAppRoute = location.pathname.startsWith('/app');
 
@@ -88,7 +90,15 @@ export default function CompareTray() {
             </button>
             <button
               type="button"
-              onClick={() => navigate(isAppRoute ? '/app/compare' : '/compare')}
+              onClick={() => {
+                const target = isAppRoute ? '/app/compare' : '/compare';
+                requireAuth({
+                  title: 'Compare Hospitals',
+                  message: 'Sign in or create an account to compare hospitals side-by-side.',
+                  returnTo: target,
+                  action: () => navigate(target),
+                });
+              }}
               className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-95 ${
                 compareList.length >= 2
                   ? 'bg-primary text-white hover:bg-primary-hover hover:-translate-y-px'

@@ -1,6 +1,7 @@
 import { MapPin, Heart, GitCompare, Check, ArrowRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCompare } from '../../hooks/useCompare';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import FrostedPanel from '../common/FrostedPanel';
 import { formatHospitalType } from '../../lib/utils/formatters';
 
@@ -43,6 +44,7 @@ function FactBox({ label, value, highlight }) {
 
 export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveLabel = false }) {
   const { isCompared, addHospital, removeHospital, canAdd } = useCompare();
+  const { requireAuth } = useAuthGate();
   const locationPath = useLocation().pathname;
   const basePath = locationPath.startsWith('/app') ? '/app' : '';
 
@@ -182,8 +184,16 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
           type="button"
           onClick={(e) => {
             e.preventDefault();
-            if (compared) removeHospital(slug);
-            else if (canAdd) addHospital(hospital);
+            if (compared) {
+              removeHospital(slug);
+            } else if (canAdd) {
+              requireAuth({
+                action: () => addHospital(hospital),
+                resumeAction: () => addHospital(hospital),
+                title: 'Compare Hospitals',
+                message: 'Sign in or create an account to compare hospitals side-by-side.',
+              });
+            }
           }}
           disabled={!compared && !canAdd}
           title={!compared && !canAdd ? 'You can compare up to 3 hospitals at once' : ''}

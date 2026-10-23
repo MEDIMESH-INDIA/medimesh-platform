@@ -88,8 +88,18 @@ export default function HospitalDetailExperience({ mode = 'canonical' }) {
       removeHospital(slug);
       setToast({ message: `${hospital.name} removed from comparison.`, tone: 'success' });
     } else if (canAdd) {
-      addHospital(hospital);
-      setToast({ message: `${hospital.name} added to comparison.`, tone: 'success' });
+      requireAuth({
+        title: 'Compare Hospitals',
+        message: 'Sign in or create an account to compare hospitals side-by-side.',
+        action: () => {
+          addHospital(hospital);
+          setToast({ message: `${hospital.name} added to comparison.`, tone: 'success' });
+        },
+        resumeAction: () => {
+          addHospital(hospital);
+          setToast({ message: `${hospital.name} added to comparison.`, tone: 'success' });
+        },
+      });
     } else {
       setToast({ message: 'You can compare up to three hospitals.', tone: 'error' });
     }

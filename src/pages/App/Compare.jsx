@@ -4,7 +4,10 @@ import { AlertCircle, Check, Database, GitCompare, HelpCircle, Link2, MapPin, Pe
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import Button from '../../components/common/Button';
 import FrostedPanel from '../../components/common/FrostedPanel';
+import LoadingState from '../../components/common/LoadingState';
 import HospitalChooserModal from '../../components/hospital/HospitalChooserModal';
+import { useAuth } from '../../hooks/useAuth';
+import { useAuthGate } from '../../hooks/useAuthGate';
 import { useCompare } from '../../hooks/useCompare';
 import { useCompareHospitals } from '../../hooks/useCompareHospitals';
 import { useHospitalFacets } from '../../hooks/useHospitalFacets';
@@ -64,6 +67,8 @@ export default function Compare() {
   const basePath = route.pathname.startsWith('/app') ? '/app' : '';
   const [params, setParams] = useSearchParams();
   const mode = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY ? 'canonical' : 'demo';
+  const { user, authLoading } = useAuth();
+  const { openAuthModal } = useAuthGate();
   const { compareList, addHospital, removeHospital, replaceHospital, clearComparison, isCompared, canAdd, setComparison } = useCompare();
   const { hospitals, loading, error } = useCompareHospitals(compareList, { mode });
   const { facets, loading: facetsLoading } = useHospitalFacets({ mode });
@@ -83,6 +88,16 @@ export default function Compare() {
     if (!hasCompareParam) return true;
     return urlSlugs.length === currentSlugs.length && urlSlugs.every((slug, i) => slug === currentSlugs[i]);
   }, [hasCompareParam, urlSlugs, currentSlugs]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      openAuthModal({
+        title: 'Compare Hospitals',
+        message: 'Sign in or create an account to compare hospitals side-by-side.',
+        returnTo: `${route.pathname}${route.search}`,
+      });
+    }
+  }, [authLoading, user, openAuthModal, route.pathname, route.search]);
 
   useEffect(() => {
     if (hasCompareParam) {
@@ -259,6 +274,78 @@ export default function Compare() {
   const runSearch = event => { event.preventDefault(); setSearch({ ...draft, q: draft.q.trim() }); };
   const quickSearch = specialty => { const next = { ...draft, q: specialty, specialty }; setDraft(next); setSearch(next); };
 
+  if (authLoading) {
+    return (
+      <AppPageContainer className="py-16">
+        <LoadingState label="Checking comparison access…" />
+      </AppPageContainer>
+    );
+  }
+
+  if (!user) {
+    const hasIncomingSlugs = Boolean(params.get('compare'));
+    return (
+      <AppPageContainer className="py-12">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-primary/10 text-primary">
+            <GitCompare className="h-8 w-8" />
+          </div>
+          <h1 className="mt-6 font-serif text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+            Compare Hospitals Side-by-Side
+          </h1>
+          <p className="mt-3 text-base text-muted-foreground">
+            {hasIncomingSlugs
+              ? 'You have opened a shared hospital comparison. Sign in or create an account to view and analyze these hospitals side-by-side.'
+              : 'Sign in or create an account to compare hospitals, review verified capabilities, and evaluate care options.'}
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              type="button"
+              onClick={() =>
+                openAuthModal({
+                  title: 'Compare Hospitals',
+                  message: 'Sign in or create an account to compare hospitals side-by-side.',
+                  returnTo: `${route.pathname}${route.search}`,
+                })
+              }
+              className="gap-2 px-6"
+            >
+              Sign in to compare
+            </Button>
+            <Button
+              as={Link}
+              to="/discover"
+              variant="outline"
+              className="px-6"
+            >
+              Explore hospitals
+            </Button>
+          </div>
+
+          <div className="mt-12 grid gap-4 text-left sm:grid-cols-2">
+            <div className="rounded-2xl border border-border/80 bg-surface/80 p-5">
+              <ShieldCheck className="h-5 w-5 text-primary mb-2" />
+              <h3 className="text-sm font-semibold text-foreground">Verified Directory Data</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Compare official specialties, verified facility metrics, ICU beds, and emergency services from confirmed sources.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border/80 bg-surface/80 p-5">
+              <Database className="h-5 w-5 text-primary mb-2" />
+              <h3 className="text-sm font-semibold text-foreground">Context Preservation</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {hasIncomingSlugs
+                  ? 'Your shared comparison link is safely preserved and will load immediately after you sign in.'
+                  : 'Your comparison choices and preferences stay in sync once you sign in to MEDIMESH.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </AppPageContainer>
+    );
+  }
+
   return <AppPageContainer className="">
     <header className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div><div className="flex flex-wrap items-center gap-2"><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Guided hospital comparison</p>{mode === 'demo' && <span className="rounded-full bg-lavender/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#675890]">Demonstration catalog</span>}</div><h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Find the right options to compare</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Search by hospital name or healthcare need, choose an area, then compare up to three hospitals using known, source-linked information. MEDIMESH does not diagnose, rank providers, or declare a winner.</p></div>
@@ -296,7 +383,7 @@ export default function Compare() {
     </FrostedPanel>
 
     <section className="mb-7"><div className="mb-3 flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Your shortlist</p><h2 className="mt-1 font-serif text-2xl font-semibold">Selected hospitals <span className="font-sans text-sm text-muted-foreground">{compareList.length}/3</span></h2></div><div className="flex flex-wrap items-center gap-2">{compareList.length >= 2 && <Button type="button" variant="outline" size="sm" onClick={handleCopyLink} className="gap-2 font-semibold" aria-label="Copy comparison link">{copyFeedback.status === 'success' ? <Check className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}{copyFeedback.status === 'success' ? 'Comparison link copied' : 'Copy comparison link'}</Button>}{canAdd && <Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })}><Plus className="mr-2 h-4 w-4" /> Add hospital</Button>}</div></div>
-      {!compareList.length ? <FrostedPanel className="rounded-[20px] p-8 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]"><GitCompare className="h-6 w-6" /></div><h3 className="mt-4 font-semibold">Select at least two hospitals</h3><p className="mt-2 text-sm text-muted-foreground">Search above or browse the catalog. Your selection stays in this browser; sign-in is not required.</p><Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })} className="mt-5">Browse hospitals</Button></FrostedPanel> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{hospitals.map((hospital,index) => <FrostedPanel key={hospital.id} className="rounded-2xl p-4"><div className="flex justify-between gap-3"><div><span className="text-[10px] font-bold uppercase text-primary">Option {index+1}</span><h3 className="mt-1 font-semibold">{hospital.name}</h3><p className="mt-1 text-xs text-muted-foreground">{place(hospital)}</p></div><button onClick={() => handleRemove(hospital.slug)} aria-label={`Remove ${hospital.name}`}><X className="h-4 w-4 text-muted-foreground" /></button></div><button onClick={() => setChooser({ open:true, replaceSlug:hospital.slug })} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pencil className="h-3 w-3" /> Replace</button></FrostedPanel>)}</div>}
+      {!compareList.length ? <FrostedPanel className="rounded-[20px] p-8 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]"><GitCompare className="h-6 w-6" /></div><h3 className="mt-4 font-semibold">Select at least two hospitals</h3><p className="mt-2 text-sm text-muted-foreground">Search above or browse the catalog to compare up to 3 hospitals side-by-side.</p><Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })} className="mt-5">Browse hospitals</Button></FrostedPanel> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{hospitals.map((hospital,index) => <FrostedPanel key={hospital.id} className="rounded-2xl p-4"><div className="flex justify-between gap-3"><div><span className="text-[10px] font-bold uppercase text-primary">Option {index+1}</span><h3 className="mt-1 font-semibold">{hospital.name}</h3><p className="mt-1 text-xs text-muted-foreground">{place(hospital)}</p></div><button onClick={() => handleRemove(hospital.slug)} aria-label={`Remove ${hospital.name}`}><X className="h-4 w-4 text-muted-foreground" /></button></div><button onClick={() => setChooser({ open:true, replaceSlug:hospital.slug })} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pencil className="h-3 w-3" /> Replace</button></FrostedPanel>)}</div>}
     </section>
 
     {((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) && <div className="h-96 animate-pulse rounded-[20px] bg-surface-elevated" />}

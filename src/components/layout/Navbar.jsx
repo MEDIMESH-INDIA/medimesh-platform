@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "../common/Button";
@@ -7,6 +7,7 @@ import Container from "../common/Container";
 import MedimeshLogo from "../brand/MedimeshLogo";
 import UserAvatar from "../common/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
+import { useAuthGate } from "../../hooks/useAuthGate";
 import { getRoleDashboardPath } from "../../routes/roleDashboardPaths";
 
 const navLinks = [
@@ -28,9 +29,37 @@ function isNavActive(pathname, href) {
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, role } = useAuth();
+  const { requireAuth } = useAuthGate();
+
+  const handleNavLinkClick = (e, link) => {
+    if (link.href === '/care-finder' && !user) {
+      e.preventDefault();
+      setIsMobileMenuOpen(false);
+      requireAuth({
+        title: 'Care Finder',
+        message: 'Sign in or create an account to use Care Finder for guided hospital matching.',
+        returnTo: '/care-finder',
+        action: () => navigate('/care-finder'),
+      });
+      return;
+    }
+    if (link.href === '/compare' && !user) {
+      e.preventDefault();
+      setIsMobileMenuOpen(false);
+      requireAuth({
+        title: 'Compare Hospitals',
+        message: 'Sign in or create an account to compare hospitals side-by-side.',
+        returnTo: '/compare',
+        action: () => navigate('/compare'),
+      });
+      return;
+    }
+    setIsMobileMenuOpen(false);
+  };
 
   useEffect(() => {
     let ticking = false;
@@ -84,6 +113,7 @@ export default function Navbar() {
                 <li key={link.name}>
                   <Link
                     to={link.href}
+                    onClick={(e) => handleNavLinkClick(e, link)}
                     aria-current={isNavActive(location.pathname, link.href) ? 'page' : undefined}
                     className={cn("inline-flex min-h-11 items-center rounded-[10px] px-2.5 py-2 text-[13px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-focus-ring", isNavActive(location.pathname, link.href) ? "text-primary bg-primary/5" : "text-muted-foreground hover:bg-black/5 hover:text-foreground")}
                   >
@@ -144,7 +174,7 @@ export default function Navbar() {
                     to={link.href}
                     aria-current={isNavActive(location.pathname, link.href) ? 'page' : undefined}
                     className="flex min-h-11 items-center justify-between rounded-[12px] px-3 text-base font-semibold text-foreground hover:bg-white"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={(e) => handleNavLinkClick(e, link)}
                   >
                     {link.name} <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
                   </Link>

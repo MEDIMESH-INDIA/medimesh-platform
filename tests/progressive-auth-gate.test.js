@@ -283,6 +283,26 @@ test('9. Static verification: Healthcare discovery experiences integrate useAuth
       file: 'src/pages/App/DoctorDetailExperience.jsx',
       gatedTerms: ['useAuthGate', 'handleBookHomeVisit'],
     },
+    {
+      file: 'src/components/hospital/HospitalCard.jsx',
+      gatedTerms: ['useAuthGate', 'requireAuth'],
+    },
+    {
+      file: 'src/components/careFinder/CareFinderCard.jsx',
+      gatedTerms: ['useAuthGate', 'requireAuth'],
+    },
+    {
+      file: 'src/components/hospital/CompareTray.jsx',
+      gatedTerms: ['useAuthGate', 'requireAuth'],
+    },
+    {
+      file: 'src/components/layout/Navbar.jsx',
+      gatedTerms: ['useAuthGate', 'requireAuth', '/care-finder', '/compare'],
+    },
+    {
+      file: 'src/components/layout/Footer.jsx',
+      gatedTerms: ['useAuthGate', 'requireAuth', '/compare'],
+    },
   ];
 
   for (const { file, gatedTerms } of pages) {
@@ -316,20 +336,107 @@ test('10. Static verification: Legacy SignInPromptDialog is eliminated from disc
   );
 });
 
-test('11. Comparison & Care Finder public guest contract is strictly preserved', () => {
+test('11. Compare Hospitals and Care Finder are securely gated behind authentication', () => {
   const comparePath = path.resolve(process.cwd(), 'src/pages/App/Compare.jsx');
   const careFinderPath = path.resolve(process.cwd(), 'src/pages/CareFinder/CareFinderExperience.jsx');
 
   const compareContent = fs.readFileSync(comparePath, 'utf8');
   const careFinderContent = fs.readFileSync(careFinderPath, 'utf8');
 
-  // Both pages must NOT gate their initial load or render behind requireAuth
+  // Compare page must gate unauthenticated entry behind authentication
   assert.ok(
-    !compareContent.includes('requireAuth('),
-    'Compare experience must allow public comparison without forcing authentication'
+    compareContent.includes('useAuthGate'),
+    'Compare.jsx must import useAuthGate'
   );
   assert.ok(
-    !careFinderContent.includes('requireAuth('),
-    'Care Finder experience must allow public wizard and search without forcing authentication'
+    compareContent.includes('openAuthModal'),
+    'Compare.jsx must invoke openAuthModal for unauthenticated guests'
   );
+  assert.ok(
+    compareContent.includes('authLoading'),
+    'Compare.jsx must guard against false prompts while authLoading is true'
+  );
+  assert.ok(
+    compareContent.includes('Sign in to compare'),
+    'Compare.jsx must render sign-in prompt button for guests'
+  );
+
+  // Care Finder page must gate unauthenticated entry behind authentication
+  assert.ok(
+    careFinderContent.includes('useAuthGate'),
+    'CareFinderExperience.jsx must import useAuthGate'
+  );
+  assert.ok(
+    careFinderContent.includes('openAuthModal'),
+    'CareFinderExperience.jsx must invoke openAuthModal for unauthenticated guests'
+  );
+  assert.ok(
+    careFinderContent.includes('authLoading'),
+    'CareFinderExperience.jsx must guard against false prompts while authLoading is true'
+  );
+  assert.ok(
+    careFinderContent.includes('Sign in to continue'),
+    'CareFinderExperience.jsx must render gated call-to-action button for guests'
+  );
+  assert.ok(
+    careFinderContent.includes('if (!user) return undefined;'),
+    'CareFinderExperience.jsx must not fetch directory options or expose wizard when unauthenticated'
+  );
+
+  // Compare interactions must enforce authentication
+  const cardPath = path.resolve(process.cwd(), 'src/components/hospital/HospitalCard.jsx');
+  const cardContent = fs.readFileSync(cardPath, 'utf8');
+  assert.ok(
+    cardContent.includes('requireAuth({') && cardContent.includes('addHospital(hospital)'),
+    'HospitalCard.jsx must gate + Compare button behind requireAuth'
+  );
+
+  const detailPath = path.resolve(process.cwd(), 'src/pages/App/HospitalDetailExperience.jsx');
+  const detailContent = fs.readFileSync(detailPath, 'utf8');
+  assert.ok(
+    detailContent.includes('requireAuth({') && detailContent.includes('addHospital(hospital)'),
+    'HospitalDetailExperience.jsx must gate handleCompare behind requireAuth'
+  );
+
+  const trayPath = path.resolve(process.cwd(), 'src/components/hospital/CompareTray.jsx');
+  const trayContent = fs.readFileSync(trayPath, 'utf8');
+  assert.ok(
+    trayContent.includes('requireAuth({'),
+    'CompareTray.jsx must gate Compare navigation behind requireAuth'
+  );
+});
+
+test('12. Public healthcare exploration contract is strictly preserved for unauthenticated visitors', () => {
+  // Discover experience: search, filter selection, and pagination are completely public
+  const discoverPath = path.resolve(process.cwd(), 'src/pages/App/DiscoverExperience.jsx');
+  const discoverContent = fs.readFileSync(discoverPath, 'utf8');
+  assert.ok(
+    !discoverContent.includes('requireAuth({ action: () => executeSearch'),
+    'DiscoverExperience must allow public searching without requiring authentication'
+  );
+
+  // Doctor discover experience: doctor directory browsing is public
+  const doctorPath = path.resolve(process.cwd(), 'src/pages/App/DoctorDiscoverExperience.jsx');
+  const doctorContent = fs.readFileSync(doctorPath, 'utf8');
+  assert.ok(
+    !doctorContent.includes('requireAuth({ action: () => executeDoctorSearch'),
+    'DoctorDiscoverExperience must allow public doctor browsing'
+  );
+
+  // Hospital detail: facility profiles, verified coordinate maps, and trust metadata are public
+  const detailPath = path.resolve(process.cwd(), 'src/pages/App/HospitalDetailExperience.jsx');
+  const detailContent = fs.readFileSync(detailPath, 'utf8');
+  assert.ok(
+    detailContent.includes('<TrustMetadata'),
+    'HospitalDetailExperience must render TrustMetadata publicly'
+  );
+  assert.ok(
+    detailContent.includes('<HospitalLocationPanel'),
+    'HospitalDetailExperience must render HospitalLocationPanel publicly'
+  );
+
+  // Return destinations: verify that compare and care-finder (with safe query strings) are valid return destinations
+  assert.equal(isValidReturnDestination('/compare', 'patient'), true);
+  assert.equal(isValidReturnDestination('/compare?compare=apollo-hospital,fortis-hospital', 'patient'), true);
+  assert.equal(isValidReturnDestination('/care-finder', 'patient'), true);
 });
