@@ -160,7 +160,7 @@ export default function PatientDashboard({ initialTab = 'overview' }) {
               description="Active consultations"
               href="/app/home-visit-bookings"
             />
-            <FrostedPanel className="rounded-2xl p-4.5 sm:p-5 flex flex-col justify-between">
+            <FrostedPanel className="rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Profile Status</span>
@@ -361,7 +361,7 @@ function StatusTile({ icon: Icon, label, value, description, href }) {
   return (
     <Link
       to={href}
-      className="group rounded-2xl border border-white/80 bg-white/70 p-4.5 sm:p-5 shadow-[0_4px_16px_rgba(15,40,35,0.035)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-white"
+      className="group rounded-2xl border border-white/80 bg-white/70 p-4 sm:p-5 shadow-[0_4px_16px_rgba(15,40,35,0.035)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:bg-white"
     >
       <div className="flex items-center justify-between">
         <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />

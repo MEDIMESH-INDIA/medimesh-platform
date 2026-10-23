@@ -43,8 +43,11 @@ function FallbackProfileForm() {
   const [emergencyName, setEmergencyName] = useState('');
   const [emergencyRelationship, setEmergencyRelationship] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
+  const [emergencyContactId, setEmergencyContactId] = useState(null);
 
   const [loadingMedical, setLoadingMedical] = useState(false);
+  const [medicalLoadError, setMedicalLoadError] = useState(null);
+  const [medicalLoaded, setMedicalLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -68,6 +71,7 @@ function FallbackProfileForm() {
 
     async function loadPatientDetails() {
       setLoadingMedical(true);
+      setMedicalLoadError(null);
       try {
         const [medRes, emRes] = await Promise.all([
           supabase.from('patient_medical_profiles').select('*').eq('id', user.id).maybeSingle(),
@@ -75,21 +79,38 @@ function FallbackProfileForm() {
         ]);
 
         if (mounted) {
-          if (medRes.data) {
-            setBloodGroup(medRes.data.blood_group || '');
-            setDateOfBirth(medRes.data.date_of_birth || '');
-            setGender(medRes.data.gender || '');
-            setAllergies(medRes.data.allergies || '');
-            setChronicConditions(medRes.data.chronic_conditions || '');
+          if (medRes.error) {
+            console.warn('Failed to load medical profile:', medRes.error);
+            setMedicalLoadError('Could not load health records from the database.');
+            setMedicalLoaded(false);
+          } else {
+            setMedicalLoaded(true);
+            if (medRes.data) {
+              setBloodGroup(medRes.data.blood_group || '');
+              setDateOfBirth(medRes.data.date_of_birth || '');
+              setGender(medRes.data.gender || '');
+              setAllergies(medRes.data.allergies || '');
+              setChronicConditions(medRes.data.chronic_conditions || '');
+            }
           }
-          if (emRes.data) {
+
+          if (emRes.error) {
+            console.warn('Failed to load emergency contact:', emRes.error);
+          } else if (emRes.data) {
+            setEmergencyContactId(emRes.data.id || null);
             setEmergencyName(emRes.data.contact_name || '');
             setEmergencyRelationship(emRes.data.relationship || '');
             setEmergencyPhone(emRes.data.phone || '');
+          } else {
+            setEmergencyContactId(null);
           }
         }
       } catch (err) {
         console.error('Failed to load patient records:', err);
+        if (mounted) {
+          setMedicalLoadError('Connection error while loading medical records.');
+          setMedicalLoaded(false);
+        }
       } finally {
         if (mounted) setLoadingMedical(false);
       }
@@ -107,24 +128,58 @@ function FallbackProfileForm() {
     setError('');
     setMessage('');
 
+    if (!displayName.trim()) {
+      setError('Display name is required.');
+      setSaving(false);
+      return;
+    }
+
+    const hasEmName = Boolean(emergencyName.trim());
+    const hasEmPhone = Boolean(emergencyPhone.trim());
+    if ((hasEmName && !hasEmPhone) || (!hasEmName && hasEmPhone)) {
+      setError('Emergency contact requires both a contact person name and phone number.');
+      setSaving(false);
+      return;
+    }
+
+    if (medicalLoadError && !medicalLoaded && profile?.role === 'patient') {
+      setError('Health records could not be verified from the server. Please reload the page before saving to prevent overwriting existing data.');
+      setSaving(false);
+      return;
+    }
+
+    const sectionErrors = [];
+    const sectionSuccesses = [];
+
     try {
       // 1. Update Profile (strictly avoiding protected columns like role, id, verification_status)
-      const { error: profileError } = await supabase
+      const { data: updatedRows, error: profileError } = await supabase
         .from('profiles')
         .update({
           first_name: firstName.trim() || null,
           last_name: lastName.trim() || null,
-          display_name: displayName.trim() || null,
+          display_name: displayName.trim(),
           phone: phone.trim() || null,
           city: city.trim() || null,
           country: country.trim() || null,
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select('id, display_name');
 
       if (profileError) throw profileError;
+      if (!updatedRows || updatedRows.length === 0) {
+        throw new Error('Profile update affected zero rows.');
+      }
 
-      // 2. Upsert Medical Profile if patient
-      if (profile?.role === 'patient') {
+      sectionSuccesses.push('Personal information');
+    } catch (err) {
+      console.error('Profile update failed:', err);
+      sectionErrors.push({ section: 'Personal information', message: 'Could not update personal profile.' });
+    }
+
+    // 2. Upsert Medical Profile if patient
+    if (profile?.role === 'patient' && medicalLoaded) {
+      try {
         const { error: medError } = await supabase
           .from('patient_medical_profiles')
           .upsert({
@@ -138,28 +193,80 @@ function FallbackProfileForm() {
           }, { onConflict: 'id' });
 
         if (medError) throw medError;
-
-        // 3. Upsert Emergency Contact if details given
-        if (emergencyName.trim() || emergencyPhone.trim()) {
-          const { error: emError } = await supabase
-            .from('patient_emergency_contacts')
-            .upsert({
-              patient_id: user.id,
-              contact_name: emergencyName.trim() || 'Emergency Contact',
-              relationship: emergencyRelationship.trim() || null,
-              phone: emergencyPhone.trim() || '',
-              updated_at: new Date().toISOString(),
-            }, { onConflict: 'patient_id' });
-
-          if (emError) throw emError;
-        }
+        sectionSuccesses.push('Health profile');
+      } catch (err) {
+        console.error('Medical update failed:', err);
+        sectionErrors.push({ section: 'Health profile', message: 'Could not update health profile.' });
       }
+    }
 
-      await refreshProfile();
-      setMessage('Profile and health settings saved successfully.');
-    } catch (err) {
-      console.error('Error saving profile:', err);
-      setError('An error occurred while updating your profile. Please check your network and try again.');
+    // 3. Emergency Contact handling (insert, update, or explicit delete)
+    if (profile?.role === 'patient') {
+      try {
+        if (hasEmName && hasEmPhone) {
+          if (emergencyContactId) {
+            const { error: emUpdateError } = await supabase
+              .from('patient_emergency_contacts')
+              .update({
+                contact_name: emergencyName.trim(),
+                relationship: emergencyRelationship.trim() || null,
+                phone: emergencyPhone.trim(),
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', emergencyContactId)
+              .eq('patient_id', user.id);
+
+            if (emUpdateError) throw emUpdateError;
+          } else {
+            const { data: insertedEm, error: emInsertError } = await supabase
+              .from('patient_emergency_contacts')
+              .insert({
+                patient_id: user.id,
+                contact_name: emergencyName.trim(),
+                relationship: emergencyRelationship.trim() || null,
+                phone: emergencyPhone.trim(),
+              })
+              .select('id')
+              .maybeSingle();
+
+            if (emInsertError) throw emInsertError;
+            if (insertedEm?.id) {
+              setEmergencyContactId(insertedEm.id);
+            }
+          }
+          sectionSuccesses.push('Emergency contact');
+        } else if (!hasEmName && !hasEmPhone && emergencyContactId) {
+          const { error: emDeleteError } = await supabase
+            .from('patient_emergency_contacts')
+            .delete()
+            .eq('id', emergencyContactId)
+            .eq('patient_id', user.id);
+
+          if (emDeleteError) throw emDeleteError;
+          setEmergencyContactId(null);
+          sectionSuccesses.push('Emergency contact removed');
+        }
+      } catch (err) {
+        console.error('Emergency contact update failed:', err);
+        sectionErrors.push({ section: 'Emergency contact', message: 'Could not update emergency contact.' });
+      }
+    }
+
+    try {
+      if (sectionErrors.length === 0) {
+        const refreshed = await refreshProfile();
+        if (!refreshed) {
+          setMessage('Profile settings saved successfully. (Session refresh is pending; reload page if needed.)');
+        } else {
+          setMessage('Profile and health settings saved successfully.');
+        }
+      } else if (sectionSuccesses.length > 0) {
+        const succeededList = sectionSuccesses.join(', ');
+        const failedList = sectionErrors.map(e => e.section).join(', ');
+        setError(`Partial save: ${succeededList} saved, but ${failedList} could not be updated.`);
+      } else {
+        setError('An error occurred while updating your profile. Please check your network and try again.');
+      }
     } finally {
       setSaving(false);
     }

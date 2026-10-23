@@ -15,6 +15,7 @@ const discoveryActionsPath = resolve(process.cwd(), 'src/components/patient/Pati
 const userAvatarPath = resolve(process.cwd(), 'src/components/common/UserAvatar.jsx');
 const appShellPath = resolve(process.cwd(), 'src/components/layout/AppShell.jsx');
 const storageMigrationPath = resolve(process.cwd(), 'supabase/migrations/20261024020000_avatar_storage_bucket.sql');
+const emergencyMigrationPath = resolve(process.cwd(), 'supabase/migrations/20261024023000_patient_emergency_contact_unique.sql');
 
 const patientDashboardSrc = readFileSync(patientDashboardPath, 'utf8');
 const profileSrc = readFileSync(profilePath, 'utf8');
@@ -24,6 +25,7 @@ const discoveryActionsSrc = readFileSync(discoveryActionsPath, 'utf8');
 const userAvatarSrc = readFileSync(userAvatarPath, 'utf8');
 const appShellSrc = readFileSync(appShellPath, 'utf8');
 const storageMigrationSrc = readFileSync(storageMigrationPath, 'utf8');
+const emergencyMigrationSrc = readFileSync(emergencyMigrationPath, 'utf8');
 
 test('1. calculateProfileCompleteness: calculates accurate score and does not penalize optional fields', () => {
   // Empty profile
@@ -230,6 +232,120 @@ test('10. AppShell avatar parity: uses canonical UserAvatar instead of static le
   assert.ok(
     appShellSrc.includes('src={profile?.avatar_url}'),
     'AppShell sidebar must pass canonical profile.avatar_url'
+  );
+});
+
+test('11. Personal profile update: enforces zero-rows-affected check and permitted columns', () => {
+  assert.ok(
+    profileEditorSrc.includes('.select('),
+    'Editor must chain .select() on profile update to verify affected rows'
+  );
+  assert.ok(
+    profileEditorSrc.includes('!updatedRows || updatedRows.length === 0'),
+    'Editor must detect and reject zero affected rows condition'
+  );
+  // Strictly permitted columns per grant update
+  assert.ok(profileEditorSrc.includes('first_name:'), 'Update includes first_name');
+  assert.ok(profileEditorSrc.includes('last_name:'), 'Update includes last_name');
+  assert.ok(profileEditorSrc.includes('display_name:'), 'Update includes display_name');
+  assert.ok(profileEditorSrc.includes('phone:'), 'Update includes phone');
+  assert.ok(profileEditorSrc.includes('city:'), 'Update includes city');
+  assert.ok(profileEditorSrc.includes('country:'), 'Update includes country');
+  assert.ok(profileEditorSrc.includes('avatar_url:'), 'Update includes avatar_url');
+
+  // Must not attempt updating immutable/role columns in browser request
+  assert.ok(!profileEditorSrc.includes('role:'), 'Must not attempt updating role');
+  assert.ok(!profileEditorSrc.includes('verification_status:'), 'Must not attempt updating verification_status');
+});
+
+test('12. Health records safety: prevents silent overwrite if records fail to load', () => {
+  assert.ok(
+    profileEditorSrc.includes('recordsLoadError'),
+    'Editor must track loading errors for health records'
+  );
+  assert.ok(
+    profileEditorSrc.includes('healthRecordsLoaded'),
+    'Editor must track whether records were successfully fetched'
+  );
+  assert.ok(
+    profileEditorSrc.includes('recordsLoadError && !healthRecordsLoaded'),
+    'Editor must block save when records failed to load to prevent overwriting with nulls'
+  );
+  assert.ok(
+    profileEditorSrc.includes('loadPatientDetails'),
+    'Editor must provide recovery trigger (loadPatientDetails) to retry loading'
+  );
+});
+
+test('13. Emergency contact contract: validates pairs, updates existing, and deletes when cleared', () => {
+  assert.ok(
+    profileEditorSrc.includes('hasEmergencyName && !hasEmergencyPhone'),
+    'Must validate that emergency contact has both name and phone'
+  );
+  assert.ok(
+    profileEditorSrc.includes('emergencyContactId'),
+    'Editor must track existing emergency contact ID'
+  );
+  assert.ok(
+    profileEditorSrc.includes('.update(') && profileEditorSrc.includes('.eq(\'id\', emergencyContactId)'),
+    'Must update existing record by ID instead of invalid onConflict target'
+  );
+  assert.ok(
+    profileEditorSrc.includes('.delete()') && profileEditorSrc.includes('.eq(\'patient_id\', user.id)'),
+    'Must delete contact record when user clears name and phone so no stale data remains'
+  );
+});
+
+test('14. Partial-save reporting: classifies errors and preserves form state', () => {
+  assert.ok(
+    profileEditorSrc.includes('sectionErrors'),
+    'Editor must collect section-specific errors'
+  );
+  assert.ok(
+    profileEditorSrc.includes('sectionSuccesses'),
+    'Editor must collect section-specific successes'
+  );
+  assert.ok(
+    profileEditorSrc.includes('Partial save:'),
+    'Editor must inform user of partial success without masking failed sections'
+  );
+  assert.ok(
+    profileEditorSrc.includes('refreshed = await refreshProfile()'),
+    'Editor must check refreshProfile return value'
+  );
+});
+
+test('15. Discovery actions layout: equal height, supported padding, and non-overlapping header', () => {
+  assert.ok(
+    !discoveryActionsSrc.includes('p-4.5'),
+    'Discovery actions must eliminate unsupported p-4.5 class'
+  );
+  assert.ok(
+    discoveryActionsSrc.includes('p-4 sm:p-5'),
+    'Discovery actions must use supported responsive padding p-4 sm:p-5'
+  );
+  assert.ok(
+    discoveryActionsSrc.includes('flex flex-col justify-between h-full'),
+    'Discovery action cards must be equal height in grid rows'
+  );
+  assert.ok(
+    discoveryActionsSrc.includes('flex items-center gap-2 shrink-0'),
+    'Badge and arrow must be grouped as siblings to prevent overlapping'
+  );
+  assert.ok(
+    !discoveryActionsSrc.includes('absolute right-4 top-5'),
+    'Directional arrow must not be absolute positioned over badge'
+  );
+});
+
+test('16. Proposed migrations: validates avatar bucket and emergency contact unique constraint', () => {
+  assert.ok(
+    emergencyMigrationSrc.includes('ADD CONSTRAINT patient_emergency_contacts_patient_id_key UNIQUE (patient_id)'),
+    'Emergency contact migration must provide UNIQUE constraint on patient_id'
+  );
+  assert.ok(
+    storageMigrationSrc.includes('INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)'),
+    'Storage migration must provision avatars bucket with limits and mime types'
   );
 });
 
