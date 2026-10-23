@@ -19,6 +19,8 @@ import AppShell from "./components/layout/AppShell";
 import PatientDashboard from "./pages/App/PatientDashboard";
 import PublicDiscover from "./pages/PublicDiscover";
 import PatientDiscover from "./pages/App/PatientDiscover";
+import PublicCareFinder from "./pages/PublicCareFinder";
+import PatientCareFinder from "./pages/App/PatientCareFinder";
 import PublicHospitalDetail from "./pages/PublicHospitalDetail";
 import PatientHospitalDetail from "./pages/App/PatientHospitalDetail";
 import PublicDoctors from "./pages/PublicDoctors";
@@ -65,6 +67,7 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/discover" element={<PublicDiscover />} />
+        <Route path="/care-finder" element={<PublicCareFinder />} />
         <Route path="/compare" element={<Compare />} />
         <Route path="/doctors" element={<PublicDoctors />} />
         <Route path="/home-visits" element={<PublicHomeVisits />} />
@@ -99,6 +102,11 @@ function App() {
         <Route path="/app/discover" element={
           <RoleRoute allowedRoles={['patient']}>
             <PatientDiscover />
+          </RoleRoute>
+        } />
+        <Route path="/app/care-finder" element={
+          <RoleRoute allowedRoles={['patient']}>
+            <PatientCareFinder />
           </RoleRoute>
         } />
         <Route path="/app/hospitals/:slug" element={

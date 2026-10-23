@@ -10,6 +10,7 @@ import { getRoleDashboardPath } from "../../routes/roleDashboardPaths";
 
 const navLinks = [
   { name: "Discover", href: "/discover" },
+  { name: "Care Finder", href: "/care-finder" },
   { name: "Doctors", href: "/doctors" },
   { name: "Home Visits", href: "/home-visits" },
   { name: "Compare", href: "/compare" },

@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck, CalendarCheck2, Inbox } from 'lucide-react';
+import { ChevronUp, LogOut, User, Users, Settings, LayoutDashboard, Menu, X, Search, Heart, GitCompare, Stethoscope, Home, Award, BedDouble, Building2, ListChecks, ShieldCheck, CalendarCheck2, Inbox, Compass } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
@@ -55,6 +55,7 @@ export default function AppShell() {
   if (role === 'patient') {
     navLinks.push(
       { name: 'Discover', href: '/app/discover', icon: Search },
+      { name: 'Care Finder', href: '/app/care-finder', icon: Compass },
       { name: 'Doctors', href: '/app/doctors', icon: Stethoscope },
       { name: 'Home Visits', href: '/app/home-visits', icon: Home },
       { name: 'Bookings', href: '/app/home-visit-bookings', icon: CalendarCheck2 },
