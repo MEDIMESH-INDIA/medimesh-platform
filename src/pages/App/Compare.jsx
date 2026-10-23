@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { AlertCircle, Check, Database, GitCompare, HelpCircle, MapPin, Pencil, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { AlertCircle, Check, Database, GitCompare, HelpCircle, Link2, MapPin, Pencil, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import Button from '../../components/common/Button';
 import FrostedPanel from '../../components/common/FrostedPanel';
@@ -9,6 +9,13 @@ import { useCompare } from '../../hooks/useCompare';
 import { useCompareHospitals } from '../../hooks/useCompareHospitals';
 import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
+import { getHospitalsBySlugs } from '../../lib/data/hospitalRepository';
+import {
+  parseComparisonSlugs,
+  serializeComparisonSlugs,
+  buildShareableComparisonUrl,
+  copyTextToClipboard,
+} from '../../lib/compare/shareableComparison';
 import { formatHospitalType, formatReviewStatus } from '../../lib/utils/formatters';
 
 const EMPTY = { q: '', city: '', locality: '', specialty: '', facility: '' };
@@ -57,7 +64,7 @@ export default function Compare() {
   const basePath = route.pathname.startsWith('/app') ? '/app' : '';
   const [params, setParams] = useSearchParams();
   const mode = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY ? 'canonical' : 'demo';
-  const { compareList, addHospital, removeHospital, clearComparison, isCompared, canAdd } = useCompare();
+  const { compareList, addHospital, removeHospital, replaceHospital, clearComparison, isCompared, canAdd, setComparison } = useCompare();
   const { hospitals, loading, error } = useCompareHospitals(compareList, { mode });
   const { facets, loading: facetsLoading } = useHospitalFacets({ mode });
   const [draft, setDraft] = useState(EMPTY);
@@ -65,6 +72,147 @@ export default function Compare() {
   const [chooser, setChooser] = useState({ open: false, replaceSlug: null });
   const [differences, setDifferences] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState({ status: 'idle', message: '', manualUrl: '' });
+
+  const compareParam = params.get('compare');
+  const hasCompareParam = params.has('compare');
+  const hadUrlParamRef = useRef(hasCompareParam);
+  const urlSlugs = useMemo(() => parseComparisonSlugs(compareParam), [compareParam]);
+  const currentSlugs = useMemo(() => compareList.map(item => item.slug), [compareList]);
+  const isSyncedWithUrl = useMemo(() => {
+    if (!hasCompareParam) return true;
+    return urlSlugs.length === currentSlugs.length && urlSlugs.every((slug, i) => slug === currentSlugs[i]);
+  }, [hasCompareParam, urlSlugs, currentSlugs]);
+
+  useEffect(() => {
+    if (hasCompareParam) {
+      hadUrlParamRef.current = true;
+    } else if (hadUrlParamRef.current && compareList.length > 0) {
+      setComparison([]);
+    }
+  }, [hasCompareParam, compareList.length, setComparison]);
+
+  useEffect(() => {
+    if (copyFeedback.status !== 'success') return undefined;
+    const timer = setTimeout(() => {
+      setCopyFeedback({ status: 'idle', message: '', manualUrl: '' });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [copyFeedback.status]);
+
+  useEffect(() => {
+    if (!hasCompareParam || isSyncedWithUrl) return undefined;
+    let active = true;
+
+    if (urlSlugs.length === 0) {
+      setComparison([]);
+      return undefined;
+    }
+
+    getHospitalsBySlugs(urlSlugs, { mode })
+      .then(resolved => {
+        if (!active) return;
+        const canonicalItems = (resolved || []).map(h => ({ slug: h.slug, name: h.name }));
+        setComparison(canonicalItems);
+
+        const resolvedSlugs = canonicalItems.map(i => i.slug);
+        if (resolvedSlugs.length !== urlSlugs.length || !urlSlugs.every((s, i) => s === resolvedSlugs[i])) {
+          const next = new URLSearchParams(params);
+          if (resolvedSlugs.length > 0) {
+            next.set('compare', resolvedSlugs.join(','));
+          } else {
+            next.delete('compare');
+          }
+          setParams(next, { replace: true });
+        }
+      })
+      .catch(err => {
+        console.error('Failed to resolve comparison slugs:', err);
+      });
+
+    return () => { active = false; };
+  }, [hasCompareParam, isSyncedWithUrl, mode, params, setComparison, setParams, urlSlugs]);
+
+  const updateUrlComparison = useCallback((nextList, { replace = false } = {}) => {
+    if (!params.has('compare')) return;
+    const next = new URLSearchParams(params);
+    const serialized = serializeComparisonSlugs(nextList);
+    if (serialized) {
+      next.set('compare', serialized);
+    } else {
+      next.delete('compare');
+    }
+    setParams(next, { replace });
+  }, [params, setParams]);
+
+  const handleRemove = useCallback(slug => {
+    removeHospital(slug);
+    if (params.has('compare')) {
+      const next = compareList.filter(item => item.slug !== slug);
+      updateUrlComparison(next);
+    }
+  }, [compareList, params, removeHospital, updateUrlComparison]);
+
+  const handleClear = useCallback(() => {
+    clearComparison();
+    if (params.has('compare')) {
+      const next = new URLSearchParams(params);
+      next.delete('compare');
+      setParams(next);
+    }
+  }, [clearComparison, params, setParams]);
+
+  const handleAdd = useCallback(hospital => {
+    const added = addHospital(hospital);
+    if (added && params.has('compare')) {
+      const next = [...compareList, hospital];
+      updateUrlComparison(next);
+    }
+    return added;
+  }, [addHospital, compareList, params, updateUrlComparison]);
+
+  const handleChoose = useCallback((hospital, replaceSlug) => {
+    if (replaceSlug) {
+      const replaced = replaceHospital(replaceSlug, hospital);
+      if (replaced && params.has('compare')) {
+        const next = compareList.map(item => item.slug === replaceSlug ? hospital : item);
+        updateUrlComparison(next);
+      }
+      return replaced;
+    }
+    return handleAdd(hospital);
+  }, [compareList, handleAdd, params, replaceHospital, updateUrlComparison]);
+
+  const handleCopyLink = useCallback(async () => {
+    const targetSlugs = (hospitals.length >= 2 ? hospitals : compareList)
+      .map(item => item.slug)
+      .filter(Boolean);
+    if (targetSlugs.length < 2) return;
+
+    const shareUrl = buildShareableComparisonUrl(window.location.href, targetSlugs);
+
+    if (!params.has('compare') || params.get('compare') !== targetSlugs.join(',')) {
+      const next = new URLSearchParams(params);
+      next.set('compare', targetSlugs.join(','));
+      setParams(next, { replace: true });
+    }
+
+    const res = await copyTextToClipboard(shareUrl);
+    if (res.success) {
+      setCopyFeedback({
+        status: 'success',
+        message: 'Comparison link copied to clipboard.',
+        manualUrl: '',
+      });
+    } else {
+      setCopyFeedback({
+        status: 'error',
+        message: 'Copying automatically was not permitted. Copy this link manually:',
+        manualUrl: shareUrl,
+      });
+    }
+  }, [compareList, hospitals, params, setParams]);
+
   const inferred = useMemo(() => inferNeed(search?.q, facets.specialties), [search?.q, facets.specialties]);
   const filters = useMemo(() => search ? { ...search, q: inferred ? '' : search.q, specialty: search.specialty || inferred?.specialty || '' } : WAITING, [inferred, search]);
   const discovery = useHospitalSearch({ mode, filters, pageSize: 9 });
@@ -76,8 +224,12 @@ export default function Compare() {
     addHospital(slug);
     const next = new URLSearchParams(params);
     next.delete('add');
+    if (params.has('compare')) {
+      const nextSlugs = serializeComparisonSlugs([...compareList, slug]);
+      if (nextSlugs) next.set('compare', nextSlugs);
+    }
     setParams(next, { replace: true });
-  }, [addHospital, canAdd, params, setParams]);
+  }, [addHospital, canAdd, compareList, params, setParams]);
 
   const rows = useMemo(() => {
     const list = [];
@@ -110,8 +262,21 @@ export default function Compare() {
   return <AppPageContainer className="">
     <header className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div><div className="flex flex-wrap items-center gap-2"><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Guided hospital comparison</p>{mode === 'demo' && <span className="rounded-full bg-lavender/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#675890]">Demonstration catalog</span>}</div><h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Find the right options to compare</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Search by hospital name or healthcare need, choose an area, then compare up to three hospitals using known, source-linked information. MEDIMESH does not diagnose, rank providers, or declare a winner.</p></div>
-      {compareList.length > 0 && <Button type="button" variant="ghost" size="sm" onClick={clearComparison} className="w-fit gap-2"><Trash2 className="h-4 w-4" /> Clear comparison</Button>}
+      <div className="flex flex-wrap items-center gap-2">
+        {compareList.length >= 2 && <Button type="button" variant="outline" size="sm" onClick={handleCopyLink} className="w-fit gap-2 font-semibold" aria-label="Copy comparison link">{copyFeedback.status === 'success' ? <Check className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}{copyFeedback.status === 'success' ? 'Comparison link copied' : 'Copy comparison link'}</Button>}
+        {compareList.length > 0 && <Button type="button" variant="ghost" size="sm" onClick={handleClear} className="w-fit gap-2"><Trash2 className="h-4 w-4" /> Clear comparison</Button>}
+      </div>
     </header>
+
+    <div className="sr-only" role="status" aria-live="polite">{copyFeedback.message}</div>
+    {copyFeedback.status === 'error' && copyFeedback.manualUrl && (
+      <div className="mb-4 rounded-xl border border-border bg-surface-elevated p-3 text-xs">
+        <p className="font-semibold text-foreground">{copyFeedback.message}</p>
+        <div className="mt-2 flex items-center gap-2">
+          <input type="text" readOnly value={copyFeedback.manualUrl} onFocus={e => e.target.select()} className="w-full rounded-lg border border-border bg-white px-3 py-1.5 font-mono text-xs outline-none" />
+        </div>
+      </div>
+    )}
 
     <FrostedPanel variant="elevated" className="mb-7 overflow-hidden rounded-[20px]">
       <div className="border-b border-border bg-gradient-to-r from-primary/[0.06] via-white/40 to-lavender/[0.1] p-5 sm:p-7">
@@ -126,21 +291,21 @@ export default function Compare() {
         <div className="mt-4 flex flex-wrap items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Popular needs:</span>{((facets.specialties || []).length ? (facets.specialties || []).slice(0, 5) : ['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics']).map(item => <button key={item} type="button" onClick={() => quickSearch(item)} className="rounded-full border border-border bg-white/75 px-3 py-1.5 text-xs font-semibold transition hover:border-primary/30 hover:text-primary">{item}</button>)}</div>
       </div>
       {search && <div className="p-5 sm:p-7"><div className="mb-5 flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Matching hospitals</p><h3 className="mt-1 text-lg font-semibold">{discovery.loading ? 'Searching the catalog…' : `${discovery.totalCount ?? discovery.hospitals.length} options found`}</h3>{inferred && !search.specialty && <p className="mt-1 text-xs text-muted-foreground">“{inferred.term}” was interpreted as <strong className="text-foreground">{inferred.specialty}</strong>. This organizes results; it is not medical advice.</p>}</div><button type="button" onClick={() => { setSearch(null); setDraft(EMPTY); }} className="text-xs font-semibold text-muted-foreground hover:text-primary">Clear</button></div>
-        {discovery.error ? <Notice title="Catalog unavailable">Check the local data connection and try again.</Notice> : discovery.loading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[1,2,3].map(item => <div key={item} className="h-36 animate-pulse rounded-2xl bg-surface-elevated" />)}</div> : discovery.hospitals.length === 0 ? <div className="rounded-2xl border border-dashed border-border bg-surface-elevated/50 p-8 text-center"><h4 className="font-semibold">No hospitals match every selected detail</h4><p className="mt-2 text-sm text-muted-foreground">Try another area, remove a filter, or search by hospital name.</p></div> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{discovery.hospitals.map(hospital => { const selected = isCompared(hospital.slug); return <article key={hospital.id} className={`rounded-2xl border p-4 transition ${selected ? 'border-primary/30 bg-primary/[.045]' : 'border-border bg-white hover:-translate-y-0.5 hover:shadow-card'}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h4 className="font-serif text-lg leading-snug font-semibold">{hospital.name}</h4><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{place(hospital)}</p></div><span className="rounded-full bg-surface-elevated px-2 py-1 text-[10px] font-bold text-muted-foreground">{formatHospitalType(hospital.type)}</span></div><div className="mt-3 flex min-h-6 flex-wrap gap-1">{hospital.specialties.slice(0,3).map(item => <span key={item} className={`rounded-full px-2 py-1 text-[10px] font-bold ${item === selectedNeed ? 'bg-primary/10 text-primary' : 'bg-blue-light/15 text-blue-muted'}`}>{item}</span>)}{!hospital.specialties.length && <span className="text-xs text-muted-foreground">Specialties not listed</span>}</div><button type="button" disabled={selected || !canAdd} onClick={() => addHospital(hospital)} className={`mt-4 h-10 w-full rounded-xl text-xs font-bold ${selected ? 'bg-primary/10 text-primary' : canAdd ? 'border border-primary/20 text-primary hover:bg-primary hover:text-white' : 'bg-surface-elevated text-muted-foreground'}`}>{selected ? '✓ Selected' : canAdd ? '+ Add to compare' : 'Comparison is full'}</button></article>; })}</div>}
+        {discovery.error ? <Notice title="Catalog unavailable">Check the local data connection and try again.</Notice> : discovery.loading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[1,2,3].map(item => <div key={item} className="h-36 animate-pulse rounded-2xl bg-surface-elevated" />)}</div> : discovery.hospitals.length === 0 ? <div className="rounded-2xl border border-dashed border-border bg-surface-elevated/50 p-8 text-center"><h4 className="font-semibold">No hospitals match every selected detail</h4><p className="mt-2 text-sm text-muted-foreground">Try another area, remove a filter, or search by hospital name.</p></div> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{discovery.hospitals.map(hospital => { const selected = isCompared(hospital.slug); return <article key={hospital.id} className={`rounded-2xl border p-4 transition ${selected ? 'border-primary/30 bg-primary/[.045]' : 'border-border bg-white hover:-translate-y-0.5 hover:shadow-card'}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h4 className="font-serif text-lg leading-snug font-semibold">{hospital.name}</h4><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{place(hospital)}</p></div><span className="rounded-full bg-surface-elevated px-2 py-1 text-[10px] font-bold text-muted-foreground">{formatHospitalType(hospital.type)}</span></div><div className="mt-3 flex min-h-6 flex-wrap gap-1">{hospital.specialties.slice(0,3).map(item => <span key={item} className={`rounded-full px-2 py-1 text-[10px] font-bold ${item === selectedNeed ? 'bg-primary/10 text-primary' : 'bg-blue-light/15 text-blue-muted'}`}>{item}</span>)}{!hospital.specialties.length && <span className="text-xs text-muted-foreground">Specialties not listed</span>}</div><button type="button" disabled={selected || !canAdd} onClick={() => handleAdd(hospital)} className={`mt-4 h-10 w-full rounded-xl text-xs font-bold ${selected ? 'bg-primary/10 text-primary' : canAdd ? 'border border-primary/20 text-primary hover:bg-primary hover:text-white' : 'bg-surface-elevated text-muted-foreground'}`}>{selected ? '✓ Selected' : canAdd ? '+ Add to compare' : 'Comparison is full'}</button></article>; })}</div>}
       </div>}
     </FrostedPanel>
 
-    <section className="mb-7"><div className="mb-3 flex items-end justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Your shortlist</p><h2 className="mt-1 font-serif text-2xl font-semibold">Selected hospitals <span className="font-sans text-sm text-muted-foreground">{compareList.length}/3</span></h2></div>{canAdd && <Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })}><Plus className="mr-2 h-4 w-4" /> Add hospital</Button>}</div>
-      {!compareList.length ? <FrostedPanel className="rounded-[20px] p-8 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]"><GitCompare className="h-6 w-6" /></div><h3 className="mt-4 font-semibold">Select at least two hospitals</h3><p className="mt-2 text-sm text-muted-foreground">Search above or browse the catalog. Your selection stays in this browser; sign-in is not required.</p><Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })} className="mt-5">Browse hospitals</Button></FrostedPanel> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{hospitals.map((hospital,index) => <FrostedPanel key={hospital.id} className="rounded-2xl p-4"><div className="flex justify-between gap-3"><div><span className="text-[10px] font-bold uppercase text-primary">Option {index+1}</span><h3 className="mt-1 font-semibold">{hospital.name}</h3><p className="mt-1 text-xs text-muted-foreground">{place(hospital)}</p></div><button onClick={() => removeHospital(hospital.slug)} aria-label={`Remove ${hospital.name}`}><X className="h-4 w-4 text-muted-foreground" /></button></div><button onClick={() => setChooser({ open:true, replaceSlug:hospital.slug })} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pencil className="h-3 w-3" /> Replace</button></FrostedPanel>)}</div>}
+    <section className="mb-7"><div className="mb-3 flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Your shortlist</p><h2 className="mt-1 font-serif text-2xl font-semibold">Selected hospitals <span className="font-sans text-sm text-muted-foreground">{compareList.length}/3</span></h2></div><div className="flex flex-wrap items-center gap-2">{compareList.length >= 2 && <Button type="button" variant="outline" size="sm" onClick={handleCopyLink} className="gap-2 font-semibold" aria-label="Copy comparison link">{copyFeedback.status === 'success' ? <Check className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}{copyFeedback.status === 'success' ? 'Comparison link copied' : 'Copy comparison link'}</Button>}{canAdd && <Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })}><Plus className="mr-2 h-4 w-4" /> Add hospital</Button>}</div></div>
+      {!compareList.length ? <FrostedPanel className="rounded-[20px] p-8 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]"><GitCompare className="h-6 w-6" /></div><h3 className="mt-4 font-semibold">Select at least two hospitals</h3><p className="mt-2 text-sm text-muted-foreground">Search above or browse the catalog. Your selection stays in this browser; sign-in is not required.</p><Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })} className="mt-5">Browse hospitals</Button></FrostedPanel> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{hospitals.map((hospital,index) => <FrostedPanel key={hospital.id} className="rounded-2xl p-4"><div className="flex justify-between gap-3"><div><span className="text-[10px] font-bold uppercase text-primary">Option {index+1}</span><h3 className="mt-1 font-semibold">{hospital.name}</h3><p className="mt-1 text-xs text-muted-foreground">{place(hospital)}</p></div><button onClick={() => handleRemove(hospital.slug)} aria-label={`Remove ${hospital.name}`}><X className="h-4 w-4 text-muted-foreground" /></button></div><button onClick={() => setChooser({ open:true, replaceSlug:hospital.slug })} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pencil className="h-3 w-3" /> Replace</button></FrostedPanel>)}</div>}
     </section>
 
-    {loading && compareList.length > 0 && <div className="h-96 animate-pulse rounded-[20px] bg-surface-elevated" />}
+    {((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) && <div className="h-96 animate-pulse rounded-[20px] bg-surface-elevated" />}
     {error && <Notice title="We couldn’t load this comparison">The hospital catalog could not be reached.</Notice>}
-    {!loading && !error && hospitals.length > 0 && <section><div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Side-by-side evaluation</p><h2 className="mt-1 font-serif text-3xl font-semibold">Compare known differences</h2><p className="mt-2 text-sm text-muted-foreground">Unknown means MEDIMESH has not verified the detail—it does not mean unavailable.</p></div><div className="flex gap-2"><Toggle active={focused} onClick={() => setFocused(!focused)}>Focus on my needs</Toggle><Toggle active={differences} onClick={() => setDifferences(!differences)}>Show differences only</Toggle></div></div>
+    {!loading && !error && hospitals.length > 0 && isSyncedWithUrl && <section><div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Side-by-side evaluation</p><h2 className="mt-1 font-serif text-3xl font-semibold">Compare known differences</h2><p className="mt-2 text-sm text-muted-foreground">Unknown means MEDIMESH has not verified the detail—it does not mean unavailable.</p></div><div className="flex gap-2"><Toggle active={focused} onClick={() => setFocused(!focused)}>Focus on my needs</Toggle><Toggle active={differences} onClick={() => setDifferences(!differences)}>Show differences only</Toggle></div></div>
       <div className="max-h-[72vh] overflow-auto custom-scrollbar rounded-[20px] border border-border/70"><FrostedPanel variant="elevated" className="min-w-[760px] rounded-[20px]"><table className="w-full border-collapse text-left"><thead><tr><th className="sticky left-0 top-0 z-20 w-48 border-b border-r border-border bg-[#F8F7F2] p-5 text-xs uppercase text-muted-foreground">Comparison</th>{hospitals.map(h => <th key={h.id} className="sticky top-0 z-10 min-w-[260px] border-b border-border bg-white p-5 align-top"><Link to={`${basePath}/hospitals/${h.slug}`} className="font-serif text-lg font-semibold hover:text-primary">{h.name}</Link><p className="mt-2 text-xs text-muted-foreground">{place(h)}</p></th>)}</tr></thead><tbody>{Object.entries(groups).map(([group,items]) => <Group key={group} name={group} rows={items} hospitals={hospitals} />)}{!visible.length && <tr><td colSpan={hospitals.length+1} className="p-10 text-center text-sm text-muted-foreground">No differing rows are available.</td></tr>}</tbody></table></FrostedPanel></div>
       <div className="grid gap-3 sm:grid-cols-2"><Info icon={ShieldCheck} title="Transparent by design">Sources and freshness stay visible—there is no hidden score.</Info><Info icon={Database} title="Missing stays unknown">Unlisted information is never converted into a false “No”.</Info></div>
     </section>}
-    <HospitalChooserModal isOpen={chooser.open} onClose={() => setChooser({open:false,replaceSlug:null})} replaceSlug={chooser.replaceSlug} mode={mode} />
+    <HospitalChooserModal isOpen={chooser.open} onClose={() => setChooser({open:false,replaceSlug:null})} replaceSlug={chooser.replaceSlug} mode={mode} onChoose={handleChoose} />
   </AppPageContainer>;
 }
 

@@ -9,6 +9,7 @@ const normalizeItem = item => {
 };
 
 const readList = () => {
+  if (typeof localStorage === 'undefined') return [];
   try {
     const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     return Array.isArray(value) ? value.map(normalizeItem).filter(Boolean).slice(0, 3) : [];
@@ -18,8 +19,16 @@ const readList = () => {
 };
 
 const writeList = list => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  window.dispatchEvent(new Event('compare-updated'));
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch {
+      // Ignore quota/permission errors in restricted environments
+    }
+  }
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new Event('compare-updated'));
+  }
 };
 
 export function useCompare() {
@@ -65,6 +74,22 @@ export function useCompare() {
   const clearComparison = useCallback(() => writeList([]), []);
   const isCompared = useCallback(slug => compareList.some(item => item.slug === slug), [compareList]);
 
+  const setComparison = useCallback(items => {
+    const normalized = (Array.isArray(items) ? items : [])
+      .map(normalizeItem)
+      .filter(Boolean);
+    const unique = [];
+    const seen = new Set();
+    for (const item of normalized) {
+      if (!seen.has(item.slug)) {
+        seen.add(item.slug);
+        unique.push(item);
+        if (unique.length === 3) break;
+      }
+    }
+    writeList(unique);
+  }, []);
+
   return {
     compareList,
     addHospital,
@@ -73,5 +98,6 @@ export function useCompare() {
     clearComparison,
     isCompared,
     canAdd: compareList.length < 3,
+    setComparison,
   };
 }
