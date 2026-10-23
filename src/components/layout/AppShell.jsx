@@ -6,6 +6,7 @@ import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import CompareTray from '../hospital/CompareTray';
 import MEDIMESHBackground from './MEDIMESHBackground';
 import MedimeshLogo from '../brand/MedimeshLogo';
+import UserAvatar from '../common/UserAvatar';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -163,9 +164,12 @@ export default function AppShell() {
             </div>
           )}
           <button type="button" onClick={() => setUserMenuOpen((open) => !open)} className="flex w-full items-center gap-3 rounded-[14px] border border-transparent p-2 text-left transition hover:border-border hover:bg-white/70" aria-expanded={userMenuOpen}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 text-primary flex items-center justify-center font-bold border border-primary/20 shrink-0 shadow-sm">
-              {profile?.display_name ? profile.display_name.charAt(0).toUpperCase() : 'U'}
-            </div>
+            <UserAvatar
+              src={profile?.avatar_url}
+              alt={profile?.display_name || user?.email || 'User'}
+              name={profile?.display_name || user?.email}
+              size="md"
+            />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground truncate">{profile?.display_name || user?.email}</p>
               <p className="text-xs text-muted-foreground capitalize truncate">{role || 'Account'}</p>

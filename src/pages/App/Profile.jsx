@@ -7,8 +7,21 @@ import PageHeader from '../../components/common/PageHeader';
 import FrostedPanel from '../../components/common/FrostedPanel';
 import FormField from '../../components/common/FormField';
 import Button from '../../components/common/Button';
+import UserAvatar from '../../components/common/UserAvatar';
+import PatientDashboard from './PatientDashboard';
 
 export default function Profile() {
+  const { profile } = useAuth();
+
+  // For patients, seamlessly render the unified Patient Dashboard in profile mode
+  if (profile?.role === 'patient') {
+    return <PatientDashboard initialTab="profile" />;
+  }
+
+  return <FallbackProfileForm />;
+}
+
+function FallbackProfileForm() {
   const { profile, user, refreshProfile } = useAuth();
 
   // Personal fields
@@ -168,9 +181,12 @@ export default function Profile() {
         {/* Identity Overview Strip */}
         <FrostedPanel className="rounded-[20px] p-5 sm:p-6 border-border/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-serif text-xl font-bold">
-              {displayName ? displayName.charAt(0).toUpperCase() : (profile?.first_name ? profile.first_name.charAt(0).toUpperCase() : 'M')}
-            </div>
+            <UserAvatar
+              src={profile?.avatar_url}
+              alt={displayName || 'User'}
+              name={displayName || profile?.first_name}
+              size="lg"
+            />
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-serif font-semibold text-foreground">{displayName || 'Anonymous User'}</h3>

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowUpRight, Menu, X, UserCircle } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../../utils/cn";
 import Button from "../common/Button";
 import Container from "../common/Container";
 import MedimeshLogo from "../brand/MedimeshLogo";
+import UserAvatar from "../common/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
 import { getRoleDashboardPath } from "../../routes/roleDashboardPaths";
 
@@ -99,11 +100,12 @@ export default function Navbar() {
                     Open MEDIMESH <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Button>
                   <Link to={`${dashboardLink}/profile`} aria-label="Open profile" className="ml-1 rounded-full p-1 hover:bg-surface transition">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="Profile" className="w-8 h-8 rounded-full" />
-                    ) : (
-                      <UserCircle className="w-8 h-8 text-muted-foreground" />
-                    )}
+                    <UserAvatar
+                      src={profile?.avatar_url}
+                      alt="Profile"
+                      name={profile?.display_name || user?.email}
+                      size="sm"
+                    />
                   </Link>
                 </>
               ) : (
