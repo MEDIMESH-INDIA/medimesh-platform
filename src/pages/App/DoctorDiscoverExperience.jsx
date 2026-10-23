@@ -117,7 +117,7 @@ export default function DoctorDiscoverExperience() {
   if (filters.specialization) activeChips.push({ key: 'specialization', label: filters.specialization });
   if (filters.hospital) activeChips.push({ key: 'hospital', label: filters.hospital });
   if (filters.language) activeChips.push({ key: 'language', label: `Language: ${filters.language} (unsupported)` });
-  if (filters.homeVisitsOnly) activeChips.push({ key: 'homeVisitsOnly', label: 'Home Visits Only' });
+  if (filters.homeVisitsOnly) activeChips.push({ key: 'homeVisitsOnly', label: 'Home visits' });
 
   return (
     <AppPageContainer className="discovery-page">
@@ -222,27 +222,34 @@ export default function DoctorDiscoverExperience() {
             </button>
           </div>
 
-          <div className="flex-1">
-            <div className="hidden lg:flex items-center justify-between mb-4">
-              <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Filter Doctors</h2>
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="hidden lg:flex items-center justify-between mb-3 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Filter Doctors</h2>
+                {activeFilterCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </div>
               {hasActiveFilters && (
                 <button
                   type="button"
                   onClick={clearAllFilters}
-                  className="text-xs font-semibold text-primary hover:underline"
+                  className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
                 >
                   Clear all
                 </button>
               )}
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto lg:pr-1.5 custom-scrollbar">
               {/* Home Visits Only Toggle Card */}
-              <div className="p-3.5 bg-primary/5 border border-primary/20 rounded-2xl flex items-center justify-between transition-colors hover:border-primary/30">
+              <div className="p-2.5 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between transition-colors hover:border-primary/30">
                 <div className="min-w-0 pr-2">
                   <div className="flex items-center gap-1.5 text-foreground font-semibold text-xs">
                     <Home className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span>Home Visits Only</span>
+                    <span>Home Visits</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-0.5">Doctors offering home visits</p>
                 </div>
@@ -252,8 +259,9 @@ export default function DoctorDiscoverExperience() {
                     className="sr-only peer"
                     checked={Boolean(filters.homeVisitsOnly)}
                     onChange={(e) => updateFilter('homeVisitsOnly', e.target.checked ? 'true' : '')}
+                    aria-label="Filter doctors offering home visits"
                   />
-                  <div className="w-10 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-colors"></div>
+                  <div className="w-9 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-colors"></div>
                 </label>
               </div>
 
@@ -271,7 +279,7 @@ export default function DoctorDiscoverExperience() {
                 options={facets.hospitals}
                 value={filters.hospital}
                 onChange={(val) => updateFilter('hospital', val)}
-                defaultOpen={true}
+                defaultOpen={Boolean(filters.hospital)}
               />
               <CollapsibleFilter
                 title="City"
@@ -279,7 +287,7 @@ export default function DoctorDiscoverExperience() {
                 options={facets.cities}
                 value={filters.city}
                 onChange={(val) => updateFilter('city', val)}
-                defaultOpen={true}
+                defaultOpen={Boolean(filters.city)}
               />
               <CollapsibleFilter
                 title="Area / Locality"
@@ -287,7 +295,7 @@ export default function DoctorDiscoverExperience() {
                 options={filters.city ? (facets.cityToLocalities?.[filters.city] || []) : (facets.localities || [])}
                 value={filters.locality}
                 onChange={(val) => updateFilter('locality', val)}
-                defaultOpen={true}
+                defaultOpen={Boolean(filters.locality)}
               />
             </div>
 
