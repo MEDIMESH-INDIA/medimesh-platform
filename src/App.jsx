@@ -1,5 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { AuthGateProvider } from "./contexts/AuthGateContext";
+import { resetScrollLock } from "./lib/ui/scrollLock";
 import LandingPage from "./pages/LandingPage/LandingPage";
 
 // Auth Components
@@ -62,9 +64,20 @@ import PatientHomeVisitBookings from "./pages/App/Patient/HomeVisitBookings";
 import PatientHomeVisitBookingDetail from "./pages/App/Patient/HomeVisitBookingDetail";
 import CompareTray from "./components/hospital/CompareTray";
 
+function RouteScrollReset() {
+  const location = useLocation();
+
+  useEffect(() => {
+    resetScrollLock();
+  }, [location.pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <AuthGateProvider>
+      <RouteScrollReset />
       <Routes>
       {/* Public/Landing Routes */}
       <Route element={<PublicLayout />}>

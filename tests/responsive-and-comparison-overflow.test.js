@@ -83,7 +83,69 @@ test('7. Modals: AuthModal, HospitalChooserModal, ConfirmationDialog consistentl
   const chooserModalCode = fs.readFileSync(chooserModalPath, 'utf8');
   const confirmDialogCode = fs.readFileSync(confirmDialogPath, 'utf8');
 
-  assert.match(authModalCode, /document\.body\.style\.overflow = 'hidden'/, 'AuthModal must lock body scroll');
-  assert.match(chooserModalCode, /document\.body\.style\.overflow = 'hidden'/, 'HospitalChooserModal must lock body scroll');
-  assert.match(confirmDialogCode, /document\.body\.style\.overflow = 'hidden'/, 'ConfirmationDialog must lock body scroll');
+  assert.match(authModalCode, /lockScroll\(\)|document\.body\.style\.overflow = 'hidden'/, 'AuthModal must lock body scroll');
+  assert.match(chooserModalCode, /lockScroll\(\)|document\.body\.style\.overflow = 'hidden'/, 'HospitalChooserModal must lock body scroll');
+  assert.match(confirmDialogCode, /lockScroll\(\)|document\.body\.style\.overflow = 'hidden'/, 'ConfirmationDialog must lock body scroll');
+});
+
+test('8. scrollLock: reference-counted locking, unlocking, hidden fallback, and resetScrollLock', async () => {
+  const { lockScroll, unlockScroll, resetScrollLock } = await import('../src/lib/ui/scrollLock.js');
+
+  // Set up mock DOM
+  const mockBody = { style: { overflow: '' } };
+  globalThis.document = { body: mockBody };
+
+  resetScrollLock();
+  assert.equal(mockBody.style.overflow, '', 'Initial state should be empty overflow');
+
+  // Single lock
+  lockScroll();
+  assert.equal(mockBody.style.overflow, 'hidden', 'lockScroll sets overflow to hidden');
+
+  // Nested lock
+  lockScroll();
+  assert.equal(mockBody.style.overflow, 'hidden', 'Nested lockScroll maintains hidden');
+
+  // Partial unlock (still 1 active lock)
+  unlockScroll();
+  assert.equal(mockBody.style.overflow, 'hidden', 'Partial unlock keeps hidden while count > 0');
+
+  // Final unlock
+  unlockScroll();
+  assert.equal(mockBody.style.overflow, '', 'Final unlock restores empty overflow');
+
+  // Pre-existing hidden overflow must NOT be captured as return value
+  mockBody.style.overflow = 'hidden';
+  lockScroll();
+  unlockScroll();
+  assert.equal(mockBody.style.overflow, '', 'Pre-existing hidden overflow falls back to empty string');
+
+  // resetScrollLock forcefully clears
+  lockScroll();
+  lockScroll();
+  assert.equal(mockBody.style.overflow, 'hidden');
+  resetScrollLock();
+  assert.equal(mockBody.style.overflow, '', 'resetScrollLock forcefully clears overflow and lock count');
+});
+
+test('9. Discovery pages do not declare conflicting body scroll lock effects', () => {
+  const discoverPath = path.join(projectRoot, 'src/pages/App/DiscoverExperience.jsx');
+  const doctorPath = path.join(projectRoot, 'src/pages/App/DoctorDiscoverExperience.jsx');
+  const homeVisitPath = path.join(projectRoot, 'src/pages/App/HomeVisitDoctorExperience.jsx');
+
+  const discoverCode = fs.readFileSync(discoverPath, 'utf8');
+  const doctorCode = fs.readFileSync(doctorPath, 'utf8');
+  const homeVisitCode = fs.readFileSync(homeVisitPath, 'utf8');
+
+  assert.doesNotMatch(discoverCode, /document\.body\.style\.overflow/, 'DiscoverExperience must delegate scroll lock to FilterPanel');
+  assert.doesNotMatch(doctorCode, /document\.body\.style\.overflow/, 'DoctorDiscoverExperience must delegate scroll lock to FilterPanel');
+  assert.doesNotMatch(homeVisitCode, /document\.body\.style\.overflow/, 'HomeVisitDoctorExperience must delegate scroll lock to FilterPanel');
+});
+
+test('10. App.jsx resets scroll locks on route transitions via RouteScrollReset', () => {
+  const appPath = path.join(projectRoot, 'src/App.jsx');
+  const appCode = fs.readFileSync(appPath, 'utf8');
+
+  assert.match(appCode, /resetScrollLock\(\)/, 'App.jsx must invoke resetScrollLock on route changes');
+  assert.match(appCode, /<RouteScrollReset \/>/, 'App.jsx must mount RouteScrollReset');
 });

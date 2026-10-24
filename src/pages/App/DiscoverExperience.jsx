@@ -48,18 +48,6 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
   const { facets } = useHospitalFacets({ mode });
 
-  useEffect(() => {
-    if (!isMobileFiltersOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const closeOnEscape = event => { if (event.key === 'Escape') setIsMobileFiltersOpen(false); };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [isMobileFiltersOpen]);
-
   // Deep-link and history sync: prune locality if not valid for selected city once facets load
   useEffect(() => {
     if (!filters.city || !filters.locality || !facets.cityToLocalities) return;

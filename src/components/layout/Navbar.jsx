@@ -9,6 +9,7 @@ import UserAvatar from "../common/UserAvatar";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthGate } from "../../hooks/useAuthGate";
 import { getRoleDashboardPath } from "../../routes/roleDashboardPaths";
+import { lockScroll, unlockScroll, resetScrollLock } from "../../lib/ui/scrollLock";
 
 const navLinks = [
   { name: "Discover", href: "/discover" },
@@ -78,15 +79,16 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Lock body scroll and listen for Escape when mobile menu is open
+  // Lock body scroll and listen for Escape when mobile menu is open (document.body.style.overflow)
   useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    if (!isMobileMenuOpen) return undefined;
+    lockScroll();
     const closeOnEscape = (event) => {
       if (event.key === "Escape") setIsMobileMenuOpen(false);
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
-      document.body.style.overflow = "";
+      unlockScroll();
       window.removeEventListener("keydown", closeOnEscape);
     };
   }, [isMobileMenuOpen]);
@@ -99,9 +101,10 @@ export default function Navbar() {
     wasOpenRef.current = isMobileMenuOpen;
   }, [isMobileMenuOpen]);
 
-  // Auto-close mobile menu on route change
+  // Auto-close mobile menu on route change and reset any residual scroll lock
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    resetScrollLock();
   }, [location.pathname]);
 
   const dashboardLink = role ? (getRoleDashboardPath(role) ?? '/app') : '/login';

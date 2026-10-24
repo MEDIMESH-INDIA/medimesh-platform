@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import Button from '../common/Button';
+import { lockScroll, unlockScroll } from '../../lib/ui/scrollLock';
 
 export default function ConfirmationDialog({ open, title, description, confirmLabel, cancelLabel = 'Keep visit', tone = 'primary', busy = false, onConfirm, onClose, children }) {
   const closeRef = useRef(null);
@@ -9,8 +10,7 @@ export default function ConfirmationDialog({ open, title, description, confirmLa
 
   useEffect(() => {
     if (!open) return undefined;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll(); // document.body.style.overflow = 'hidden'
     returnFocusRef.current = document.activeElement;
     closeRef.current?.focus();
     const handleKeyDown = event => {
@@ -26,7 +26,7 @@ export default function ConfirmationDialog({ open, title, description, confirmLa
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockScroll();
       document.removeEventListener('keydown', handleKeyDown);
       returnFocusRef.current?.focus?.();
     };

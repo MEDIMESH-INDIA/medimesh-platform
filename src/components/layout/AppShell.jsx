@@ -6,6 +6,7 @@ import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 import MEDIMESHBackground from './MEDIMESHBackground';
 import MedimeshLogo from '../brand/MedimeshLogo';
 import UserAvatar from '../common/UserAvatar';
+import { lockScroll, unlockScroll, resetScrollLock } from '../../lib/ui/scrollLock';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -25,16 +26,16 @@ export default function AppShell() {
 
   const dashboardPath = getRoleDashboardPath(role);
 
-  // Auto-close mobile menu on route change
+  // Auto-close mobile menu on route change and reset any residual scroll lock
   useEffect(() => {
     setMobileMenuOpen(false);
+    resetScrollLock();
   }, [location.pathname]);
 
   // Lock body scroll and listen for Escape when mobile menu is open
   useEffect(() => {
     if (!mobileMenuOpen) return undefined;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll(); // document.body.style.overflow = 'hidden'
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -44,7 +45,7 @@ export default function AppShell() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockScroll();
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [mobileMenuOpen]);

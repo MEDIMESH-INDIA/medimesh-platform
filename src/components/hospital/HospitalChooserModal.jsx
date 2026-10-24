@@ -4,6 +4,7 @@ import FrostedPanel from '../common/FrostedPanel';
 import { useCompare } from '../../hooks/useCompare';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { formatHospitalType } from '../../lib/utils/formatters';
+import { lockScroll, unlockScroll } from '../../lib/ui/scrollLock';
 
 export default function HospitalChooserModal({ isOpen, onClose, replaceSlug = null, mode = 'canonical', onChoose = null }) {
   const [query, setQuery] = useState('');
@@ -13,13 +14,12 @@ export default function HospitalChooserModal({ isOpen, onClose, replaceSlug = nu
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll(); // document.body.style.overflow = 'hidden'
     searchRef.current?.focus();
     const closeOnEscape = event => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', closeOnEscape);
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockScroll();
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [isOpen, onClose]);

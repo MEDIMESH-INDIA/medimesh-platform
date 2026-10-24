@@ -6,6 +6,7 @@ import Button from '../common/Button';
 import FormField from '../common/FormField';
 import { useAuth } from '../../hooks/useAuth';
 import { sanitizeReturnDestination } from '../../routes/roleDashboardPaths';
+import { lockScroll, unlockScroll } from '../../lib/ui/scrollLock';
 
 const GoogleMark = () => (
   <svg aria-hidden="true" className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
@@ -53,15 +54,14 @@ export default function AuthModal({
   // Handle escape key, focus, and background scroll locking
   useEffect(() => {
     if (!open) return undefined;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    lockScroll(); // document.body.style.overflow = 'hidden'
     closeBtnRef.current?.focus();
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockScroll();
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open, onClose]);

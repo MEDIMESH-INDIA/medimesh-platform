@@ -61,18 +61,6 @@ export default function DoctorDiscoverExperience() {
     return () => { mounted = false; };
   }, []);
 
-  useEffect(() => {
-    if (!isMobileFiltersOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const closeOnEscape = event => { if (event.key === 'Escape') setIsMobileFiltersOpen(false); };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [isMobileFiltersOpen]);
-
   const updateFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
     if (value) {

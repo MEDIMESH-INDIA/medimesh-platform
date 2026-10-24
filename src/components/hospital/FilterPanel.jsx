@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { lockScroll, unlockScroll } from '../../lib/ui/scrollLock';
 
 // A viewport-level drawer avoids clipping inside animated page containers.
 export default function FilterPanel({ open, onClose, label, children }) {
@@ -10,11 +11,10 @@ export default function FilterPanel({ open, onClose, label, children }) {
   close.current = onClose;
 
   useEffect(() => {
-    if (!open || desktop) return;
+    if (!open || desktop) return undefined;
     const previousFocus = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const focusable = () => [...panel.current.querySelectorAll('button, input, select, a[href], [tabindex="0"]')]
+    lockScroll();
+    const focusable = () => [...(panel.current?.querySelectorAll('button, input, select, a[href], [tabindex="0"]') || [])]
       .filter(element => !element.disabled && element.getClientRects().length);
     focusable()[0]?.focus();
     const onKeyDown = event => {
@@ -28,7 +28,7 @@ export default function FilterPanel({ open, onClose, label, children }) {
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       document.removeEventListener('keydown', onKeyDown);
       previousFocus?.focus();
     };
