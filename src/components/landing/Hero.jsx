@@ -12,8 +12,7 @@ export default function Hero() {
       <div className="pointer-events-none absolute -right-32 top-12 h-[520px] w-[520px] rounded-full bg-primary/[0.055] blur-3xl" />
       <Container className="relative grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10 xl:gap-16">
         <div className="relative z-20 max-w-2xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-[12px] border border-primary/15 bg-white/65 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary backdrop-blur-lg">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          <div className="mb-6 inline-flex items-center rounded-[12px] border border-primary/15 bg-white/65 px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary backdrop-blur-lg">
             Healthcare discovery, with context
           </div>
 
