@@ -64,5 +64,9 @@ export function useDoctorSearch({ filters = {}, sort = 'name_asc', pageSize = 12
     }
   }, [doctors.length, fetchDoctors, hasMore, loading]);
 
-  return { doctors, totalCount, loading, error, hasMore, loadMore };
+  const refetch = useCallback(() => {
+    return fetchDoctors(0, false);
+  }, [fetchDoctors]);
+
+  return { doctors, totalCount, loading, error, hasMore, loadMore, refetch };
 }

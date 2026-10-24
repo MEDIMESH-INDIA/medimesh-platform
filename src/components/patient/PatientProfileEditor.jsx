@@ -161,7 +161,18 @@ export default function PatientProfileEditor({
         setError(`Avatar upload failed: ${res.error}. You can also provide an image URL directly or pick a preset.`);
       } else if (res.publicUrl) {
         setAvatarUrl(res.publicUrl);
-        setMessage('Avatar uploaded successfully. Remember to click "Save Profile Settings" to finalize.');
+        // Persist immediately to profiles table so the profile picture is saved and survives refresh
+        const { error: dbError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: res.publicUrl })
+          .eq('id', user.id);
+
+        if (!dbError) {
+          await refreshProfile?.();
+          setMessage('Profile picture uploaded and saved successfully.');
+        } else {
+          setMessage('Avatar uploaded to storage. Click "Save Profile Settings" below to finalize.');
+        }
       }
     } catch (err) {
       console.error('Avatar upload exception:', err);
@@ -223,6 +234,11 @@ export default function PatientProfileEditor({
     const hasEmergencyPhone = Boolean(emergencyPhone.trim());
     if ((hasEmergencyName && !hasEmergencyPhone) || (!hasEmergencyName && hasEmergencyPhone)) {
       setError('Emergency contact requires both a contact person name and a phone number.');
+      setSaving(false);
+      return;
+    }
+    if (profile?.role === 'patient' && (!hasEmergencyName || !hasEmergencyPhone)) {
+      setError('Emergency contact name and phone number are required for your medical safety profile.');
       setSaving(false);
       return;
     }
@@ -710,7 +726,7 @@ export default function PatientProfileEditor({
           </FrostedPanel>
         )}
 
-        {/* Section 3: Emergency Contact (Optional for patients) */}
+        {/* Section 3: Emergency Contact (Required for patients) */}
         {profile?.role === 'patient' && (
           <FrostedPanel variant="elevated" className="rounded-[20px] p-6 sm:p-7 space-y-5">
             <div className="flex items-center gap-2.5 pb-3 border-b border-border/60">
@@ -718,19 +734,29 @@ export default function PatientProfileEditor({
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm sm:text-base font-bold text-foreground">Emergency Contact</h2>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
-                    Optional
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                    Required
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">A trusted individual who can be notified in an emergency.</p>
+                <p className="text-xs text-muted-foreground">Mandatory safety contact to ensure urgent coordination in acute scenarios.</p>
               </div>
             </div>
+
+            {!emergencyName.trim() && !emergencyPhone.trim() && (
+              <div className="p-3 bg-amber-50/90 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2" role="alert">
+                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Action Required:</strong> An emergency contact is mandatory for your medical profile. Please provide a contact person and phone number below.
+                </p>
+              </div>
+            )}
 
             <div className="grid md:grid-cols-3 gap-5">
               <FormField
                 id="profile-em-name"
-                label="Contact person name"
+                label="Contact person name *"
                 placeholder="e.g. Sunita Sharma"
+                required
                 value={emergencyName}
                 onChange={e => setEmergencyName(e.target.value)}
               />
@@ -743,9 +769,10 @@ export default function PatientProfileEditor({
               />
               <FormField
                 id="profile-em-phone"
-                label="Contact phone"
+                label="Contact phone *"
                 type="tel"
                 placeholder="+91 98765 00000"
+                required
                 value={emergencyPhone}
                 onChange={e => setEmergencyPhone(e.target.value)}
               />

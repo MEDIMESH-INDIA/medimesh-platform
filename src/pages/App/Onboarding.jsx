@@ -5,6 +5,7 @@ import HospitalOnboarding from '../../components/onboarding/HospitalOnboarding';
 import { Navigate } from 'react-router-dom';
 import PageTransition from '../../components/effects/PageTransition';
 import MedimeshBackground from '../../components/common/MedimeshBackground';
+import { getRoleDashboardPath } from '../../routes/roleDashboardPaths';
 
 export default function Onboarding() {
   const { role, profile, loading } = useAuth();
@@ -18,7 +19,7 @@ export default function Onboarding() {
   }
 
   if (profile?.onboarding_completed) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to={getRoleDashboardPath(role) || '/app'} replace />;
   }
 
   return (

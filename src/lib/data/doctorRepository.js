@@ -162,15 +162,17 @@ export async function searchDoctors({ filters = {}, sort = 'name_asc', offset = 
     }
 
     if (error) {
-      console.error('Supabase doctor query error details:', error);
-
       console.error('Supabase doctor query error:', error);
+      throw error;
     } else if (Array.isArray(finalData)) {
       const canonical = finalData.map(normalizeCanonicalDoctor);
       return { doctors: canonical, totalCount: finalCount ?? canonical.length, hasMore: offset + canonical.length < (finalCount ?? canonical.length) };
     }
   } catch (err) {
     console.warn('Canonical doctors lookup error:', err?.message);
+    if (!USE_DEMO_FALLBACK) {
+      throw err;
+    }
   }
 
   if (!USE_DEMO_FALLBACK) {

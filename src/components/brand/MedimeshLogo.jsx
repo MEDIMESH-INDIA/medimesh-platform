@@ -1,44 +1,37 @@
 import { cn } from '../../utils/cn';
 
-import logoFull from '../../assets/brand/medimesh-logo.png';
-import logoMark from '../../assets/brand/medimesh-mark.png';
-import logoWordmark from '../../assets/brand/medimesh-wordmark.png';
+import logoHorizontal from '../../assets/brand/medimesh-horizontal.png';
+import logoStacked from '../../assets/brand/medimesh-stacked.png';
 
 export default function MedimeshLogo({
-  variant = 'full', // 'full', 'mark', 'wordmark'
-  size = 'md',      // 'sm', 'md', 'lg', 'xl'
-  theme = 'light',  // 'light', 'dark'
+  variant = 'horizontal', // 'horizontal' | 'full' | 'stacked' | 'mark'
+  size = 'md',           // 'sm', 'md', 'lg', 'xl'
+  theme = 'light',       // 'light', 'dark'
   className,
   ...props
 }) {
-  const src = {
-    full: logoFull,
-    mark: logoMark,
-    wordmark: logoWordmark,
-  }[variant];
+  const isStacked = variant === 'stacked' || variant === 'mark';
+  const src = isStacked ? logoStacked : logoHorizontal;
 
-  // The sizes are conceptually based on height.
+  // Sizes based on height while keeping proportional width
   const sizeClasses = {
-    sm: 'h-6',
-    md: 'h-8',
-    lg: 'h-10',
-    xl: 'h-14',
-  }[size];
-
-  // Apply contrast filter for dark mode if using wordmark or full.
-  const isDark = theme === 'dark';
-  const applyFilter = isDark && (variant === 'full' || variant === 'wordmark');
+    sm: isStacked ? 'h-7 w-auto' : 'h-6 w-auto',
+    md: isStacked ? 'h-9 w-auto' : 'h-8 w-auto',
+    lg: isStacked ? 'h-12 w-auto' : 'h-10 w-auto',
+    xl: isStacked ? 'h-16 w-auto' : 'h-14 w-auto',
+  }[size] || (isStacked ? 'h-9 w-auto' : 'h-8 w-auto');
 
   return (
     <img
       src={src}
       alt="MEDIMESH"
       className={cn(
-        'object-contain transition-opacity duration-300',
+        'object-contain transition-opacity duration-200 select-none',
         sizeClasses,
-        applyFilter && 'brightness-0 invert opacity-90',
+        theme === 'dark' && 'brightness-110 contrast-105',
         className
       )}
+      loading="eager"
       {...props}
     />
   );

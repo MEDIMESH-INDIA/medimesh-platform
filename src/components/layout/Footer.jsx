@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Container from "../common/Container";
+import MedimeshLogo from "../brand/MedimeshLogo";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthGate } from "../../hooks/useAuthGate";
 import { useCompare } from "../../hooks/useCompare";
@@ -11,7 +12,7 @@ const footerLinks = [
   { name: "Home Visits", href: "/home-visits" },
   { name: "Compare", href: "/compare" },
   { name: "For Doctors", href: "/for-doctors" },
-  { name: "For Hospitals", href: "/hospitals" },
+  { name: "For Hospitals", href: "/for-hospitals" },
   { name: "About", href: "/about" },
 ];
 
@@ -40,10 +41,9 @@ export default function Footer() {
       <Container>
         <div className="grid gap-6 border-b border-white/10 pb-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-primary text-[10px] font-extrabold">MM</span>
-              <span className="text-xl font-extrabold tracking-[-0.045em]">MEDI<span className="text-[#8fd0c5]">MESH</span></span>
-            </div>
+            <Link to="/" className="inline-block rounded-xl bg-white/95 px-3 py-1.5 shadow-sm transition hover:bg-white" aria-label="MEDIMESH home">
+              <MedimeshLogo variant="horizontal" size="md" className="h-7 w-auto" />
+            </Link>
             <p className="mt-3 max-w-lg text-sm leading-6 text-white/60">Healthcare discovery, comparison, and source-aware navigation—designed to make complex information easier to understand.</p>
             <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">Source-aware healthcare information platform</p>
           </div>

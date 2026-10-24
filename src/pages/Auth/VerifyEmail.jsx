@@ -52,7 +52,7 @@ export default function VerifyEmail() {
     >
       <div className="flex flex-col items-center justify-center py-6">
         <div className="mb-6 flex justify-center">
-          <MedimeshLogo variant="mark" size="xl" className="h-16" />
+          <MedimeshLogo variant="stacked" size="xl" className="h-16 w-auto" />
         </div>
         
         {email && (

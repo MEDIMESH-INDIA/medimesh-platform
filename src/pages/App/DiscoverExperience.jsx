@@ -1,13 +1,14 @@
 import FilterPanel from '../../components/hospital/FilterPanel';
 import { useEffect, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Activity, BedDouble, Building2, ChevronDown, Filter, MapPin, Search, X } from 'lucide-react';
+import { Activity, BedDouble, Building2, ChevronDown, Filter, MapPin, X } from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import SectionEyebrow from '../../components/common/SectionEyebrow';
 import EmptyState from '../../components/common/EmptyState';
 import HospitalCard from '../../components/hospital/HospitalCard';
 import HospitalCardSkeleton from '../../components/hospital/HospitalCardSkeleton';
 import CollapsibleFilter from '../../components/hospital/CollapsibleFilter';
+import HospitalSearchAutocomplete from '../../components/hospital/HospitalSearchAutocomplete';
 import { useHospitalSearch } from '../../hooks/useHospitalSearch';
 import { useHospitalFacets } from '../../hooks/useHospitalFacets';
 import { useSavedHospitals } from '../../hooks/useSavedHospitals';
@@ -89,11 +90,6 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
     if (key === 'q') setQuery(value);
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    updateFilter('q', query);
-  };
-
   const clearAllFilters = () => {
     setSearchParams(new URLSearchParams());
     setQuery('');
@@ -160,40 +156,22 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         </p>
 
         <div className="w-full">
-          <form
-            onSubmit={handleSearchSubmit}
-            className="discovery-search relative flex items-center group w-full bg-surface border border-border/80 hover:border-primary/40 rounded-xl shadow-[0_2px_12px_rgba(10,122,106,0.04)] focus-within:ring-2 focus-within:ring-primary/15 focus-within:border-primary transition-all duration-150 h-[52px]"
-          >
-            <div className="pl-3.5 pr-2 text-muted-foreground group-focus-within:text-primary transition-colors flex items-center justify-center shrink-0">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-            </div>
-            <input
-              type="search"
-              aria-label="Search healthcare directory"
-              placeholder="Search by hospital name, city, specialty, or locality..."
-              className="flex-1 h-full bg-transparent text-foreground placeholder:text-muted-foreground/65 focus:outline-none text-xs sm:text-sm min-w-0 pr-2"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <div className="flex items-center pr-2 shrink-0 gap-1.5">
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => { setQuery(''); updateFilter('q', ''); }}
-                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface-elevated transition-colors"
-                  aria-label="Clear search text"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-              <button
-                type="submit"
-                className="px-4 h-[38px] bg-primary text-white font-bold text-xs sm:text-sm rounded-lg hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm active:scale-95 transition-all duration-150 whitespace-nowrap"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+          <HospitalSearchAutocomplete
+            value={query}
+            onChange={(val) => setQuery(val)}
+            onSelect={(hospital) => {
+              setQuery(hospital.name);
+              updateFilter('q', hospital.name);
+            }}
+            onSubmit={(val) => {
+              setQuery(val);
+              updateFilter('q', val);
+            }}
+            mode={mode}
+            filters={{ city: filters.city, locality: filters.locality }}
+            placeholder="Search by hospital name, city, specialty, or locality..."
+            aria-label="Search healthcare directory"
+          />
         </div>
       </div>
 

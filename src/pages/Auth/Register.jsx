@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Building2, CheckCircle2, Eye, EyeOff, Stethoscope, UserCircle } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import AuthLayout from '../../components/layout/AuthLayout';
 import Button from '../../components/common/Button';
 import FormField from '../../components/common/FormField';
@@ -8,16 +8,20 @@ import FrostedPanel from '../../components/common/FrostedPanel';
 import { useAuth } from '../../hooks/useAuth';
 
 const roles = [
-  { id: 'patient', label: 'Patient', description: 'Discover and compare healthcare options.', icon: UserCircle, tone: 'text-primary bg-primary/10' },
-  { id: 'doctor', label: 'Doctor', description: 'Build a professional presence and manage affiliations.', icon: Stethoscope, tone: 'text-coral bg-coral/10' },
-  { id: 'hospital', label: 'Hospital', description: 'Represent your healthcare organization.', icon: Building2, tone: 'text-blue-muted bg-blue-light/15' },
+  { id: 'patient', label: 'Patient', description: 'Explore healthcare, compare hospitals, book home visits, and manage private health records.', icon: UserCircle, tone: 'text-primary bg-primary/10' },
+  { id: 'doctor', label: 'Doctor', description: 'Create your practitioner profile, record medical council qualifications, and publish hospital affiliations.', icon: Stethoscope, tone: 'text-coral bg-coral/10' },
+  { id: 'hospital', label: 'Hospital Representative', description: 'Register your healthcare institution, publish licensed bed capacity, clinical services, and staff rosters.', icon: Building2, tone: 'text-blue-muted bg-blue-light/15' },
 ];
 
 const progressLabels = ['Account', 'Profile', 'Details', 'Review'];
 
 export default function Register() {
-  const [step, setStep] = useState(1);
-  const [role, setRole] = useState(null);
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get('role');
+  const validRole = ['patient', 'doctor', 'hospital'].includes(roleParam) ? roleParam : null;
+
+  const [step, setStep] = useState(validRole ? 2 : 1);
+  const [role, setRole] = useState(validRole);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [hospitalName, setHospitalName] = useState('');
@@ -124,6 +128,9 @@ export default function Register() {
               <span className="h-2 w-2 rounded-full bg-primary/20 transition group-hover:bg-primary" />
             </FrostedPanel>
           ))}
+          <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3 text-xs text-muted-foreground">
+            <strong className="font-semibold text-foreground">Practitioner or Organization Listing:</strong> Register with your official email, then submit your medical council or regulatory license during profile setup to link your authoritative listing.
+          </div>
           <div className="flex items-center gap-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
           <Button type="button" variant="outline" className="w-full" onClick={startGoogle} disabled={loading}>{loading ? 'Connecting…' : 'Continue with Google'}</Button>
           <p className="pt-2 text-center text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-bold text-primary hover:underline">Sign in</Link></p>

@@ -30,6 +30,15 @@ export default function PatientOnboarding() {
     setLoading(true);
     setError('');
     
+    const cleanEmName = emergencyName.trim();
+    const cleanEmPhone = emergencyPhone.trim();
+    if (!cleanEmName || !cleanEmPhone) {
+      setError('Emergency contact name and phone number are required before completing profile setup.');
+      setStep(3);
+      setLoading(false);
+      return;
+    }
+
     try {
       // 1. Save Medical Profile
       if (bloodGroup || allergies || chronic || dob || gender) {
@@ -157,19 +166,24 @@ export default function PatientOnboarding() {
 
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-            <h2 className="text-xl font-semibold mb-4">Emergency Contact (Optional)</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Emergency Contact (Required)</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                An emergency contact is mandatory to ensure healthcare providers can notify next of kin during acute care situations.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 pt-2">
               <div>
-                <label className="block text-sm font-medium mb-1">Contact Name</label>
-                <input type="text" className="medimesh-field" value={emergencyName} onChange={e => setEmergencyName(e.target.value)} />
+                <label className="block text-sm font-medium mb-1">Contact Name <span className="text-destructive">*</span></label>
+                <input required type="text" className="medimesh-field" value={emergencyName} onChange={e => setEmergencyName(e.target.value)} placeholder="e.g. Priya Sharma" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Relationship</label>
-                <input type="text" className="medimesh-field" value={emergencyRel} onChange={e => setEmergencyRel(e.target.value)} />
+                <input type="text" className="medimesh-field" value={emergencyRel} onChange={e => setEmergencyRel(e.target.value)} placeholder="e.g. Spouse, Parent, Sibling" />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Phone Number</label>
-                <input type="tel" className="medimesh-field" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)} />
+                <label className="block text-sm font-medium mb-1">Phone Number <span className="text-destructive">*</span></label>
+                <input required type="tel" className="medimesh-field" value={emergencyPhone} onChange={e => setEmergencyPhone(e.target.value)} placeholder="e.g. +91 98765 43210" />
               </div>
             </div>
           </div>

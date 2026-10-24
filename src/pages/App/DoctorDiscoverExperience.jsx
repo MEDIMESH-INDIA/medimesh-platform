@@ -38,7 +38,7 @@ export default function DoctorDiscoverExperience() {
     homeVisitsOnly: searchParams.get('homeVisitsOnly') === 'true',
   };
 
-  const { doctors, totalCount, loading, error, hasMore, loadMore } = useDoctorSearch({
+  const { doctors, totalCount, loading, error, hasMore, loadMore, refetch } = useDoctorSearch({
     filters,
     sort,
     pageSize: 12,
@@ -413,10 +413,10 @@ export default function DoctorDiscoverExperience() {
               <p className="text-red-700/80 text-xs sm:text-sm mb-4">Please check your connection and try again.</p>
               <button
                 type="button"
-                onClick={() => window.location.reload()}
+                onClick={() => refetch()}
                 className="px-4 py-2 bg-white border border-red-300 rounded-xl text-xs font-semibold text-red-800 hover:bg-red-50 transition-colors shadow-sm"
               >
-                Reload directory
+                Try again
               </button>
             </div>
           ) : null}

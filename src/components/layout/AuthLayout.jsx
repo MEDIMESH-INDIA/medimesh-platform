@@ -26,7 +26,7 @@ export default function AuthLayout({
         {!compact && (
           <section className="hidden min-h-screen flex-col justify-between px-10 py-9 lg:flex xl:px-16 xl:py-12">
             <Link to="/" aria-label="MEDIMESH home" className="w-fit block">
-              <MedimeshLogo variant="full" size="lg" className="w-auto h-8 xl:h-10" />
+              <MedimeshLogo variant="horizontal" size="lg" className="w-auto h-8 xl:h-10" />
             </Link>
 
             <div className="max-w-[620px] py-12">
@@ -64,7 +64,7 @@ export default function AuthLayout({
           <PageTransition className="max-w-[510px]">
             <div className="mb-7 flex items-center justify-between lg:hidden">
               <Link to="/" aria-label="MEDIMESH home" className="block">
-                <MedimeshLogo variant="full" size="md" className="h-7 w-auto" />
+                <MedimeshLogo variant="horizontal" size="md" className="h-7 w-auto" />
               </Link>
               {!compact && <ArrowRight className="h-4 w-4 text-primary" />}
             </div>

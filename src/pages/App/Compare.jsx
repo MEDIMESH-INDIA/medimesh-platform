@@ -1,11 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { AlertCircle, Check, Database, GitCompare, HelpCircle, Link2, MapPin, Pencil, Plus, Search, ShieldCheck, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  Database,
+  GitCompare,
+  HelpCircle,
+  Link2,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+  X
+} from 'lucide-react';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import Button from '../../components/common/Button';
 import FrostedPanel from '../../components/common/FrostedPanel';
 import LoadingState from '../../components/common/LoadingState';
 import HospitalChooserModal from '../../components/hospital/HospitalChooserModal';
+import HospitalSearchAutocomplete from '../../components/hospital/HospitalSearchAutocomplete';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthGate } from '../../hooks/useAuthGate';
 import { useCompare } from '../../hooks/useCompare';
@@ -35,31 +52,54 @@ const NEEDS = [
   [['eye', 'vision', 'ophthalmology'], 'Ophthalmology'],
 ];
 
-const place = hospital => [hospital.location.locality, hospital.location.city, hospital.location.state].filter(Boolean).join(', ') || 'Unknown';
-const known = value => value === null || value === undefined || value === '' ? 'Unknown' : value;
-const available = value => value === true ? 'Available' : value === false ? 'Unavailable' : 'Unknown';
-const date = value => {
+const place = (hospital) => [hospital.location.locality, hospital.location.city, hospital.location.state].filter(Boolean).join(', ') || 'Unknown';
+const known = (value) => (value === null || value === undefined || value === '' ? 'Unknown' : value);
+const available = (value) => (value === true ? 'Available' : value === false ? 'Unavailable' : 'Unknown');
+const date = (value) => {
   if (!value) return 'Unknown';
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? 'Unknown' : parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };
+
 function inferNeed(query, specialties) {
   const input = String(query || '').trim().toLowerCase();
   if (!input) return null;
-  const exact = specialties.find(item => item.toLowerCase() === input);
+  const exact = (specialties || []).find((item) => item.toLowerCase() === input);
   if (exact) return { specialty: exact, term: query };
   for (const [words, specialty] of NEEDS) {
-    const term = words.find(word => input.includes(word));
+    const term = words.find((word) => input.includes(word));
     if (term) return { specialty, term };
   }
   return null;
 }
+
 function Value({ children }) {
-  const value = String(children);
-  if (value === 'Available' || value === 'Matches area') return <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary"><Check className="h-3.5 w-3.5" />{value}</span>;
-  if (value === 'Unavailable' || value === 'Outside area') return <span className="rounded-full bg-coral/10 px-2.5 py-1 text-xs font-bold text-[#A85047]">{value}</span>;
-  if (value === 'Unknown' || value === 'Not listed') return <span className="inline-flex items-center gap-1.5 font-medium text-muted-foreground"><HelpCircle className="h-3.5 w-3.5 text-amber" />{value}</span>;
-  return value;
+  const value = String(children ?? '');
+  if (value === 'Available' || value === 'Matches area') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 border border-emerald-200/60">
+        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+        <span>{value}</span>
+      </span>
+    );
+  }
+  if (value === 'Unavailable' || value === 'Outside area') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-800 border border-rose-200/60">
+        <X className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+        <span>{value}</span>
+      </span>
+    );
+  }
+  if (value === 'Unknown' || value === 'Not listed' || value === 'Not confirmed') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50/80 px-2.5 py-1 text-xs font-medium text-amber-900 border border-amber-200/60">
+        <HelpCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+        <span>{value}</span>
+      </span>
+    );
+  }
+  return <span className="font-medium text-foreground">{value}</span>;
 }
 
 export default function Compare() {
@@ -83,7 +123,7 @@ export default function Compare() {
   const hasCompareParam = params.has('compare');
   const hadUrlParamRef = useRef(hasCompareParam);
   const urlSlugs = useMemo(() => parseComparisonSlugs(compareParam), [compareParam]);
-  const currentSlugs = useMemo(() => compareList.map(item => item.slug), [compareList]);
+  const currentSlugs = useMemo(() => compareList.map((item) => item.slug), [compareList]);
   const isSyncedWithUrl = useMemo(() => {
     if (!hasCompareParam) return true;
     return urlSlugs.length === currentSlugs.length && urlSlugs.every((slug, i) => slug === currentSlugs[i]);
@@ -125,12 +165,12 @@ export default function Compare() {
     }
 
     getHospitalsBySlugs(urlSlugs, { mode })
-      .then(resolved => {
+      .then((resolved) => {
         if (!active) return;
-        const canonicalItems = (resolved || []).map(h => ({ slug: h.slug, name: h.name }));
+        const canonicalItems = (resolved || []).map((h) => ({ slug: h.slug, name: h.name }));
         setComparison(canonicalItems);
 
-        const resolvedSlugs = canonicalItems.map(i => i.slug);
+        const resolvedSlugs = canonicalItems.map((i) => i.slug);
         if (resolvedSlugs.length !== urlSlugs.length || !urlSlugs.every((s, i) => s === resolvedSlugs[i])) {
           const next = new URLSearchParams(params);
           if (resolvedSlugs.length > 0) {
@@ -141,32 +181,40 @@ export default function Compare() {
           setParams(next, { replace: true });
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Failed to resolve comparison slugs:', err);
       });
 
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [hasCompareParam, isSyncedWithUrl, mode, params, setComparison, setParams, urlSlugs]);
 
-  const updateUrlComparison = useCallback((nextList, { replace = false } = {}) => {
-    if (!params.has('compare')) return;
-    const next = new URLSearchParams(params);
-    const serialized = serializeComparisonSlugs(nextList);
-    if (serialized) {
-      next.set('compare', serialized);
-    } else {
-      next.delete('compare');
-    }
-    setParams(next, { replace });
-  }, [params, setParams]);
+  const updateUrlComparison = useCallback(
+    (nextList, { replace = false } = {}) => {
+      if (!params.has('compare')) return;
+      const next = new URLSearchParams(params);
+      const serialized = serializeComparisonSlugs(nextList);
+      if (serialized) {
+        next.set('compare', serialized);
+      } else {
+        next.delete('compare');
+      }
+      setParams(next, { replace });
+    },
+    [params, setParams]
+  );
 
-  const handleRemove = useCallback(slug => {
-    removeHospital(slug);
-    if (params.has('compare')) {
-      const next = compareList.filter(item => item.slug !== slug);
-      updateUrlComparison(next);
-    }
-  }, [compareList, params, removeHospital, updateUrlComparison]);
+  const handleRemove = useCallback(
+    (slug) => {
+      removeHospital(slug);
+      if (params.has('compare')) {
+        const next = compareList.filter((item) => item.slug !== slug);
+        updateUrlComparison(next);
+      }
+    },
+    [compareList, params, removeHospital, updateUrlComparison]
+  );
 
   const handleClear = useCallback(() => {
     clearComparison();
@@ -177,30 +225,36 @@ export default function Compare() {
     }
   }, [clearComparison, params, setParams]);
 
-  const handleAdd = useCallback(hospital => {
-    const added = addHospital(hospital);
-    if (added && params.has('compare')) {
-      const next = [...compareList, hospital];
-      updateUrlComparison(next);
-    }
-    return added;
-  }, [addHospital, compareList, params, updateUrlComparison]);
-
-  const handleChoose = useCallback((hospital, replaceSlug) => {
-    if (replaceSlug) {
-      const replaced = replaceHospital(replaceSlug, hospital);
-      if (replaced && params.has('compare')) {
-        const next = compareList.map(item => item.slug === replaceSlug ? hospital : item);
+  const handleAdd = useCallback(
+    (hospital) => {
+      const added = addHospital(hospital);
+      if (added && params.has('compare')) {
+        const next = [...compareList, hospital];
         updateUrlComparison(next);
       }
-      return replaced;
-    }
-    return handleAdd(hospital);
-  }, [compareList, handleAdd, params, replaceHospital, updateUrlComparison]);
+      return added;
+    },
+    [addHospital, compareList, params, updateUrlComparison]
+  );
+
+  const handleChoose = useCallback(
+    (hospital, replaceSlug) => {
+      if (replaceSlug) {
+        const replaced = replaceHospital(replaceSlug, hospital);
+        if (replaced && params.has('compare')) {
+          const next = compareList.map((item) => (item.slug === replaceSlug ? hospital : item));
+          updateUrlComparison(next);
+        }
+        return replaced;
+      }
+      return handleAdd(hospital);
+    },
+    [compareList, handleAdd, params, replaceHospital, updateUrlComparison]
+  );
 
   const handleCopyLink = useCallback(async () => {
     const targetSlugs = (hospitals.length >= 2 ? hospitals : compareList)
-      .map(item => item.slug)
+      .map((item) => item.slug)
       .filter(Boolean);
     if (targetSlugs.length < 2) return;
 
@@ -229,7 +283,10 @@ export default function Compare() {
   }, [compareList, hospitals, params, setParams]);
 
   const inferred = useMemo(() => inferNeed(search?.q, facets.specialties), [search?.q, facets.specialties]);
-  const filters = useMemo(() => search ? { ...search, q: inferred ? '' : search.q, specialty: search.specialty || inferred?.specialty || '' } : WAITING, [inferred, search]);
+  const filters = useMemo(
+    () => (search ? { ...search, q: inferred ? '' : search.q, specialty: search.specialty || inferred?.specialty || '' } : WAITING),
+    [inferred, search]
+  );
   const discovery = useHospitalSearch({ mode, filters, pageSize: 9 });
   const selectedNeed = filters.specialty;
 
@@ -248,31 +305,62 @@ export default function Compare() {
 
   const rows = useMemo(() => {
     const list = [];
-    if (selectedNeed) list.push({ group: 'Your priorities', label: `${selectedNeed} listed`, priority: true, get: h => h.specialties.some(item => item.toLowerCase() === selectedNeed.toLowerCase()) ? 'Available' : 'Unknown' });
-    if (search?.locality) list.push({ group: 'Your priorities', label: `In ${search.locality}`, priority: true, get: h => h.location.locality?.toLowerCase() === search.locality.toLowerCase() ? 'Matches area' : 'Outside area' });
-    else if (search?.city) list.push({ group: 'Your priorities', label: `In ${search.city}`, priority: true, get: h => [h.location.locality, h.location.city].some(item => item?.toLowerCase() === search.city.toLowerCase()) ? 'Matches area' : 'Outside area' });
+    if (selectedNeed) {
+      list.push({
+        group: 'Your priorities',
+        label: `${selectedNeed} listed`,
+        priority: true,
+        get: (h) => (h.specialties.some((item) => item.toLowerCase() === selectedNeed.toLowerCase()) ? 'Available' : 'Unknown'),
+      });
+    }
+    if (search?.locality) {
+      list.push({
+        group: 'Your priorities',
+        label: `Located in ${search.locality}`,
+        priority: true,
+        get: (h) => (h.location.locality?.toLowerCase() === search.locality.toLowerCase() ? 'Matches area' : 'Outside area'),
+      });
+    } else if (search?.city) {
+      list.push({
+        group: 'Your priorities',
+        label: `Located in ${search.city}`,
+        priority: true,
+        get: (h) =>
+          [h.location.locality, h.location.city].some((item) => item?.toLowerCase() === search.city.toLowerCase())
+            ? 'Matches area'
+            : 'Outside area',
+      });
+    }
     list.push(
       { group: 'Overview', label: 'Location', priority: true, get: place },
-      { group: 'Overview', label: 'Hospital type', priority: true, get: h => formatHospitalType(h.type) },
-      { group: 'Care & services', label: 'Specialties', priority: Boolean(selectedNeed), get: h => h.specialties.length ? h.specialties.join(', ') : 'Not listed' },
-      { group: 'Care & services', label: 'Facilities', get: h => h.facilities.length ? h.facilities.join(', ') : 'Not listed' },
-      { group: 'Care & services', label: 'Emergency department', priority: true, get: h => available(h.metrics.emergency) },
-      { group: 'Care & services', label: 'Ambulance', get: h => available(h.metrics.ambulance) },
-      { group: 'Capacity', label: 'Total beds', get: h => known(h.metrics.totalBeds) },
-      { group: 'Capacity', label: 'ICU beds', priority: true, get: h => known(h.metrics.icuBeds) },
-      { group: 'Trust & freshness', label: 'Source', priority: true, get: h => known(h.provenance?.sourceName) },
-      { group: 'Trust & freshness', label: 'Review status', priority: true, get: h => formatReviewStatus(h.provenance?.reviewStatus) },
-      { group: 'Trust & freshness', label: 'Last checked', priority: true, get: h => date(h.provenance?.checkedAt) },
+      { group: 'Overview', label: 'Hospital type', priority: true, get: (h) => formatHospitalType(h.type) },
+      { group: 'Care & services', label: 'Specialties', priority: Boolean(selectedNeed), get: (h) => (h.specialties.length ? h.specialties.join(', ') : 'Not listed') },
+      { group: 'Care & services', label: 'Facilities', get: (h) => (h.facilities.length ? h.facilities.join(', ') : 'Not listed') },
+      { group: 'Care & services', label: 'Emergency department', priority: true, get: (h) => available(h.metrics.emergency) },
+      { group: 'Care & services', label: 'Ambulance', get: (h) => available(h.metrics.ambulance) },
+      { group: 'Capacity', label: 'Total beds', get: (h) => known(h.metrics.totalBeds) },
+      { group: 'Capacity', label: 'ICU beds', priority: true, get: (h) => known(h.metrics.icuBeds) },
+      { group: 'Trust & freshness', label: 'Source', priority: true, get: (h) => known(h.provenance?.sourceName) },
+      { group: 'Trust & freshness', label: 'Review status', priority: true, get: (h) => formatReviewStatus(h.provenance?.reviewStatus) },
+      { group: 'Trust & freshness', label: 'Last checked', priority: true, get: (h) => date(h.provenance?.checkedAt) }
     );
-    return list.map(row => {
+    return list.map((row) => {
       const values = hospitals.map(row.get);
       return { ...row, values, differs: new Set(values.map(String)).size > 1 };
     });
   }, [hospitals, search?.city, search?.locality, selectedNeed]);
-  const visible = rows.filter(row => (!differences || row.differs) && (!focused || row.priority || row.group === 'Trust & freshness'));
+
+  const visible = rows.filter((row) => (!differences || row.differs) && (!focused || row.priority || row.group === 'Trust & freshness'));
   const groups = visible.reduce((result, row) => ({ ...result, [row.group]: [...(result[row.group] || []), row] }), {});
-  const runSearch = event => { event.preventDefault(); setSearch({ ...draft, q: draft.q.trim() }); };
-  const quickSearch = specialty => { const next = { ...draft, q: specialty, specialty }; setDraft(next); setSearch(next); };
+  const runSearch = (event) => {
+    event.preventDefault();
+    setSearch({ ...draft, q: draft.q.trim() });
+  };
+  const quickSearch = (specialty) => {
+    const next = { ...draft, q: specialty, specialty };
+    setDraft(next);
+    setSearch(next);
+  };
 
   if (authLoading) {
     return (
@@ -313,12 +401,7 @@ export default function Compare() {
             >
               Sign in to compare
             </Button>
-            <Button
-              as={Link}
-              to="/discover"
-              variant="outline"
-              className="px-6"
-            >
+            <Button as={Link} to="/discover" variant="outline" className="px-6">
               Explore hospitals
             </Button>
           </div>
@@ -346,57 +429,662 @@ export default function Compare() {
     );
   }
 
-  return <AppPageContainer className="">
-    <header className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-      <div><div className="flex flex-wrap items-center gap-2"><p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">Guided hospital comparison</p>{mode === 'demo' && <span className="rounded-full bg-lavender/15 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#675890]">Demonstration catalog</span>}</div><h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Find the right options to compare</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Search by hospital name or healthcare need, choose an area, then compare up to three hospitals using known, source-linked information. MEDIMESH does not diagnose, rank providers, or declare a winner.</p></div>
-      <div className="flex flex-wrap items-center gap-2">
-        {compareList.length >= 2 && <Button type="button" variant="outline" size="sm" onClick={handleCopyLink} className="w-fit gap-2 font-semibold" aria-label="Copy comparison link">{copyFeedback.status === 'success' ? <Check className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}{copyFeedback.status === 'success' ? 'Comparison link copied' : 'Copy comparison link'}</Button>}
-        {compareList.length > 0 && <Button type="button" variant="ghost" size="sm" onClick={handleClear} className="w-fit gap-2"><Trash2 className="h-4 w-4" /> Clear comparison</Button>}
-      </div>
-    </header>
-
-    <div className="sr-only" role="status" aria-live="polite">{copyFeedback.message}</div>
-    {copyFeedback.status === 'error' && copyFeedback.manualUrl && (
-      <div className="mb-4 rounded-xl border border-border bg-surface-elevated p-3 text-xs">
-        <p className="font-semibold text-foreground">{copyFeedback.message}</p>
-        <div className="mt-2 flex items-center gap-2">
-          <input type="text" readOnly value={copyFeedback.manualUrl} onFocus={e => e.target.select()} className="w-full rounded-lg border border-border bg-white px-3 py-1.5 font-mono text-xs outline-none" />
+  return (
+    <AppPageContainer className="space-y-8">
+      {/* 1. Comparison Header */}
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">
+              Guided hospital comparison
+            </p>
+            {mode === 'demo' && (
+              <span className="rounded-full bg-lavender/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#675890]">
+                Demonstration catalog
+              </span>
+            )}
+          </div>
+          <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] sm:text-4xl text-foreground">
+            Comparison
+          </h1>
+          <p className="mt-2 max-w-3xl text-xs sm:text-sm leading-6 text-muted-foreground">
+            Compare up to three hospitals side-by-side using known, source-linked information. MEDIMESH presents verifiable provider records to help you evaluate options against your care needs without commercial ranking.
+          </p>
         </div>
+
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {compareList.length >= 2 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="gap-2 font-semibold text-xs"
+              aria-label="Copy comparison link"
+            >
+              {copyFeedback.status === 'success' ? (
+                <Check className="h-3.5 w-3.5 text-emerald-600" />
+              ) : (
+                <Link2 className="h-3.5 w-3.5" />
+              )}
+              {copyFeedback.status === 'success' ? 'Link copied' : 'Share comparison'}
+            </Button>
+          )}
+          {compareList.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="gap-1.5 text-xs text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Clear
+            </Button>
+          )}
+        </div>
+      </header>
+
+      <div className="sr-only" role="status" aria-live="polite">
+        {copyFeedback.message}
       </div>
-    )}
 
-    <FrostedPanel variant="elevated" className="mb-7 overflow-hidden rounded-[20px]">
-      <div className="border-b border-border bg-gradient-to-r from-primary/[0.06] via-white/40 to-lavender/[0.1] p-5 sm:p-7">
-        <div className="mb-5 flex gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white"><Search className="h-5 w-5" /></div><div><h2 className="font-serif text-xl font-semibold">What kind of hospital are you looking for?</h2><p className="mt-1 text-sm text-muted-foreground">Try “cardiac care”, “kidney hospital”, a hospital name, or a locality.</p></div></div>
-        <form onSubmit={runSearch} className="grid gap-3 lg:grid-cols-[1fr_.75fr_.75fr_.75fr_auto]">
-          <label className="relative"><span className="sr-only">Hospital name or healthcare need</span><Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" /><input type="search" value={draft.q} onChange={e => setDraft(value => ({ ...value, q: e.target.value }))} placeholder="Hospital name or need" className="h-12 w-full rounded-xl border border-border bg-white/90 pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
-          <label className="relative"><span className="sr-only">Location</span><MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.city} onChange={e => setDraft(value => ({ ...value, city: e.target.value, locality: (!e.target.value || (facets.cityToLocalities?.[e.target.value] && !facets.cityToLocalities[e.target.value].includes(value.locality))) ? '' : value.locality }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any location</option>{(facets.cities || []).map(item => <option key={item}>{item}</option>)}</select></label>
-          <label className="relative"><span className="sr-only">Area</span><MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.locality} onChange={e => setDraft(value => ({ ...value, locality: e.target.value }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any area</option>{(draft.city && facets.cityToLocalities?.[draft.city] ? facets.cityToLocalities[draft.city] : (facets.localities || [])).map(item => <option key={item}>{item}</option>)}</select></label>
-          <label className="relative"><span className="sr-only">Specialty</span><SlidersHorizontal className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" /><select disabled={facetsLoading} value={draft.specialty} onChange={e => setDraft(value => ({ ...value, specialty: e.target.value }))} className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"><option value="">Any specialty</option>{(facets.specialties || []).map(item => <option key={item}>{item}</option>)}</select></label>
-          <Button type="submit" className="h-12 gap-2 px-6 text-sm">Find hospitals</Button>
-        </form>
-        <div className="mt-4 flex flex-wrap items-center gap-2"><span className="text-xs font-semibold text-muted-foreground">Popular needs:</span>{((facets.specialties || []).length ? (facets.specialties || []).slice(0, 5) : ['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics']).map(item => <button key={item} type="button" onClick={() => quickSearch(item)} className="rounded-full border border-border bg-white/75 px-3 py-1.5 text-xs font-semibold transition hover:border-primary/30 hover:text-primary">{item}</button>)}</div>
-      </div>
-      {search && <div className="p-5 sm:p-7"><div className="mb-5 flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Matching hospitals</p><h3 className="mt-1 text-lg font-semibold">{discovery.loading ? 'Searching the catalog…' : `${discovery.totalCount ?? discovery.hospitals.length} options found`}</h3>{inferred && !search.specialty && <p className="mt-1 text-xs text-muted-foreground">“{inferred.term}” was interpreted as <strong className="text-foreground">{inferred.specialty}</strong>. This organizes results; it is not medical advice.</p>}</div><button type="button" onClick={() => { setSearch(null); setDraft(EMPTY); }} className="text-xs font-semibold text-muted-foreground hover:text-primary">Clear</button></div>
-        {discovery.error ? <Notice title="Catalog unavailable">Check the local data connection and try again.</Notice> : discovery.loading ? <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{[1,2,3].map(item => <div key={item} className="h-36 animate-pulse rounded-2xl bg-surface-elevated" />)}</div> : discovery.hospitals.length === 0 ? <div className="rounded-2xl border border-dashed border-border bg-surface-elevated/50 p-8 text-center"><h4 className="font-semibold">No hospitals match every selected detail</h4><p className="mt-2 text-sm text-muted-foreground">Try another area, remove a filter, or search by hospital name.</p></div> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{discovery.hospitals.map(hospital => { const selected = isCompared(hospital.slug); return <article key={hospital.id} className={`rounded-2xl border p-4 transition ${selected ? 'border-primary/30 bg-primary/[.045]' : 'border-border bg-white hover:-translate-y-0.5 hover:shadow-card'}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h4 className="font-serif text-lg leading-snug font-semibold">{hospital.name}</h4><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{place(hospital)}</p></div><span className="rounded-full bg-surface-elevated px-2 py-1 text-[10px] font-bold text-muted-foreground">{formatHospitalType(hospital.type)}</span></div><div className="mt-3 flex min-h-6 flex-wrap gap-1">{hospital.specialties.slice(0,3).map(item => <span key={item} className={`rounded-full px-2 py-1 text-[10px] font-bold ${item === selectedNeed ? 'bg-primary/10 text-primary' : 'bg-blue-light/15 text-blue-muted'}`}>{item}</span>)}{!hospital.specialties.length && <span className="text-xs text-muted-foreground">Specialties not listed</span>}</div><button type="button" disabled={selected || !canAdd} onClick={() => handleAdd(hospital)} className={`mt-4 h-10 w-full rounded-xl text-xs font-bold ${selected ? 'bg-primary/10 text-primary' : canAdd ? 'border border-primary/20 text-primary hover:bg-primary hover:text-white' : 'bg-surface-elevated text-muted-foreground'}`}>{selected ? '✓ Selected' : canAdd ? '+ Add to compare' : 'Comparison is full'}</button></article>; })}</div>}
-      </div>}
-    </FrostedPanel>
+      {copyFeedback.status === 'error' && copyFeedback.manualUrl && (
+        <div className="rounded-xl border border-border bg-surface-elevated p-3 text-xs">
+          <p className="font-semibold text-foreground">{copyFeedback.message}</p>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={copyFeedback.manualUrl}
+              onFocus={(e) => e.target.select()}
+              className="w-full rounded-lg border border-border bg-white px-3 py-1.5 font-mono text-xs outline-none"
+            />
+          </div>
+        </div>
+      )}
 
-    <section className="mb-7"><div className="mb-3 flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Your shortlist</p><h2 className="mt-1 font-serif text-2xl font-semibold">Selected hospitals <span className="font-sans text-sm text-muted-foreground">{compareList.length}/3</span></h2></div><div className="flex flex-wrap items-center gap-2">{compareList.length >= 2 && <Button type="button" variant="outline" size="sm" onClick={handleCopyLink} className="gap-2 font-semibold" aria-label="Copy comparison link">{copyFeedback.status === 'success' ? <Check className="h-4 w-4 text-emerald-600" /> : <Link2 className="h-4 w-4" />}{copyFeedback.status === 'success' ? 'Comparison link copied' : 'Copy comparison link'}</Button>}{canAdd && <Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })}><Plus className="mr-2 h-4 w-4" /> Add hospital</Button>}</div></div>
-      {!compareList.length ? <FrostedPanel className="rounded-[20px] p-8 text-center"><div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]"><GitCompare className="h-6 w-6" /></div><h3 className="mt-4 font-semibold">Select at least two hospitals</h3><p className="mt-2 text-sm text-muted-foreground">Search above or browse the catalog to compare up to 3 hospitals side-by-side.</p><Button type="button" variant="outline" size="sm" onClick={() => setChooser({ open: true, replaceSlug: null })} className="mt-5">Browse hospitals</Button></FrostedPanel> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{hospitals.map((hospital,index) => <FrostedPanel key={hospital.id} className="rounded-2xl p-4"><div className="flex justify-between gap-3"><div><span className="text-[10px] font-bold uppercase text-primary">Option {index+1}</span><h3 className="mt-1 font-semibold">{hospital.name}</h3><p className="mt-1 text-xs text-muted-foreground">{place(hospital)}</p></div><button onClick={() => handleRemove(hospital.slug)} aria-label={`Remove ${hospital.name}`}><X className="h-4 w-4 text-muted-foreground" /></button></div><button onClick={() => setChooser({ open:true, replaceSlug:hospital.slug })} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pencil className="h-3 w-3" /> Replace</button></FrostedPanel>)}</div>}
-    </section>
+      {/* 2. Shortlist Cards (Identifiable comparison options) */}
+      <section aria-labelledby="comparison-options-heading">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 id="comparison-options-heading" className="font-serif text-xl sm:text-2xl font-bold text-foreground">
+              Selected Hospitals
+            </h2>
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
+              {compareList.length}/3
+            </span>
+          </div>
 
-    {((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) && <div className="h-96 animate-pulse rounded-[20px] bg-surface-elevated" />}
-    {error && <Notice title="We couldn’t load this comparison">The hospital catalog could not be reached.</Notice>}
-    {!loading && !error && hospitals.length > 0 && isSyncedWithUrl && <section><div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Side-by-side evaluation</p><h2 className="mt-1 font-serif text-3xl font-semibold">Compare known differences</h2><p className="mt-2 text-sm text-muted-foreground">Unknown means MEDIMESH has not verified the detail—it does not mean unavailable.</p></div><div className="flex gap-2"><Toggle active={focused} onClick={() => setFocused(!focused)}>Focus on my needs</Toggle><Toggle active={differences} onClick={() => setDifferences(!differences)}>Show differences only</Toggle></div></div>
-      <div className="max-h-[72vh] overflow-auto custom-scrollbar rounded-[20px] border border-border/70"><FrostedPanel variant="elevated" className="min-w-[760px] rounded-[20px]"><table className="w-full border-collapse text-left"><thead><tr><th className="sticky left-0 top-0 z-20 w-48 border-b border-r border-border bg-[#F8F7F2] p-5 text-xs uppercase text-muted-foreground">Comparison</th>{hospitals.map(h => <th key={h.id} className="sticky top-0 z-10 min-w-[260px] border-b border-border bg-white p-5 align-top"><Link to={`${basePath}/hospitals/${h.slug}`} className="font-serif text-lg font-semibold hover:text-primary">{h.name}</Link><p className="mt-2 text-xs text-muted-foreground">{place(h)}</p></th>)}</tr></thead><tbody>{Object.entries(groups).map(([group,items]) => <Group key={group} name={group} rows={items} hospitals={hospitals} />)}{!visible.length && <tr><td colSpan={hospitals.length+1} className="p-10 text-center text-sm text-muted-foreground">No differing rows are available.</td></tr>}</tbody></table></FrostedPanel></div>
-      <div className="grid gap-3 sm:grid-cols-2"><Info icon={ShieldCheck} title="Transparent by design">Sources and freshness stay visible—there is no hidden score.</Info><Info icon={Database} title="Missing stays unknown">Unlisted information is never converted into a false “No”.</Info></div>
-    </section>}
-    <HospitalChooserModal isOpen={chooser.open} onClose={() => setChooser({open:false,replaceSlug:null})} replaceSlug={chooser.replaceSlug} mode={mode} onChoose={handleChoose} />
-  </AppPageContainer>;
+          {canAdd && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setChooser({ open: true, replaceSlug: null })}
+              className="gap-1.5 text-xs font-semibold"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add hospital
+            </Button>
+          )}
+        </div>
+
+        {!compareList.length ? (
+          <FrostedPanel className="rounded-[22px] p-8 text-center border-dashed border-border/80">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]">
+              <GitCompare className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 font-semibold text-foreground">Select at least two hospitals to compare</h3>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+              Search above or open the directory to choose hospitals and evaluate care capabilities side-by-side.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setChooser({ open: true, replaceSlug: null })}
+              className="mt-5"
+            >
+              Browse hospital directory
+            </Button>
+          </FrostedPanel>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {hospitals.map((hospital) => (
+              <FrostedPanel
+                key={hospital.id}
+                className="relative rounded-2xl p-4 sm:p-5 flex flex-col justify-between border-border/80 bg-white/80 shadow-xs"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
+                        {formatHospitalType(hospital.type)}
+                      </span>
+                      <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-snug">
+                        <Link to={`${basePath}/hospitals/${hospital.slug}`} className="hover:text-primary transition-colors">
+                          {hospital.name}
+                        </Link>
+                      </h3>
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/70" />
+                        <span className="truncate">{place(hospital)}</span>
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(hospital.slug)}
+                      aria-label={`Remove ${hospital.name}`}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/5 transition"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setChooser({ open: true, replaceSlug: hospital.slug })}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  >
+                    <Pencil className="h-3 w-3" /> Replace
+                  </button>
+                  <Link
+                    to={`${basePath}/hospitals/${hospital.slug}`}
+                    className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                  >
+                    View profile →
+                  </Link>
+                </div>
+              </FrostedPanel>
+            ))}
+
+            {canAdd && compareList.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setChooser({ open: true, replaceSlug: null })}
+                className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-border/80 hover:border-primary/40 bg-white/40 hover:bg-white/70 transition group text-center min-h-[140px]"
+              >
+                <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Plus className="h-4 w-4" />
+                </div>
+                <span className="mt-2 text-xs font-bold text-foreground">Add hospital</span>
+                <span className="text-[11px] text-muted-foreground mt-0.5">Compare up to 3</span>
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* 3. Search and Priority Filters */}
+      <FrostedPanel variant="elevated" className="overflow-hidden rounded-[22px]">
+        <div className="border-b border-border bg-gradient-to-r from-primary/[0.05] via-white/40 to-lavender/[0.08] p-5 sm:p-7">
+          <div className="mb-5 flex gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white">
+              <Search className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-serif text-lg sm:text-xl font-semibold text-foreground">
+                Set comparison priorities or find more hospitals
+              </h2>
+              <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
+                Type a specialty (e.g. “cardiac care”, “neurology”) or select a locality to evaluate criteria.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={runSearch} className="grid gap-3 lg:grid-cols-[1.2fr_.75fr_.75fr_.75fr_auto]">
+            <div className="relative">
+              <HospitalSearchAutocomplete
+                value={draft.q}
+                onChange={(val) => setDraft((v) => ({ ...v, q: val }))}
+                onSelect={(hospital) => {
+                  setDraft((v) => ({ ...v, q: hospital.name }));
+                  handleAdd(hospital);
+                }}
+                onSubmit={() => setSearch({ ...draft, q: draft.q.trim() })}
+                mode={mode}
+                placeholder="Hospital name or healthcare need"
+                aria-label="Hospital name or need"
+              />
+            </div>
+
+            <label className="relative">
+              <span className="sr-only">Location</span>
+              <MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" />
+              <select
+                disabled={facetsLoading}
+                value={draft.city}
+                onChange={(e) =>
+                  setDraft((value) => ({
+                    ...value,
+                    city: e.target.value,
+                    locality:
+                      !e.target.value ||
+                      (facets.cityToLocalities?.[e.target.value] && !facets.cityToLocalities[e.target.value].includes(value.locality))
+                        ? ''
+                        : value.locality,
+                  }))
+                }
+                className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-xs sm:text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Any location</option>
+                {(facets.cities || []).map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="relative">
+              <span className="sr-only">Area</span>
+              <MapPin className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" />
+              <select
+                disabled={facetsLoading}
+                value={draft.locality}
+                onChange={(e) => setDraft((value) => ({ ...value, locality: e.target.value }))}
+                className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-xs sm:text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Any area</option>
+                {(draft.city && facets.cityToLocalities?.[draft.city]
+                  ? facets.cityToLocalities[draft.city]
+                  : facets.localities || []
+                ).map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="relative">
+              <span className="sr-only">Specialty</span>
+              <SlidersHorizontal className="absolute left-3.5 top-4 h-4 w-4 text-muted-foreground" />
+              <select
+                disabled={facetsLoading}
+                value={draft.specialty}
+                onChange={(e) => setDraft((value) => ({ ...value, specialty: e.target.value }))}
+                className="h-12 w-full appearance-none rounded-xl border border-border bg-white/90 pl-10 pr-6 text-xs sm:text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="">Any specialty</option>
+                {(facets.specialties || []).map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+
+            <Button type="submit" className="h-12 gap-2 px-6 text-xs sm:text-sm font-bold">
+              Apply priorities
+            </Button>
+          </form>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground">Popular needs:</span>
+            {((facets.specialties || []).length
+              ? (facets.specialties || []).slice(0, 5)
+              : ['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics']
+            ).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => quickSearch(item)}
+                className="rounded-full border border-border bg-white/75 px-3 py-1.5 text-xs font-semibold transition hover:border-primary/30 hover:text-primary"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {search && (
+          <div className="p-5 sm:p-7">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.14em] text-primary">Matching catalog options</p>
+                <h3 className="mt-1 text-base sm:text-lg font-semibold">
+                  {discovery.loading ? 'Searching catalog…' : `${discovery.totalCount ?? discovery.hospitals.length} options found`}
+                </h3>
+                {inferred && !search.specialty && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    “{inferred.term}” was interpreted as <strong className="text-foreground">{inferred.specialty}</strong>.
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch(null);
+                  setDraft(EMPTY);
+                }}
+                className="text-xs font-semibold text-muted-foreground hover:text-primary"
+              >
+                Clear search
+              </button>
+            </div>
+
+            {discovery.error ? (
+              <Notice title="Catalog unavailable">Check local data connection and try again.</Notice>
+            ) : discovery.loading ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="h-36 animate-pulse rounded-2xl bg-surface-elevated" />
+                ))}
+              </div>
+            ) : discovery.hospitals.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-surface-elevated/50 p-8 text-center">
+                <h4 className="font-semibold">No hospitals match every selected detail</h4>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+                  Try another area, remove a filter, or search by hospital name.
+                </p>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {discovery.hospitals.map((hospital) => {
+                  const selected = isCompared(hospital.slug);
+                  return (
+                    <article
+                      key={hospital.id}
+                      className={`rounded-2xl border p-4 transition ${
+                        selected
+                          ? 'border-primary/30 bg-primary/[.045]'
+                          : 'border-border bg-white hover:-translate-y-0.5 hover:shadow-card'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="font-serif text-base font-semibold leading-snug">{hospital.name}</h4>
+                          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            {place(hospital)}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-surface-elevated px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+                          {formatHospitalType(hospital.type)}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex min-h-6 flex-wrap gap-1">
+                        {hospital.specialties.slice(0, 3).map((item) => (
+                          <span
+                            key={item}
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              item === selectedNeed ? 'bg-primary/10 text-primary' : 'bg-blue-light/15 text-blue-muted'
+                            }`}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={selected || !canAdd}
+                        onClick={() => handleAdd(hospital)}
+                        className={`mt-4 h-9 w-full rounded-xl text-xs font-bold transition ${
+                          selected
+                            ? 'bg-primary/10 text-primary'
+                            : canAdd
+                            ? 'border border-primary/20 text-primary hover:bg-primary hover:text-white'
+                            : 'bg-surface-elevated text-muted-foreground'
+                        }`}
+                      >
+                        {selected ? '✓ Selected' : canAdd ? '+ Add to compare' : 'Comparison is full'}
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </FrostedPanel>
+
+      {/* 4. Side-by-Side Evaluation & Wireframe Sections */}
+      {((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) && (
+        <div className="h-96 animate-pulse rounded-[22px] bg-surface-elevated" />
+      )}
+
+      {error && <Notice title="We couldn’t load this comparison">The hospital catalog could not be reached.</Notice>}
+
+      {!loading && !error && hospitals.length >= 2 && isSyncedWithUrl && (
+        <section className="space-y-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-border/60 pb-3">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-primary">Side-by-side evaluation</p>
+              <h2 className="mt-1 font-serif text-2xl sm:text-3xl font-semibold">Compare known differences</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Visual indicators highlight confirmed availability vs unconfirmed directory records.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Toggle active={focused} onClick={() => setFocused(!focused)}>
+                Focus on my needs
+              </Toggle>
+              <Toggle active={differences} onClick={() => setDifferences(!differences)}>
+                Show differences only
+              </Toggle>
+            </div>
+          </div>
+
+          {/* SECTION B: Your Priorities (Wireframe implementation) */}
+          {groups['Your priorities'] && groups['Your priorities'].length > 0 && (
+            <div className="rounded-[22px] border border-primary/25 bg-gradient-to-br from-primary/[0.035] via-primary/[0.015] to-transparent p-4 sm:p-6 shadow-xs">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-primary border border-primary/20">
+                    <Sparkles className="h-3 w-3" /> User Priorities
+                  </span>
+                  <h3 className="mt-1 font-serif text-lg sm:text-xl font-bold text-foreground">
+                    Your Stated Criteria
+                  </h3>
+                </div>
+                <span className="text-xs text-muted-foreground hidden sm:block">
+                  Aligned hospital evaluation
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {groups['Your priorities'].map((row) => (
+                  <div
+                    key={row.label}
+                    className="overflow-hidden rounded-xl border border-border/80 bg-white shadow-xs"
+                  >
+                    {/* Criterion Label across comparison width */}
+                    <div className="border-b border-border/60 bg-surface-elevated/70 px-4 py-2.5 flex items-center justify-between">
+                      <span className="text-xs font-bold text-foreground">
+                        Priority: <strong className="text-primary">{row.label}</strong>
+                      </span>
+                      {row.differs && (
+                        <span className="rounded-md bg-lavender/20 px-2 py-0.5 text-[10px] font-semibold text-[#5a4880]">
+                          Differing outcome
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Aligned Result Columns for Each Hospital */}
+                    <div className="overflow-x-auto custom-scrollbar">
+                      <div
+                        className={`grid divide-x divide-border/60 ${
+                          hospitals.length === 2 ? 'grid-cols-2 min-w-[320px]' : 'grid-cols-3 min-w-[440px]'
+                        }`}
+                      >
+                        {hospitals.map((h, i) => (
+                          <div key={h.id} className="p-3 sm:p-4 flex flex-col justify-between gap-1.5">
+                            <span className="truncate text-[11px] font-semibold text-muted-foreground">
+                              {h.name}
+                            </span>
+                            <div className="pt-1">
+                              <Value>{row.values[i]}</Value>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SECTION C & GENERAL ATTRIBUTES: Responsive Side-by-Side Scroller */}
+          <div className="rounded-[22px] border border-border/80 bg-white overflow-hidden shadow-xs">
+            <div className="p-3 bg-surface-elevated/50 border-b border-border text-[11px] text-muted-foreground flex items-center justify-between sm:hidden">
+              <span>Swipe horizontally to view all hospitals</span>
+              <span className="font-bold text-primary">{hospitals.length} options</span>
+            </div>
+
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full border-collapse text-left text-xs sm:text-sm">
+                <thead>
+                  <tr>
+                    <th className="sticky left-0 top-0 z-20 w-40 sm:w-52 border-b border-r border-border bg-[#F8F7F2] p-4 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      Attribute
+                    </th>
+                    {hospitals.map((h) => (
+                      <th
+                        key={h.id}
+                        className="sticky top-0 z-10 min-w-[200px] sm:min-w-[240px] border-b border-border bg-white p-4 align-top"
+                      >
+                        <Link
+                          to={`${basePath}/hospitals/${h.slug}`}
+                          className="font-serif text-sm sm:text-base font-bold text-foreground hover:text-primary transition-colors line-clamp-2"
+                        >
+                          {h.name}
+                        </Link>
+                        <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground truncate">
+                          <MapPin className="h-3 w-3 shrink-0 text-primary/60" />
+                          {place(h)}
+                        </p>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(groups)
+                    .filter(([group]) => group !== 'Your priorities')
+                    .map(([group, items]) => (
+                      <Group key={group} name={group} rows={items} hospitals={hospitals} />
+                    ))}
+                  {!visible.length && (
+                    <tr>
+                      <td colSpan={hospitals.length + 1} className="p-10 text-center text-sm text-muted-foreground">
+                        No differing rows match your current filter settings.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 pt-2">
+            <Info icon={ShieldCheck} title="Transparent by design">
+              Sources and freshness stay visible—there is no hidden rating or artificial preference.
+            </Info>
+            <Info icon={Database} title="Missing stays unconfirmed">
+              Unlisted information is never converted into a false negative.
+            </Info>
+          </div>
+        </section>
+      )}
+
+      {compareList.length === 1 && !loading && (
+        <FrostedPanel className="rounded-2xl p-6 text-center border-dashed border-border/80">
+          <p className="font-semibold text-foreground text-sm">You have selected 1 hospital</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Add a 2nd or 3rd hospital to generate side-by-side comparison tables.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setChooser({ open: true, replaceSlug: null })}
+            className="mt-4"
+          >
+            + Add 2nd hospital
+          </Button>
+        </FrostedPanel>
+      )}
+
+      <HospitalChooserModal
+        isOpen={chooser.open}
+        onClose={() => setChooser({ open: false, replaceSlug: null })}
+        replaceSlug={chooser.replaceSlug}
+        mode={mode}
+        onChoose={handleChoose}
+      />
+    </AppPageContainer>
+  );
 }
 
-function Toggle({ active, onClick, children }) { return <button type="button" aria-pressed={active} onClick={onClick} className={`rounded-xl border px-3 py-2 text-xs font-bold ${active ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-white/70 text-muted-foreground'}`}>{children}</button>; }
-function Notice({ title, children }) { return <div className="rounded-2xl border border-coral/25 bg-coral/[.06] p-4 text-sm text-[#8E463F]"><div className="flex gap-2"><AlertCircle className="h-5 w-5" /><div><strong>{title}</strong><p className="mt-1">{children}</p></div></div></div>; }
-function Info({ icon: Icon, title, children }) { return <div className="flex gap-3 rounded-2xl border border-border bg-white/55 p-4"><Icon className="h-5 w-5 shrink-0 text-primary" /><p className="text-xs leading-5 text-muted-foreground"><strong className="text-foreground">{title}. </strong>{children}</p></div>; }
-function Group({ name, rows, hospitals }) { return <><tr className="bg-surface-elevated/65"><th colSpan={hospitals.length+1} className="border-t border-border px-5 py-3 text-[10px] font-extrabold uppercase tracking-[.16em] text-primary">{name}</th></tr>{rows.map(row => <tr key={`${name}-${row.label}`}><th className="sticky left-0 z-10 border-r border-t border-border bg-[#F8F7F2] p-4 text-sm font-semibold">{row.label}{row.differs && <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-lavender" />}</th>{row.values.map((value,index) => <td key={hospitals[index].id} className={`border-t border-border p-4 text-sm leading-6 ${row.differs ? 'bg-primary/[.025]' : 'bg-white'}`}><Value>{value}</Value></td>)}</tr>)}</>; }
+function Toggle({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-xl border px-3 py-1.5 text-xs font-bold transition ${
+        active ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-white/70 text-muted-foreground hover:bg-white'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Notice({ title, children }) {
+  return (
+    <div className="rounded-2xl border border-coral/25 bg-coral/[.06] p-4 text-xs sm:text-sm text-[#8E463F]">
+      <div className="flex gap-2">
+        <AlertCircle className="h-5 w-5 shrink-0" />
+        <div>
+          <strong>{title}</strong>
+          <p className="mt-0.5">{children}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Info({ icon: Icon, title, children }) {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-border/80 bg-white/60 p-4 shadow-xs">
+      <Icon className="h-5 w-5 shrink-0 text-primary mt-0.5" />
+      <p className="text-xs leading-5 text-muted-foreground">
+        <strong className="text-foreground">{title}. </strong>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+function Group({ name, rows, hospitals }) {
+  return (
+    <>
+      <tr className="bg-surface-elevated/70">
+        <th
+          colSpan={hospitals.length + 1}
+          className="border-t border-border px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-[.16em] text-primary"
+        >
+          {name}
+        </th>
+      </tr>
+      {rows.map((row) => (
+        <tr key={`${name}-${row.label}`} className="hover:bg-black/[0.01]">
+          <th className="sticky left-0 z-10 border-r border-t border-border bg-[#F8F7F2] p-3 sm:p-4 text-xs font-semibold text-foreground">
+            {row.label}
+            {row.differs && <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-lavender" />}
+          </th>
+          {row.values.map((value, index) => (
+            <td
+              key={hospitals[index].id}
+              className={`border-t border-border p-3 sm:p-4 text-xs sm:text-sm leading-6 align-top ${
+                row.differs ? 'bg-primary/[.015]' : 'bg-white'
+              }`}
+            >
+              <Value>{value}</Value>
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}

@@ -56,7 +56,7 @@ export default function PatientDashboard({ initialTab = 'overview' }) {
   const { savedSlugs, loading: savedLoading } = useSavedHospitals();
   const savedList = Array.from(savedSlugs);
   const { hospitals: savedHospitals, loading: recordsLoading } = useHospitalsBySlugs(savedList.slice(0, 3));
-  const { bookings: visitBookings, loading: visitsLoading } = useHomeVisitBookings();
+  const { bookings: visitBookings, loading: visitsLoading, error: visitsError, refresh: refreshVisits } = useHomeVisitBookings();
 
   const activeVisits = visitBookings.filter(
     item => ['pending', 'confirmed'].includes(item.status) &&
@@ -205,6 +205,20 @@ export default function PatientDashboard({ initialTab = 'overview' }) {
 
             {visitsLoading ? (
               <div className="h-28 animate-pulse rounded-[20px] bg-muted/30" />
+            ) : visitsError ? (
+              <FrostedPanel className="rounded-[20px] p-5 sm:p-6 border-coral/30 bg-coral/[0.04]">
+                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                  <div>
+                    <p className="font-semibold text-rose-950 text-sm sm:text-base">Could not load home visits</p>
+                    <p className="mt-0.5 text-xs text-rose-800/80">
+                      {visitsError.message || 'Please check your connection and try again.'}
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={() => refreshVisits()} className="whitespace-nowrap shrink-0 text-xs">
+                    Try again
+                  </Button>
+                </div>
+              </FrostedPanel>
             ) : activeVisits.length ? (
               <div className="grid gap-4 lg:grid-cols-2">
                 {activeVisits.map(item => (

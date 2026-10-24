@@ -133,7 +133,7 @@ export default function AppShell() {
       <header className="sticky top-0 z-30 border-b border-white/70 bg-background/80 backdrop-blur-xl md:hidden">
         <div className="px-4 h-16 flex items-center justify-between">
           <Link to="/" aria-label="MEDIMESH home" className="flex items-center">
-            <MedimeshLogo variant="mark" size="md" />
+            <MedimeshLogo variant="horizontal" size="sm" className="h-7 w-auto" />
           </Link>
           <button 
             ref={toggleButtonRef}

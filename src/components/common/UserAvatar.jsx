@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 const sizeMap = {
   xs: 'w-6 h-6 text-[10px]',
@@ -18,21 +18,36 @@ export default function UserAvatar({
 }) {
   const [hasError, setHasError] = useState(false);
 
+  const resolvedSrc = useMemo(() => {
+    if (!src || typeof src !== 'string') return null;
+    const clean = src.trim();
+    if (!clean) return null;
+    if (clean.startsWith('http://') || clean.startsWith('https://') || clean.startsWith('data:')) {
+      return clean;
+    }
+    // Relative storage path in avatars bucket
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      return `${supabaseUrl}/storage/v1/object/public/avatars/${clean.replace(/^\/+/, '')}`;
+    }
+    return clean;
+  }, [src]);
+
   // Reset error state if image source changes
   useEffect(() => {
     setHasError(false);
-  }, [src]);
+  }, [resolvedSrc]);
 
   const sizeClasses = sizeMap[size] || sizeMap.md;
   const initial = (name?.trim()?.charAt(0) || 'U').toUpperCase();
 
-  if (src && !hasError) {
+  if (resolvedSrc && !hasError) {
     return (
       <div
         className={`relative inline-block overflow-hidden rounded-2xl bg-surface border border-border/80 shadow-sm shrink-0 ${sizeClasses} ${className}`}
       >
         <img
-          src={src}
+          src={resolvedSrc}
           alt={alt}
           onError={() => setHasError(true)}
           className="w-full h-full object-cover"
@@ -51,4 +66,3 @@ export default function UserAvatar({
     </div>
   );
 }
-

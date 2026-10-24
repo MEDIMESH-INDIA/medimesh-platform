@@ -30,7 +30,7 @@ export const GuestRoute = ({ children }) => {
   if (routeState.status === 'loading') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <MedimeshLogo variant="mark" size="lg" className="animate-pulse" />
+        <MedimeshLogo variant="stacked" size="lg" className="h-12 w-auto animate-pulse" />
         <div
           className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin opacity-50"
           role="status"

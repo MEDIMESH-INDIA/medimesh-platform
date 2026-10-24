@@ -180,7 +180,7 @@ export default function AuthModal({
         {/* Brand Header */}
         <div className="text-center pt-1">
           <div className="inline-flex justify-center mb-3">
-            <MedimeshLogo variant="mark" size="md" />
+            <MedimeshLogo variant="stacked" size="md" className="h-10 w-auto" />
           </div>
           <h2 id="auth-modal-title" className="font-serif text-2xl font-bold tracking-tight text-foreground">
             {title}

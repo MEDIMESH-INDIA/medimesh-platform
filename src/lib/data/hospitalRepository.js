@@ -3,6 +3,7 @@ import { supabase } from '../supabase/client.js';
 import { uniqueCanonicalStrings } from './filterUtils.js';
 import { getVerifiedHospitalCoordinates } from '../maps/verifiedHospitalCoordinates.js';
 import { COORDINATE_ORIGIN, evaluateCoordinateTrust } from '../maps/coordinateTrust.js';
+import { formatHospitalType } from '../utils/formatters.js';
 
 const BASE_SELECT = `
   id, slug, name, locality, city, district, state, country, hospital_type,
@@ -284,4 +285,110 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical' } = {}) {
   if (error) throw error;
   const bySlug = new Map((data || []).map(record => [record.slug, normalizeHospital(record, 'canonical')]));
   return uniqueSlugs.map(slug => bySlug.get(slug)).filter(Boolean);
+}
+
+export async function getHospitalSuggestions({
+  query = '',
+  filters = {},
+  limit = 6,
+  mode = 'canonical',
+} = {}) {
+  const cleanQ = cleanSearchValue(query).trim().toLowerCase();
+
+  if (mode === 'demo') {
+    const list = demoHospitals.filter(h => {
+      if (!cleanQ) return true;
+      const name = (h.name || '').toLowerCase();
+      const loc = (h.location || '').toLowerCase();
+      const type = (h.type || '').toLowerCase();
+      const specs = (h.specialties || []).map(s => s.toLowerCase());
+      return name.includes(cleanQ) || loc.includes(cleanQ) || type.includes(cleanQ) || specs.some(s => s.includes(cleanQ));
+    });
+
+    return list.slice(0, limit).map(h => {
+      const norm = normalizeDemoHospital(h);
+      let matchReason = 'Demonstration catalog';
+      if (cleanQ && (h.name || '').toLowerCase().includes(cleanQ)) {
+        matchReason = 'Hospital name match';
+      } else if (cleanQ && (h.location || '').toLowerCase().includes(cleanQ)) {
+        matchReason = `Located in ${h.location}`;
+      } else if (cleanQ) {
+        const specMatch = (h.specialties || []).find(s => s.toLowerCase().includes(cleanQ));
+        if (specMatch) matchReason = `${specMatch} service`;
+      } else if (h.type) {
+        matchReason = formatHospitalType(h.type);
+      }
+
+      return {
+        id: norm.id,
+        slug: norm.slug,
+        name: norm.name,
+        location: norm.location.locality || 'Demo area',
+        type: norm.type,
+        specialties: norm.specialties,
+        matchReason,
+      };
+    });
+  }
+
+  // Canonical mode from Supabase
+  try {
+    let req = supabase
+      .from('hospitals')
+      .select('id, slug, name, locality, city, district, state, hospital_type, emergency_department, hospital_specialties(specialties(name))')
+      .eq('publication_status', 'published');
+
+    if (cleanQ) {
+      req = req.or(`name.ilike.%${cleanQ}%,locality.ilike.%${cleanQ}%,city.ilike.%${cleanQ}%`);
+    }
+    if (filters.city) {
+      req = req.eq('city', filters.city);
+    }
+    if (filters.locality) {
+      req = req.eq('locality', filters.locality);
+    }
+
+    req = req.order('name', { ascending: true }).limit(limit);
+
+    const { data, error } = await req;
+    if (error) throw error;
+
+    return (data || []).map(record => {
+      const nameLower = (record.name || '').toLowerCase();
+      const locLower = (record.locality || '').toLowerCase();
+      const cityLower = (record.city || '').toLowerCase();
+      const specialties = rowsFrom(record.hospital_specialties)
+        .map(item => item.specialties?.name)
+        .filter(n => typeof n === 'string');
+
+      let matchReason = 'Verified directory record';
+      if (cleanQ && nameLower.includes(cleanQ)) {
+        matchReason = 'Hospital name match';
+      } else if (cleanQ && (locLower.includes(cleanQ) || cityLower.includes(cleanQ))) {
+        matchReason = `Located in ${record.locality || record.city}`;
+      } else if (cleanQ) {
+        const matchedSpec = specialties.find(s => s.toLowerCase().includes(cleanQ));
+        if (matchedSpec) matchReason = `${matchedSpec} department`;
+      } else if (record.emergency_department) {
+        matchReason = '24/7 Emergency verified';
+      } else if (record.hospital_type) {
+        matchReason = formatHospitalType(record.hospital_type);
+      }
+
+      const locSummary = [record.locality, record.city].filter(Boolean).join(', ') || record.state || 'Maharashtra';
+
+      return {
+        id: record.id,
+        slug: record.slug,
+        name: record.name,
+        location: locSummary,
+        type: record.hospital_type,
+        specialties,
+        matchReason,
+      };
+    });
+  } catch (err) {
+    console.warn('Error fetching hospital suggestions:', err);
+    throw err;
+  }
 }

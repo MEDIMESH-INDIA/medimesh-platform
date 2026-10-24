@@ -62,7 +62,10 @@ export async function uploadAvatarFile(userId, file) {
       .from('avatars')
       .getPublicUrl(filePath);
 
-    return { publicUrl: urlData?.publicUrl || null };
+    const rawUrl = urlData?.publicUrl || null;
+    const publicUrl = rawUrl ? `${rawUrl}?t=${Date.now()}` : null;
+
+    return { publicUrl, filePath };
   } catch (err) {
     console.error('Unexpected avatar upload error:', err);
     return { error: 'An unexpected error occurred while uploading your profile picture.' };

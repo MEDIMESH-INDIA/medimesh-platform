@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Search, ShieldCheck, Mail, Phone, MapPin, Edit3, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Mail, Phone, MapPin, Edit3, ArrowRight, CheckCircle2 } from 'lucide-react';
 import UserAvatar from '../common/UserAvatar';
-import Button from '../common/Button';
+import HospitalSearchAutocomplete from '../hospital/HospitalSearchAutocomplete';
 
 export default function PatientWelcomeHeader({
   profile,
@@ -27,11 +27,6 @@ export default function PatientWelcomeHeader({
   const memberSince = profile?.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
     : 'Recent';
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    onSearch?.(searchQuery);
-  };
 
   return (
     <section className="relative overflow-hidden rounded-[24px] border border-white/80 bg-white/75 p-6 sm:p-8 shadow-[0_4px_20px_rgba(15,40,35,0.04)] backdrop-blur-xl">
@@ -82,25 +77,20 @@ export default function PatientWelcomeHeader({
             </span>
           </div>
 
-          {/* Search Form */}
-          <form onSubmit={handleSearchSubmit} className="relative mt-2 max-w-xl">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <input
-              type="search"
+          {/* Search Autocomplete */}
+          <div className="relative mt-2 max-w-xl">
+            <HospitalSearchAutocomplete
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-border bg-white/90 py-3 pl-11 pr-28 text-xs sm:text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/70"
+              onChange={(val) => setSearchQuery(val)}
+              onSelect={(hospital) => {
+                setSearchQuery(hospital.name);
+                onSearch?.(hospital.name);
+              }}
+              onSubmit={(val) => onSearch?.(val)}
               placeholder="Search hospital, specialty, or locality..."
               aria-label="Search hospitals"
             />
-            <Button
-              type="submit"
-              size="sm"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-4 py-1.5 text-xs font-bold"
-            >
-              Search
-            </Button>
-          </form>
+          </div>
         </div>
 
         {/* Right column: Profile Completeness & Action Card */}
