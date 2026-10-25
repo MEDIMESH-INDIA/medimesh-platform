@@ -3,7 +3,7 @@ import { supabase } from '../supabase/client.js';
 import { uniqueCanonicalStrings } from './filterUtils.js';
 import { getVerifiedHospitalCoordinates } from '../maps/verifiedHospitalCoordinates.js';
 import { COORDINATE_ORIGIN, evaluateCoordinateTrust } from '../maps/coordinateTrust.js';
-import { formatHospitalType } from '../utils/formatters.js';
+import { scoreHospitalMatch } from './searchMatcher.js';
 
 const BASE_SELECT = `
   id, slug, name, locality, city, district, state, country, hospital_type,
@@ -16,7 +16,6 @@ const LEGACY_BASE_SELECT = BASE_SELECT.replace(', google_place_id', '');
 const isMissingPlaceIdColumn = error => error?.code === '42703' || String(error?.message || '').includes('google_place_id');
 
 const rowsFrom = value => Array.isArray(value) ? value.filter(Boolean) : [];
-const cleanSearchValue = value => String(value ?? '').replace(/[,().%*]/g, ' ').replace(/\s+/g, ' ').trim();
 const compareNames = (a, b) => (a.name || '').localeCompare(b.name || '');
 
 export function normalizeHospital(record, recordType = 'canonical') {
@@ -152,35 +151,99 @@ export function normalizeDemoHospital(hospital) {
   };
 }
 
+let cachedPublishedHospitals = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 60 * 1000;
+
+export async function fetchAllPublishedHospitals() {
+  const now = Date.now();
+  if (cachedPublishedHospitals && now - lastCacheTime < CACHE_TTL_MS) {
+    return cachedPublishedHospitals;
+  }
+
+  const execute = selectFields => supabase
+    .from('hospitals')
+    .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
+    .eq('publication_status', 'published');
+
+  let response = await execute(BASE_SELECT);
+  if (response.error && isMissingPlaceIdColumn(response.error)) {
+    response = await execute(LEGACY_BASE_SELECT);
+  }
+  const { data, error } = response;
+  if (error) {
+    if (cachedPublishedHospitals) return cachedPublishedHospitals;
+    throw error;
+  }
+
+  cachedPublishedHospitals = (data || []).map(record => normalizeHospital(record, 'canonical'));
+  lastCacheTime = now;
+  return cachedPublishedHospitals;
+}
+
 export async function searchHospitals({ mode = 'canonical', filters = {}, sort = 'name_asc', offset = 0, pageSize = 12 } = {}) {
+  const searchQuery = (filters.q || '').trim();
+
   if (mode === 'demo') {
-    const search = cleanSearchValue(filters.q).toLowerCase();
-    const matches = demoHospitals.filter(hospital => {
-      const location = hospital.location?.toLowerCase() || '';
-      return (!search || hospital.name?.toLowerCase().includes(search) || location.includes(search))
-        && (!filters.city || hospital.location === filters.city)
-        && (!filters.type || hospital.type === filters.type)
-        && (!filters.specialty || hospital.specialties?.includes(filters.specialty))
-        && (!filters.facility || hospital.facilities?.includes(filters.facility));
+    let matches = demoHospitals.map(normalizeDemoHospital);
+    if (searchQuery) {
+      matches = matches
+        .map(h => ({ ...h, _search: scoreHospitalMatch(h, searchQuery) }))
+        .filter(h => h._search.matches);
+    }
+    if (filters.city) matches = matches.filter(h => h.location.locality === filters.city || h.location.city === filters.city);
+    if (filters.type) matches = matches.filter(h => h.type === filters.type);
+    if (filters.specialty) matches = matches.filter(h => h.specialties?.includes(filters.specialty));
+    if (filters.facility) matches = matches.filter(h => h.facilities?.includes(filters.facility));
+
+    matches.sort((a, b) => {
+      if (searchQuery && sort === 'name_asc' && a._search && b._search && a._search.score !== b._search.score) {
+        return b._search.score - a._search.score;
+      }
+      return sort === 'name_desc' ? compareNames(b, a) : compareNames(a, b);
     });
-    matches.sort((a, b) => sort === 'name_desc' ? compareNames(b, a) : compareNames(a, b));
-    const hospitals = matches.slice(offset, offset + pageSize).map(normalizeDemoHospital);
+
+    const hospitals = matches.slice(offset, offset + pageSize);
     return { hospitals, totalCount: matches.length, hasMore: offset + hospitals.length < matches.length };
   }
 
+  // Canonical mode with search query: use resilient multi-token, abbreviation, and fuzzy matching
+  if (searchQuery) {
+    const all = await fetchAllPublishedHospitals();
+    let matches = all
+      .map(h => ({ ...h, _search: scoreHospitalMatch(h, searchQuery) }))
+      .filter(h => h._search.matches);
+
+    if (filters.city) matches = matches.filter(h => h.location?.city === filters.city);
+    if (filters.locality) matches = matches.filter(h => h.location?.locality === filters.locality);
+    if (filters.type) matches = matches.filter(h => h.type === filters.type);
+    if (filters.specialty) matches = matches.filter(h => h.specialties?.includes(filters.specialty));
+    if (filters.facility) matches = matches.filter(h => h.facilities?.includes(filters.facility));
+
+    matches.sort((a, b) => {
+      if (sort === 'name_asc' && a._search && b._search && a._search.score !== b._search.score) {
+        return b._search.score - a._search.score;
+      }
+      return sort === 'name_desc' ? compareNames(b, a) : compareNames(a, b);
+    });
+
+    const hospitals = matches.slice(offset, offset + pageSize);
+    return { hospitals, totalCount: matches.length, hasMore: offset + hospitals.length < matches.length };
+  }
+
+  // Canonical mode without search query (dropdown filters and pagination)
   const specialtyRelation = filters.specialty
     ? 'hospital_specialties!inner(specialties!inner(name))'
     : 'hospital_specialties(specialties(name))';
   const facilityRelation = filters.facility
     ? 'hospital_facilities!inner(facilities!inner(name))'
     : 'hospital_facilities(facilities(name))';
-  const search = cleanSearchValue(filters.q);
+
   const execute = selectFields => {
     let query = supabase
       .from('hospitals')
       .select(`${selectFields}, ${specialtyRelation}, ${facilityRelation}, hospital_services_catalog(services(name))`, { count: 'exact' })
       .eq('publication_status', 'published');
-    if (search) query = query.or(`name.ilike.%${search}%,locality.ilike.%${search}%,city.ilike.%${search}%,district.ilike.%${search}%`);
     if (filters.city) query = query.eq('city', filters.city);
     if (filters.locality) query = query.eq('locality', filters.locality);
     if (filters.type) query = query.eq('hospital_type', filters.type);
@@ -293,98 +356,63 @@ export async function getHospitalSuggestions({
   limit = 6,
   mode = 'canonical',
 } = {}) {
-  const cleanQ = cleanSearchValue(query).trim().toLowerCase();
+  const cleanQ = (query || '').trim();
 
   if (mode === 'demo') {
-    const list = demoHospitals.filter(h => {
-      if (!cleanQ) return true;
-      const name = (h.name || '').toLowerCase();
-      const loc = (h.location || '').toLowerCase();
-      const type = (h.type || '').toLowerCase();
-      const specs = (h.specialties || []).map(s => s.toLowerCase());
-      return name.includes(cleanQ) || loc.includes(cleanQ) || type.includes(cleanQ) || specs.some(s => s.includes(cleanQ));
-    });
+    let list = demoHospitals.map(normalizeDemoHospital);
+    if (filters.city) list = list.filter(h => h.location.locality === filters.city || h.location.city === filters.city);
 
-    return list.slice(0, limit).map(h => {
-      const norm = normalizeDemoHospital(h);
-      let matchReason = 'Demonstration catalog';
-      if (cleanQ && (h.name || '').toLowerCase().includes(cleanQ)) {
-        matchReason = 'Hospital name match';
-      } else if (cleanQ && (h.location || '').toLowerCase().includes(cleanQ)) {
-        matchReason = `Located in ${h.location}`;
-      } else if (cleanQ) {
-        const specMatch = (h.specialties || []).find(s => s.toLowerCase().includes(cleanQ));
-        if (specMatch) matchReason = `${specMatch} service`;
-      } else if (h.type) {
-        matchReason = formatHospitalType(h.type);
-      }
+    const scored = list.map(h => ({
+      item: h,
+      match: scoreHospitalMatch(h, cleanQ),
+    }));
 
-      return {
-        id: norm.id,
-        slug: norm.slug,
-        name: norm.name,
-        location: norm.location.locality || 'Demo area',
-        type: norm.type,
-        specialties: norm.specialties,
-        matchReason,
-      };
-    });
+    const filtered = cleanQ
+      ? scored.filter(s => s.match.matches).sort((a, b) => b.match.score - a.match.score || compareNames(a.item, b.item))
+      : scored;
+
+    return filtered.slice(0, limit).map(({ item, match }) => ({
+      id: item.id,
+      slug: item.slug,
+      name: item.name,
+      location: item.location.locality || 'Demo area',
+      type: item.type,
+      specialties: item.specialties,
+      matchReason: match.matchReason || 'Demonstration catalog',
+    }));
   }
 
-  // Canonical mode from Supabase
+  // Canonical mode from Supabase (with in-memory caching for instantaneous autocomplete response)
   try {
-    let req = supabase
-      .from('hospitals')
-      .select('id, slug, name, locality, city, district, state, hospital_type, emergency_department, hospital_specialties(specialties(name))')
-      .eq('publication_status', 'published');
+    const all = await fetchAllPublishedHospitals();
+    let list = all;
 
-    if (cleanQ) {
-      req = req.or(`name.ilike.%${cleanQ}%,locality.ilike.%${cleanQ}%,city.ilike.%${cleanQ}%`);
-    }
     if (filters.city) {
-      req = req.eq('city', filters.city);
+      list = list.filter(h => h.location?.city === filters.city);
     }
     if (filters.locality) {
-      req = req.eq('locality', filters.locality);
+      list = list.filter(h => h.location?.locality === filters.locality);
     }
 
-    req = req.order('name', { ascending: true }).limit(limit);
+    const scored = list.map(record => ({
+      record,
+      match: scoreHospitalMatch(record, cleanQ),
+    }));
 
-    const { data, error } = await req;
-    if (error) throw error;
+    const filtered = cleanQ
+      ? scored.filter(s => s.match.matches).sort((a, b) => b.match.score - a.match.score || compareNames(a.record, b.record))
+      : scored;
 
-    return (data || []).map(record => {
-      const nameLower = (record.name || '').toLowerCase();
-      const locLower = (record.locality || '').toLowerCase();
-      const cityLower = (record.city || '').toLowerCase();
-      const specialties = rowsFrom(record.hospital_specialties)
-        .map(item => item.specialties?.name)
-        .filter(n => typeof n === 'string');
-
-      let matchReason = 'Verified directory record';
-      if (cleanQ && nameLower.includes(cleanQ)) {
-        matchReason = 'Hospital name match';
-      } else if (cleanQ && (locLower.includes(cleanQ) || cityLower.includes(cleanQ))) {
-        matchReason = `Located in ${record.locality || record.city}`;
-      } else if (cleanQ) {
-        const matchedSpec = specialties.find(s => s.toLowerCase().includes(cleanQ));
-        if (matchedSpec) matchReason = `${matchedSpec} department`;
-      } else if (record.emergency_department) {
-        matchReason = '24/7 Emergency verified';
-      } else if (record.hospital_type) {
-        matchReason = formatHospitalType(record.hospital_type);
-      }
-
-      const locSummary = [record.locality, record.city].filter(Boolean).join(', ') || record.state || 'Maharashtra';
-
+    return filtered.slice(0, limit).map(({ record, match }) => {
+      const locSummary = [record.location?.locality, record.location?.city].filter(Boolean).join(', ') || record.location?.state || 'Maharashtra';
       return {
         id: record.id,
         slug: record.slug,
         name: record.name,
         location: locSummary,
-        type: record.hospital_type,
-        specialties,
-        matchReason,
+        type: record.type,
+        specialties: record.specialties || [],
+        matchReason: match.matchReason || 'Verified directory record',
       };
     });
   } catch (err) {
