@@ -67,7 +67,7 @@ export function extractTokens(str) {
   const norm = normalizeText(str);
   if (!norm) return [];
 
-  const rawTokens = norm.match(/[a-z0-9]+(?:[\.\-][a-z0-9]+)*/g) || [];
+  const rawTokens = norm.match(/[a-z0-9]+(?:[.-][a-z0-9]+)*/g) || [];
   const tokens = new Set();
 
   for (const raw of rawTokens) {
@@ -125,9 +125,11 @@ export function damerauLevenshtein(a, b) {
  * Fuzzy prefix distance:
  * Compares qTok against prefixes of targetTok around qTok.length,
  * accurately scoring users who are halfway through typing a word and made an accidental typo.
+ * Prefix matching strictly requires sharing the same initial letter to prevent unrelated word collisions.
  */
 export function fuzzyPrefixDistance(qTok, targetTok) {
   if (targetTok.startsWith(qTok)) return 0;
+  if (!qTok || !targetTok || qTok[0] !== targetTok[0]) return 99;
 
   const qLen = qTok.length;
   const tLen = targetTok.length;
@@ -166,9 +168,8 @@ export function fuzzyPrefixDistance(qTok, targetTok) {
  * Returns a similarity score between 0 and 1.
  */
 export function tokenFuzzyMatch(qTok, targetTok) {
+  if (!qTok || !targetTok) return 0;
   if (qTok === targetTok) return 1.0;
-  if (targetTok.startsWith(qTok)) return 0.95;
-  if (qTok.length > 1 && targetTok.includes(qTok)) return 0.85;
 
   // Synonyms check (e.g. dr -> doctor, dist -> district)
   const syns = SYNONYMS[qTok];
@@ -178,24 +179,39 @@ export function tokenFuzzyMatch(qTok, targetTok) {
     }
   }
 
-  // Single or double-character tokens must match exactly or as a clean prefix
-  if (qTok.length <= 2) {
-    return targetTok.startsWith(qTok) ? 0.9 : 0;
+  // Exact prefix match (halfway typing without typo)
+  if (targetTok.startsWith(qTok)) return 0.95;
+
+  // Substring inclusion (only for substantial tokens, length >= 4)
+  if (qTok.length >= 4 && targetTok.includes(qTok)) return 0.85;
+
+  // Tokens of length <= 3 must NOT be fuzzy-matched with typos!
+  // Allowing 1 typo on a 1-3 letter token creates massive false positives
+  // (e.g. 'mgm' fuzzy-matching 'mumbai', 'al' matching 'hospital').
+  if (qTok.length <= 3) {
+    return 0;
   }
 
   // 1. Full token edit distance (Damerau-Levenshtein)
   const fullDist = damerauLevenshtein(qTok, targetTok);
+  const minLen = Math.min(qTok.length, targetTok.length);
   const maxLen = Math.max(qTok.length, targetTok.length);
-  const maxAllowedDist = qTok.length <= 4 ? 1 : (qTok.length <= 7 ? 2 : 3);
+  const maxAllowedDist = minLen <= 4 ? 1 : (minLen <= 7 ? 2 : 3);
   if (fullDist <= maxAllowedDist) {
+    if (fullDist > 1 && qTok[0] !== targetTok[0]) {
+      return 0;
+    }
     return 1 - (fullDist / (maxLen + 1));
   }
 
   // 2. Halfway prefix distance (accidental typo while typing halfway)
-  if (targetTok.length > qTok.length) {
+  if (targetTok.length > qTok.length && qTok.length >= 4) {
     const prefixDist = fuzzyPrefixDistance(qTok, targetTok);
     const maxAllowedPrefixDist = qTok.length <= 4 ? 1 : 2;
     if (prefixDist <= maxAllowedPrefixDist) {
+      if (prefixDist > 1 && qTok[0] !== targetTok[0]) {
+        return 0;
+      }
       return 0.85 - (prefixDist * 0.15);
     }
   }
@@ -211,13 +227,18 @@ export function tokenFuzzyMatch(qTok, targetTok) {
  * @returns {{ matches: boolean, score: number, matchReason: string, matchedField: string }}
  */
 export function scoreHospitalMatch(hospital, query) {
+  if (!hospital) {
+    return { matches: false, score: 0, matchReason: '', matchedField: 'none' };
+  }
+
   const qRaw = (query || '').trim();
-  if (!qRaw) {
-    return { matches: true, score: 1, matchReason: 'Verified directory record', matchedField: 'all' };
+  const qCompact = compactText(qRaw);
+  if (!qCompact) {
+    // Empty, whitespace-only, or punctuation-only query (e.g. '', '   ', '%%%', '???', '---')
+    return { matches: false, score: 0, matchReason: '', matchedField: 'none' };
   }
 
   const qNorm = normalizeText(qRaw);
-  const qCompact = compactText(qRaw);
   const qClean = stripPunctuation(qNorm);
   const qTokens = qClean.split(/\s+/).filter(Boolean);
 
@@ -249,9 +270,9 @@ export function scoreHospitalMatch(hospital, query) {
     score = 150;
   } else if (nameCompact.startsWith(qCompact)) {
     score = 140;
-  } else if (nameCompact.includes(qCompact)) {
+  } else if (nameTokens.includes(qCompact) || (qCompact.length >= 4 && nameCompact.includes(qCompact))) {
     score = 120;
-  } else if (qCompact.length >= 4 && nameCompact.length > qCompact.length) {
+  } else if (qCompact.length >= 4 && nameCompact.length > qCompact.length && qCompact[0] === nameCompact[0]) {
     // Check halfway typo on compact name (e.g. "dypate", "dyhosp")
     const compPrefixDist = fuzzyPrefixDistance(qCompact, nameCompact);
     if (compPrefixDist <= (qCompact.length <= 5 ? 1 : 2)) {
@@ -285,8 +306,8 @@ export function scoreHospitalMatch(hospital, query) {
         bestTokScore = Math.max(bestTokScore, 0.95);
       }
 
-      // Check if qTok is contained in compact name (only for tokens of length >= 2)
-      if (qTok.length >= 2 && nameCompact.includes(qTok)) {
+      // Check if qTok is contained in compact name (only for tokens of length >= 4)
+      if (qTok.length >= 4 && nameCompact.includes(qTok)) {
         bestTokScore = Math.max(bestTokScore, 0.9);
       }
 
@@ -316,7 +337,7 @@ export function scoreHospitalMatch(hospital, query) {
   const locCompact = compactText(locCombined);
   const locTokens = extractTokens(locCombined);
 
-  if (locCompact.includes(qCompact) || locClean.includes(qClean)) {
+  if (locClean.includes(qClean) || (qCompact.length >= 3 && locCompact.includes(qCompact))) {
     const locScore = 75;
     if (locScore > score) {
       score = locScore;
@@ -359,7 +380,7 @@ export function scoreHospitalMatch(hospital, query) {
           break;
         }
       }
-      if (!tokMatched && (dottedInitials.includes(qTok) || (qTok.length >= 2 && nameCompact.includes(qTok)))) {
+      if (!tokMatched && (dottedInitials.includes(qTok) || (qTok.length >= 4 && nameCompact.includes(qTok)))) {
         tokMatched = true;
       }
 
@@ -402,11 +423,32 @@ export function scoreHospitalMatch(hospital, query) {
   if (specialties.length > 0 && score < 70) {
     for (const spec of specialties) {
       const specCompact = compactText(spec);
-      if (specCompact.includes(qCompact)) {
+      const specClean = stripPunctuation(normalizeText(spec));
+      const specTokens = extractTokens(spec);
+
+      if (specClean.includes(qClean) || (qCompact.length >= 4 && specCompact.includes(qCompact))) {
         score = Math.max(score, 65);
         matchReason = `${spec} service`;
         matchedField = 'specialty';
         break;
+      }
+
+      if (qTokens.length > 0) {
+        let specTokenMatches = 0;
+        for (const qTok of qTokens) {
+          for (const sTok of specTokens) {
+            if (tokenFuzzyMatch(qTok, sTok) >= 0.55) {
+              specTokenMatches++;
+              break;
+            }
+          }
+        }
+        if (specTokenMatches === qTokens.length) {
+          score = Math.max(score, 65);
+          matchReason = `${spec} service`;
+          matchedField = 'specialty';
+          break;
+        }
       }
     }
   }

@@ -3,7 +3,6 @@ import { supabase } from '../supabase/client.js';
 import { uniqueCanonicalStrings } from './filterUtils.js';
 import { getVerifiedHospitalCoordinates } from '../maps/verifiedHospitalCoordinates.js';
 import { COORDINATE_ORIGIN, evaluateCoordinateTrust } from '../maps/coordinateTrust.js';
-import { formatHospitalType } from '../utils/formatters.js';
 import { scoreHospitalMatch } from './searchMatcher.js';
 
 const BASE_SELECT = `
@@ -17,7 +16,6 @@ const LEGACY_BASE_SELECT = BASE_SELECT.replace(', google_place_id', '');
 const isMissingPlaceIdColumn = error => error?.code === '42703' || String(error?.message || '').includes('google_place_id');
 
 const rowsFrom = value => Array.isArray(value) ? value.filter(Boolean) : [];
-const cleanSearchValue = value => String(value ?? '').replace(/[,().%*]/g, ' ').replace(/\s+/g, ' ').trim();
 const compareNames = (a, b) => (a.name || '').localeCompare(b.name || '');
 
 export function normalizeHospital(record, recordType = 'canonical') {
