@@ -130,7 +130,7 @@ export default function AppShell() {
   return (
     <div className="min-h-screen bg-transparent flex flex-col md:flex-row relative z-0">
       <MEDIMESHBackground />
-      <header className="sticky top-0 z-30 border-b border-white/70 bg-background/80 backdrop-blur-xl md:hidden">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-[#FCFBF8]/95 backdrop-blur-xl md:hidden">
         <div className="px-4 h-16 flex items-center justify-between">
           <Link to="/" aria-label="MEDIMESH home" className="flex items-center">
             <MedimeshLogo variant="horizontal" size="sm" className="h-7 w-auto" />

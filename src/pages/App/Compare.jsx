@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   Check,
+  ChevronDown,
   Database,
   GitCompare,
   HelpCircle,
@@ -17,6 +18,7 @@ import {
   Trash2,
   X
 } from 'lucide-react';
+import { RANK_THEMES, evaluateHospitalParamRank } from '../../lib/compare/comparisonRanking';
 import AppPageContainer from '../../components/layout/AppPageContainer';
 import Button from '../../components/common/Button';
 import FrostedPanel from '../../components/common/FrostedPanel';
@@ -118,6 +120,8 @@ export default function Compare() {
   const [differences, setDifferences] = useState(false);
   const [focused, setFocused] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState({ status: 'idle', message: '', manualUrl: '' });
+  const [isSelectedCollapsed, setIsSelectedCollapsed] = useState(false);
+  const [showSearchPriorities, setShowSearchPriorities] = useState(false);
 
   const compareParam = params.get('compare');
   const hasCompareParam = params.has('compare');
@@ -430,9 +434,431 @@ export default function Compare() {
   }
 
   return (
-    <AppPageContainer className="space-y-8">
-      {/* 1. Comparison Header */}
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <AppPageContainer className="space-y-6 sm:space-y-8 px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-9">
+      {/* ======================================================== */}
+      {/* MOBILE COMPARISON VIEW (Below md breakpoint: < 768px)   */}
+      {/* Faithfully implementing the hand-drawn sketch & rules   */}
+      {/* ======================================================== */}
+      <div className="block md:hidden space-y-4">
+        {/* 1. Mobile Title and Compact Controls (Section 3 of Sketch) */}
+        <section className="flex items-start justify-between gap-3 pt-1">
+          <div>
+            <h1 className="font-serif text-2xl font-bold tracking-tight text-foreground">
+              Comparison
+            </h1>
+            <p className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
+              Side-by-side hospital evaluation
+            </p>
+          </div>
+
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            {/* Comparison control (count / share action) */}
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={handleCopyLink}
+              disabled={compareList.length < 2}
+              className="h-8 px-2.5 rounded-lg border-border/80 text-[11px] font-bold gap-1.5 shadow-2xs"
+              aria-label={copyFeedback.status === 'success' ? 'Comparison link copied' : `Comparison options: ${compareList.length} of 3 selected`}
+            >
+              {copyFeedback.status === 'success' ? (
+                <Check className="h-3 w-3 text-emerald-600" />
+              ) : (
+                <GitCompare className="h-3 w-3 text-primary" />
+              )}
+              <span>{copyFeedback.status === 'success' ? 'Copied' : `${compareList.length}/3`}</span>
+            </Button>
+
+            {/* Clear action directly beneath the comparison control */}
+            {compareList.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors py-0.5 px-1"
+                aria-label="Clear all selected hospitals from comparison"
+              >
+                <Trash2 className="h-3 w-3" /> Clear
+              </button>
+            )}
+          </div>
+        </section>
+
+        {/* Accessible live feedback message for copying */}
+        <div className="sr-only" role="status" aria-live="polite">
+          {copyFeedback.message}
+        </div>
+
+        {copyFeedback.status === 'error' && copyFeedback.manualUrl && (
+          <div className="rounded-xl border border-border bg-surface-elevated p-3 text-xs">
+            <p className="font-semibold text-foreground">{copyFeedback.message}</p>
+            <input
+              type="text"
+              readOnly
+              value={copyFeedback.manualUrl}
+              onFocus={(e) => e.target.select()}
+              className="mt-1.5 w-full rounded-lg border border-border bg-white px-2.5 py-1 font-mono text-[11px] outline-none"
+            />
+          </div>
+        )}
+
+        <div className="border-b border-border/70" />
+
+        {/* 2. Selected Hospitals Section (Section 4 of Sketch) */}
+        <section aria-labelledby="mobile-selected-hospitals-heading" className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 id="mobile-selected-hospitals-heading" className="font-serif text-sm font-bold text-foreground">
+                Selected Hospitals
+              </h2>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                {compareList.length}/3
+              </span>
+            </div>
+
+            {/* Collapse/Expand chevron as drawn in the sketch */}
+            {compareList.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsSelectedCollapsed(!isSelectedCollapsed)}
+                aria-label={isSelectedCollapsed ? 'Expand selected hospitals section' : 'Collapse selected hospitals section'}
+                aria-expanded={!isSelectedCollapsed}
+                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-black/5 transition"
+              >
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${isSelectedCollapsed ? '-rotate-90' : ''}`}
+                />
+              </button>
+            )}
+          </div>
+
+          {/* When Empty */}
+          {!compareList.length && (
+            <div className="rounded-2xl border border-dashed border-border/80 bg-white/70 p-5 text-center">
+              <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                <GitCompare className="h-5 w-5" />
+              </div>
+              <h3 className="mt-2.5 font-serif text-sm font-bold text-foreground">
+                Select at least two hospitals to compare
+              </h3>
+              <p className="mt-1 text-[11px] text-muted-foreground max-w-xs mx-auto">
+                Choose hospitals to evaluate capabilities side-by-side.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => setChooser({ open: true, replaceSlug: null })}
+                className="mt-3.5 gap-1.5 text-xs font-semibold"
+              >
+                <Plus className="h-3.5 w-3.5" /> Browse hospital directory
+              </Button>
+            </div>
+          )}
+
+          {/* When Hospitals Selected - 3 Aligned Cards (matching sketch) */}
+          {compareList.length > 0 && !isSelectedCollapsed && (
+            <div className="grid grid-cols-3 gap-2">
+              {hospitals.map((hospital, index) => (
+                <div
+                  key={hospital.id}
+                  className="rounded-xl border border-primary/20 bg-white/90 p-2 shadow-xs flex flex-col justify-between min-h-[92px] min-w-0 relative"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="inline-block rounded bg-primary/10 px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary">
+                        H{index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(hospital.slug)}
+                        aria-label={`Remove ${hospital.name}`}
+                        className="p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-black/5 transition"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <h3 className="font-serif text-[11px] font-bold text-foreground leading-tight line-clamp-2 mt-1" title={hospital.name}>
+                      <Link to={`${basePath}/hospitals/${hospital.slug}`} className="hover:text-primary transition-colors">
+                        {hospital.name}
+                      </Link>
+                    </h3>
+                  </div>
+
+                  <div className="mt-1 pt-1 border-t border-border/50 flex items-center justify-between text-[9px] text-muted-foreground">
+                    <span className="truncate flex items-center gap-0.5">
+                      <MapPin className="h-2.5 w-2.5 shrink-0 text-primary/70" />
+                      <span className="truncate">{hospital.location?.locality || hospital.location?.city || 'Location not provided'}</span>
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Empty add-hospital slots up to 3 */}
+              {canAdd && Array.from({ length: 3 - compareList.length }).map((_, slotIdx) => (
+                <button
+                  key={`empty-slot-${slotIdx}`}
+                  type="button"
+                  onClick={() => setChooser({ open: true, replaceSlug: null })}
+                  aria-label="Add hospital to comparison"
+                  className="rounded-xl border-2 border-dashed border-border/80 hover:border-primary/40 bg-white/40 hover:bg-white/70 transition p-2 flex flex-col items-center justify-center min-h-[92px] text-center min-w-0 group"
+                >
+                  <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Plus className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="mt-1 text-[10px] font-bold text-muted-foreground">
+                    + Add
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="border-b border-border/70" />
+
+        {/* 3. Search and Priorities Accordion (Mobile Compact) */}
+        <section className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowSearchPriorities(!showSearchPriorities)}
+            aria-expanded={showSearchPriorities}
+            className="w-full flex items-center justify-between p-2.5 rounded-xl border border-border/75 bg-white/70 hover:bg-white transition text-xs font-semibold text-foreground shadow-2xs"
+          >
+            <span className="flex items-center gap-2">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
+              <span>
+                {selectedNeed || search?.locality || search?.city ? (
+                  <span className="text-primary font-bold">
+                    Priorities active ({[selectedNeed, search?.locality || search?.city].filter(Boolean).join(', ')})
+                  </span>
+                ) : (
+                  'Set priorities or find hospitals'
+                )}
+              </span>
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${showSearchPriorities ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {showSearchPriorities && (
+            <div className="rounded-2xl border border-border/80 bg-white/95 p-3.5 shadow-xs space-y-3">
+              <form onSubmit={runSearch} className="space-y-2.5">
+                <HospitalSearchAutocomplete
+                  value={draft.q}
+                  onChange={(val) => setDraft((v) => ({ ...v, q: val }))}
+                  onSelect={(hospital) => {
+                    setDraft((v) => ({ ...v, q: hospital.name }));
+                    handleAdd(hospital);
+                  }}
+                  onSubmit={() => setSearch({ ...draft, q: draft.q.trim() })}
+                  mode={mode}
+                  placeholder="Hospital name or need (e.g. cardiac)"
+                  aria-label="Hospital name or need"
+                />
+
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    disabled={facetsLoading}
+                    value={draft.city}
+                    onChange={(e) =>
+                      setDraft((value) => ({
+                        ...value,
+                        city: e.target.value,
+                        locality: '',
+                      }))
+                    }
+                    aria-label="Filter city"
+                    className="h-10 w-full appearance-none rounded-xl border border-border bg-white px-3 text-xs outline-none focus:border-primary"
+                  >
+                    <option value="">Any city</option>
+                    {(facets.cities || []).map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    disabled={facetsLoading}
+                    value={draft.specialty}
+                    onChange={(e) => setDraft((value) => ({ ...value, specialty: e.target.value }))}
+                    aria-label="Filter specialty"
+                    className="h-10 w-full appearance-none rounded-xl border border-border bg-white px-3 text-xs outline-none focus:border-primary"
+                  >
+                    <option value="">Any specialty</option>
+                    {(facets.specialties || []).map((item) => (
+                      <option key={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <Button type="submit" size="sm" className="h-9 px-4 text-xs font-bold flex-1">
+                    Apply priorities
+                  </Button>
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearch(null);
+                        setDraft(EMPTY);
+                      }}
+                      className="h-9 px-3 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          )}
+        </section>
+
+        {/* 4. Main Comparison Matrix (Section 5, 6, 7 of prompt) */}
+        {loading && compareList.length > 0 && (
+          <div className="h-64 animate-pulse rounded-2xl bg-surface-elevated" />
+        )}
+
+        {!loading && !error && hospitals.length >= 2 && isSyncedWithUrl && (
+          <section aria-label="Hospital comparison matrix" className="space-y-3 pt-1">
+            {/* Comparison Matrix Controls */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5">
+                <Toggle active={focused} onClick={() => setFocused(!focused)}>
+                  Focus needs
+                </Toggle>
+                <Toggle active={differences} onClick={() => setDifferences(!differences)}>
+                  Diffs only
+                </Toggle>
+              </div>
+              <span className="text-[10px] font-bold text-muted-foreground">
+                {visible.length} parameters
+              </span>
+            </div>
+
+            {/* Sticky Column Identifier Header */}
+            <div className="sticky top-16 z-20 -mx-3.5 px-3.5 py-2 bg-[#FCFBF8]/95 backdrop-blur-md border-y border-border/70 shadow-2xs">
+              <div className={`grid gap-2 ${hospitals.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {hospitals.map((h, i) => (
+                  <div key={h.id} className="text-center min-w-0">
+                    <span className="inline-block px-1.5 py-0.2 rounded bg-primary/10 text-primary font-black text-[9px] tracking-wider mb-0.5">
+                      H{i + 1}
+                    </span>
+                    <p className="font-serif text-[11px] font-bold text-foreground truncate" title={h.name}>
+                      {h.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Distinct Parameter Rows (Scrolling vertically only) */}
+            <div className="space-y-2.5">
+              {visible.map((row) => (
+                <div
+                  key={`${row.group}-${row.label}`}
+                  className="rounded-2xl border border-border/80 bg-white/90 p-2.5 shadow-xs transition-shadow"
+                >
+                  {/* Parameter Label Header clearly displayed ABOVE the 3 cells */}
+                  <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-border/50">
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground block leading-tight">
+                        {row.group}
+                      </span>
+                      <h3 className="font-serif text-xs font-bold text-foreground leading-snug">
+                        {row.label}
+                      </h3>
+                    </div>
+                    {row.differs && (
+                      <span className="shrink-0 rounded-md bg-lavender/20 px-1.5 py-0.5 text-[9px] font-semibold text-[#5a4880]">
+                        Differs
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Three Comparison Cells Side-by-Side */}
+                  <div className={`grid gap-2 ${hospitals.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    {hospitals.map((h, i) => {
+                      const { rank, indicator, displayValue } = evaluateHospitalParamRank(row, hospitals, i);
+                      const theme = RANK_THEMES[rank] || RANK_THEMES.neutral;
+                      return (
+                        <div
+                          key={h.id}
+                          className={`rounded-xl border p-2 flex flex-col justify-between transition-colors min-w-0 min-h-[58px] ${theme.bg} ${theme.border}`}
+                        >
+                          <div className="min-w-0">
+                            <span className="text-[9px] font-bold text-muted-foreground/75 block mb-0.5">
+                              H{i + 1}
+                            </span>
+                            <div className={`text-[11px] font-semibold leading-relaxed break-words ${theme.text}`}>
+                              {displayValue}
+                            </div>
+                          </div>
+
+                          {indicator && (
+                            <div className="mt-1.5 pt-1 border-t border-black/5 flex items-center">
+                              <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8.5px] font-bold ${theme.badgeBg} ${theme.badgeText}`}>
+                                {rank === 'best' && <Check className="h-2 w-2 shrink-0" />}
+                                {rank === 'worst' && <X className="h-2 w-2 shrink-0" />}
+                                <span className="truncate">{indicator}</span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {!visible.length && (
+                <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground bg-white/50">
+                  No differing parameters match your current filters.
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Trust Notice */}
+            <div className="pt-2 text-[11px] text-muted-foreground flex flex-col gap-1.5">
+              <p className="flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span>Independent ranking: each parameter is ranked separately without overall scoring.</span>
+              </p>
+              <p className="flex items-center gap-1.5">
+                <Database className="h-3.5 w-3.5 text-primary shrink-0" />
+                <span>Missing or unconfirmed data is displayed neutrally, never as zero or false.</span>
+              </p>
+            </div>
+          </section>
+        )}
+
+        {compareList.length === 1 && !loading && (
+          <div className="rounded-2xl border border-dashed border-border/80 bg-white/70 p-5 text-center">
+            <p className="font-semibold text-foreground text-xs">You have selected 1 hospital</p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Add a 2nd or 3rd hospital to compare parameters side-by-side.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={() => setChooser({ open: true, replaceSlug: null })}
+              className="mt-3"
+            >
+              + Add 2nd hospital
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* DESKTOP COMPARISON VIEW (md and up: >= 768px)           */}
+      {/* 100% Unchanged Desktop Experience                        */}
+      {/* ======================================================== */}
+      <div className="hidden md:block space-y-8">
+        {/* 1. Comparison Header */}
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-primary">
@@ -1003,6 +1429,7 @@ export default function Compare() {
           </Button>
         </FrostedPanel>
       )}
+      </div>
 
       <HospitalChooserModal
         isOpen={chooser.open}
