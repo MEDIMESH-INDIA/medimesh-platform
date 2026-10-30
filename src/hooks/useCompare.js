@@ -31,6 +31,19 @@ const writeList = list => {
   }
 };
 
+export function clearPersistedComparison() {
+  if (typeof localStorage !== 'undefined') {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore quota/permission errors in restricted environments
+    }
+  }
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(new Event('compare-updated'));
+  }
+}
+
 export function useCompare() {
   const [compareList, setCompareList] = useState(readList);
 
@@ -71,7 +84,7 @@ export function useCompare() {
     return true;
   }, []);
 
-  const clearComparison = useCallback(() => writeList([]), []);
+  const clearComparison = useCallback(() => clearPersistedComparison(), []);
   const isCompared = useCallback(slug => compareList.some(item => item.slug === slug), [compareList]);
 
   const setComparison = useCallback(items => {

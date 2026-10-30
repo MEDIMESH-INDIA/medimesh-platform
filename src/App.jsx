@@ -68,8 +68,44 @@ function RouteScrollReset() {
   const location = useLocation();
 
   useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useEffect(() => {
     resetScrollLock();
-  }, [location.pathname]);
+
+    // Preserve intentional hash/anchor navigation if present
+    if (location.hash) {
+      const targetId = decodeURIComponent(location.hash.replace(/^#/, ""));
+      if (targetId) {
+        const scrollToTarget = () => {
+          const el = document.getElementById(targetId) || document.querySelector(`[name="${targetId}"]`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth" });
+            return true;
+          }
+          return false;
+        };
+
+        if (!scrollToTarget()) {
+          const timer = setTimeout(scrollToTarget, 50);
+          return () => clearTimeout(timer);
+        }
+        return;
+      }
+    }
+
+    // Standard navigation without hash: reset scroll to top across document and window
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0;
+    }
+    if (document.body) {
+      document.body.scrollTop = 0;
+    }
+  }, [location.pathname, location.hash]);
 
   return null;
 }

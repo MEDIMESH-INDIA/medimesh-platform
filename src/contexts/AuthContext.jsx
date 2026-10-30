@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase/client';
 import { getAuthIdentityTransition } from '../routes/authGuardState';
+import { clearPersistedComparison } from '../hooks/useCompare';
 
 const AuthContext = createContext({});
 
@@ -92,6 +93,10 @@ export const AuthProvider = ({ children }) => {
       clearProfileState();
     }
 
+    if (transition.identityChanged) {
+      clearPersistedComparison();
+    }
+
     if (!transition.nextUser) {
       activeUserIdRef.current = null;
       return;
@@ -108,9 +113,12 @@ export const AuthProvider = ({ children }) => {
     let authEventSeen = false;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => {
+      (event, nextSession) => {
         if (cancelled) return;
         authEventSeen = true;
+        if (event === 'SIGNED_OUT' || !nextSession?.user) {
+          clearPersistedComparison();
+        }
         applySession(nextSession);
       }
     );
@@ -131,6 +139,7 @@ export const AuthProvider = ({ children }) => {
         setAuthError(error);
         setAuthLoading(false);
         clearProfileState();
+        clearPersistedComparison();
       });
 
     return () => {
@@ -169,6 +178,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    clearPersistedComparison();
     return supabase.auth.signOut();
   };
 

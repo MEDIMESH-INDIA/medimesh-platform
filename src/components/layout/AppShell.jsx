@@ -74,7 +74,7 @@ export default function AppShell() {
     };
   }, []);
 
-  const hasCompareTray = compareCount > 0 && location.pathname !== '/app/compare';
+  const hasCompareTray = Boolean(user) && compareCount > 0 && location.pathname !== '/app/compare';
 
   const handleSignOut = async () => {
     await signOut();

@@ -17,13 +17,14 @@ const footerLinks = [
 ];
 
 export default function Footer() {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   const { requireAuth } = useAuthGate();
   const { compareList } = useCompare();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const hasCompareTray = compareList.length > 0 && location.pathname !== '/compare' && location.pathname !== '/app/compare';
+  const showGetStarted = !authLoading && !user;
+  const hasCompareTray = Boolean(user) && compareList.length > 0 && location.pathname !== '/compare' && location.pathname !== '/app/compare';
 
   const handleFooterLinkClick = (e, link) => {
     if (link.href === '/compare' && !user) {
@@ -47,9 +48,11 @@ export default function Footer() {
             <p className="mt-3 max-w-lg text-sm leading-6 text-white/60">Healthcare discovery, comparison, and source-aware navigation—designed to make complex information easier to understand.</p>
             <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/55">Source-aware healthcare information platform</p>
           </div>
-          <Link to="/register" className="group flex min-h-12 w-fit items-center gap-3 rounded-[13px] border border-white/15 bg-white/[0.06] px-4 text-sm font-bold transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#8fd0c5]">
-            Get started <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
+          {showGetStarted && (
+            <Link to="/register" className="group flex min-h-12 w-fit items-center gap-3 rounded-[13px] border border-white/15 bg-white/[0.06] px-4 text-sm font-bold transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#8fd0c5]">
+              Get started <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-4 pt-4 lg:flex-row lg:items-center lg:justify-between">

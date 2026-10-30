@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GitCompare, X, ArrowRight } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import { useCompare } from '../../hooks/useCompare';
 import { useAuthGate } from '../../hooks/useAuthGate';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,12 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function CompareTray() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, authLoading } = useAuth();
   const { compareList, removeHospital, clearComparison } = useCompare();
   const { requireAuth } = useAuthGate();
 
   const isAppRoute = location.pathname.startsWith('/app');
 
-  if (compareList.length === 0 || location.pathname === '/app/compare' || location.pathname === '/compare') {
+  if (authLoading || !user || compareList.length === 0 || location.pathname === '/app/compare' || location.pathname === '/compare') {
     return null;
   }
 
