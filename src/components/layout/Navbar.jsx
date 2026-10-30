@@ -17,14 +17,11 @@ const navLinks = [
   { name: "Doctors", href: "/doctors" },
   { name: "Home Visits", href: "/home-visits" },
   { name: "Compare", href: "/compare" },
-  { name: "For Doctors", href: "/for-doctors" },
-  { name: "For Hospitals", href: "/for-hospitals" },
   { name: "About", href: "/about" },
 ];
 
 function isNavActive(pathname, href) {
   if (href === '/discover') return pathname === href || pathname.startsWith('/hospitals/');
-  if (href === '/for-hospitals') return pathname === '/for-hospitals' || pathname === '/hospitals';
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

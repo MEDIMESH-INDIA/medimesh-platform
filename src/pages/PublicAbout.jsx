@@ -194,7 +194,7 @@ export default function PublicAbout() {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Showcase verified qualifications, council licenses, and accredited hospital affiliations with zero pay-to-rank bias.
               </p>
-              <Link to="/for-doctors" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline pt-2">
+              <Link to="/register" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline pt-2">
                 Physician network &rarr;
               </Link>
             </FrostedPanel>
@@ -205,7 +205,7 @@ export default function PublicAbout() {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Manage licensed bed capacities, specialty service catalogs, and accredited medical staff with full audit trails.
               </p>
-              <Link to="/for-hospitals" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline pt-2">
+              <Link to="/register" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline pt-2">
                 Hospital portal &rarr;
               </Link>
             </FrostedPanel>

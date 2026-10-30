@@ -11,8 +11,6 @@ const footerLinks = [
   { name: "Doctors", href: "/doctors" },
   { name: "Home Visits", href: "/home-visits" },
   { name: "Compare", href: "/compare" },
-  { name: "For Doctors", href: "/for-doctors" },
-  { name: "For Hospitals", href: "/for-hospitals" },
   { name: "About", href: "/about" },
 ];
 

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthGateProvider } from "./contexts/AuthGateContext";
 import { resetScrollLock } from "./lib/ui/scrollLock";
 import LandingPage from "./pages/LandingPage/LandingPage";
@@ -32,8 +32,6 @@ import PublicHomeVisits from "./pages/PublicHomeVisits";
 import PatientHomeVisits from "./pages/App/PatientHomeVisits";
 import PublicDoctorDetail from "./pages/PublicDoctorDetail";
 import PatientDoctorDetail from "./pages/App/PatientDoctorDetail";
-import PublicForDoctors from "./pages/PublicForDoctors";
-import PublicForHospitals from "./pages/PublicForHospitals";
 import PublicAbout from "./pages/PublicAbout";
 import Compare from "./pages/App/Compare";
 import Saved from "./pages/App/Saved";
@@ -124,9 +122,9 @@ function App() {
         <Route path="/doctors" element={<PublicDoctors />} />
         <Route path="/home-visits" element={<PublicHomeVisits />} />
         <Route path="/doctors/:slug" element={<PublicDoctorDetail />} />
-        <Route path="/for-doctors" element={<PublicForDoctors />} />
-        <Route path="/for-hospitals" element={<PublicForHospitals />} />
-        <Route path="/hospitals" element={<PublicForHospitals />} />
+        <Route path="/for-doctors" element={<Navigate to="/register" replace />} />
+        <Route path="/for-hospitals" element={<Navigate to="/register" replace />} />
+        <Route path="/hospitals" element={<Navigate to="/discover" replace />} />
         <Route path="/hospitals/:slug" element={<PublicHospitalDetail />} />
         <Route path="/about" element={<PublicAbout />} />
       </Route>

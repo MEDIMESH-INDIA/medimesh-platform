@@ -20,6 +20,8 @@ This document provides a complete audit trail of all candidate files evaluated a
 | 5 | `tmp/test_routes.mjs` | 1.4 KB | 52 lines | Obsolete Scratch Test | Ad-hoc Puppeteer script in `tmp/`. Imported `puppeteer` (not present in `package.json`). Superseded by official test runner `node --test tests/*.test.js` (143 passing tests). Directory `tmp/` removed. |
 | 6 | `supabase/apply_locations.sql` | 1.4 KB | 14 lines | Broken SQL Snippet | Contained raw `UPDATE public.hospitals` statements without trigger bypass. Failed execution due to `protect_hospital_controlled_fields` trigger. Superseded by `supabase/queries/apply_locations_with_bypass.sql`. |
 | 7 | `supabase/check_tables.sql` | 145 B | 5 lines | Ad-hoc Scratch Query | Single query testing `information_schema.tables` for `home_visit_bookings` during initial schema provisioning. Redundant with canonical migrations and table verification queries. |
+| 8 | `src/pages/PublicForDoctors.jsx` | 5.2 KB | 150 lines | Redundant Marketing Page | Static marketing page for physician onboarding. Deprecated per navigation simplification; route redirects to `/register`. |
+| 9 | `src/pages/PublicForHospitals.jsx` | 5.4 KB | 150 lines | Redundant Marketing Page | Static marketing page for institutional onboarding. Deprecated per navigation simplification; route redirects to `/register` and `/discover`. |
 
 ---
 
@@ -94,6 +96,20 @@ This document provides a complete audit trail of all candidate files evaluated a
   );
   ```
 - **Technical Justification**: One-line diagnostic scratch file used during Phase 5 verification. Fully redundant with standard database introspection and `supabase/queries/verify_counts.sql`.
+
+---
+
+### 8. `src/pages/PublicForDoctors.jsx`
+- **Path**: `medicare-platform/src/pages/PublicForDoctors.jsx`
+- **Content Summary**: Static informational/marketing page describing the 4-step physician onboarding process.
+- **Technical Justification**: Removed to streamline the public navigation bar. Direct doctor registrations and council verification are handled via the onboarding and doctor portal routes. Navigating to `/for-doctors` safely redirects to `/register`.
+
+---
+
+### 9. `src/pages/PublicForHospitals.jsx`
+- **Path**: `medicare-platform/src/pages/PublicForHospitals.jsx`
+- **Content Summary**: Static informational/marketing page describing hospital capacity management.
+- **Technical Justification**: Removed to streamline the public navigation bar. Direct hospital registrations are handled via onboarding, while hospital discovery is anchored at `/discover`. Navigating to `/for-hospitals` safely redirects to `/register`, and `/hospitals` redirects to `/discover`.
 
 ---
 
