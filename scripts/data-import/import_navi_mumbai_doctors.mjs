@@ -1,11 +1,56 @@
+/**
+ * ----------------------------------------------------------------------------
+ * OPERATIONAL PURPOSE & SAFETY LOCK NOTICE
+ * ----------------------------------------------------------------------------
+ * Purpose:
+ *   Offline batch data ingestion pipeline for Navi Mumbai doctors. Parses raw
+ *   Excel files (`raw_data/MEDIMESH_Doctors_IMR_Mapped.xlsx` and
+ *   `raw_data/Navi_Mumbai_Home_Visit_Doctors_Only.xlsx`), normalizes doctor records,
+ *   resolves hospital affiliations, and stages them for `public.doctors` and
+ *   `public.doctor_affiliations_directory`.
+ *
+ * Safety & Production Guardrails:
+ *   - Performs upserts on `public.doctors`.
+ *   - Deletes existing rows in `public.doctor_affiliations_directory` for the
+ *     affected doctors to prevent duplication.
+ *   - **SAFETY LOCK**: To prevent accidental execution against production, this
+ *     script runs in DRY-RUN mode by default.
+ *   - To execute database writes, the operator must explicitly pass `--execute`
+ *     on the command line or set `CONFIRM_DOCTOR_IMPORT=true` in the environment.
+ * ----------------------------------------------------------------------------
+ */
+
 import xlsx from 'xlsx';
 import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 
-const env = fs.readFileSync('.env', 'utf8');
-const urlMatch = env.match(/VITE_SUPABASE_URL="?([^"\n]+)"?/);
-const keyMatch = env.match(/VITE_SUPABASE_ANON_KEY="?([^"\n]+)"?/);
-const supabase = createClient(urlMatch[1], keyMatch[1]);
+// Safety Guard: Check for explicit execution authorization
+const isExecuteAuthorized = process.argv.includes('--execute') || process.env.CONFIRM_DOCTOR_IMPORT === 'true';
+
+// Load credentials from environment or local .env file
+function loadCredentials() {
+  const envConfig = {};
+  if (fs.existsSync('.env')) {
+    const envContent = fs.readFileSync('.env', 'utf8');
+    for (const line of envContent.split('\n')) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        envConfig[match[1]] = (match[2] || '').replace(/^['"]|['"]$/g, '');
+      }
+    }
+  }
+
+  const url = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || envConfig.VITE_SUPABASE_URL;
+  const key = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || envConfig.VITE_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    throw new Error(
+      'Missing Supabase credentials. Ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in environment variables or .env.'
+    );
+  }
+
+  return { url, key };
+}
 
 const imrPath = '../raw_data/MEDIMESH_Doctors_IMR_Mapped.xlsx';
 const hvPath = '../raw_data/Navi_Mumbai_Home_Visit_Doctors_Only.xlsx';
@@ -19,6 +64,15 @@ function normalizeName(name) {
 }
 
 async function run() {
+  console.log('=== MEDIMESH Navi Mumbai Doctor Data Import Pipeline ===');
+  console.log(`Execution Mode: ${isExecuteAuthorized ? 'LIVE EXECUTION' : 'DRY-RUN (Safe Validation)'}`);
+
+  if (!fs.existsSync(imrPath) || !fs.existsSync(hvPath)) {
+    console.warn(`[Data Notice] Raw Excel files not found at expected paths: ${imrPath}, ${hvPath}`);
+    console.warn('Skipping execution because raw data files are external/archived.');
+    return;
+  }
+
   const imrData = xlsx.readFile(imrPath);
   const imrSheet = imrData.Sheets['Verified Doctors'] || imrData.Sheets[imrData.SheetNames[0]];
   const imrRows = xlsx.utils.sheet_to_json(imrSheet);
@@ -32,17 +86,17 @@ async function run() {
   for (const row of imrRows) {
     const rawName = row['Doctor Name'] || '';
     const slug = generateSlug(rawName);
-    
+
     if (records.has(slug)) continue;
-    
+
     const isVerified = (row['NMC Status'] || '').toLowerCase() === 'verified';
-    
+
     let regNum = String(row['NMC Registration Number'] || '').trim();
     if (regNum.toLowerCase().includes('pending')) regNum = null;
-    
+
     let regYear = row['Registration Year'] || null;
     if (String(regYear).toLowerCase().includes('pending')) regYear = null;
-    
+
     records.set(slug, {
       slug,
       full_name: rawName,
@@ -65,23 +119,23 @@ async function run() {
     const rawName = row['Name / Provider'] || '';
     const slug = generateSlug(rawName);
     const isVerified = (row['NMC Status'] || '').toLowerCase() === 'verified';
-    
+
     let locality = row['Locality'] || '';
     if (locality.toLowerCase().includes('across navi mumbai')) locality = 'Navi Mumbai';
-    
+
     if (records.has(slug)) {
       const existing = records.get(slug);
       existing.offers_home_visits = true;
       existing.home_visit_service_areas = [locality];
       continue;
     }
-    
+
     const affil = (row['Affiliation / Source'] || '').trim();
     let validAffil = affil;
     if (['JustDial', 'DocVisit', 'Medifyhome', 'Care247'].some(s => affil.includes(s))) {
       validAffil = null;
     }
-    
+
     records.set(slug, {
       slug,
       full_name: rawName,
@@ -98,6 +152,27 @@ async function run() {
     });
   }
 
+  console.log(`\nDataset Summary:`);
+  console.log(`  - IMR Doctors source rows: ${imrRows.length}`);
+  console.log(`  - Home Visit Doctors source rows: ${hvRows.length}`);
+  console.log(`  - Normalized unique doctor records: ${records.size}`);
+
+  if (!isExecuteAuthorized) {
+    console.log('\n----------------------------------------------------------------------------');
+    console.log('SAFETY LOCK ACTIVE: Dry-run validation passed.');
+    console.log('To apply these changes to the Supabase database:');
+    console.log('  node scripts/data-import/import_navi_mumbai_doctors.mjs --execute');
+    console.log('  OR');
+    console.log('  CONFIRM_DOCTOR_IMPORT=true node scripts/data-import/import_navi_mumbai_doctors.mjs');
+    console.log('----------------------------------------------------------------------------');
+    return;
+  }
+
+  // Live Execution
+  const { url: SUPABASE_URL, key: SUPABASE_KEY } = loadCredentials();
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  console.log('\n[LIVE EXECUTION] Proceeding with database upserts...');
   const valuesToInsert = Array.from(records.values()).map(r => {
     const { _affiliation, ...rest } = r;
     return rest;
@@ -109,33 +184,28 @@ async function run() {
     .select('id, slug');
 
   if (insertError) {
-    console.error('Error inserting doctors:', insertError);
-    return;
+    console.error('Error inserting doctors:', insertError.message);
+    process.exit(1);
   }
-  
-  console.log(`Inserted/upserted ${insertedDoctors.length} doctors`);
+
+  console.log(`Successfully upserted ${insertedDoctors.length} doctors into public.doctors`);
 
   const slugToId = new Map(insertedDoctors.map(d => [d.slug, d.id]));
-
-  // Now insert affiliations
   const affiliationsToInsert = [];
-  
-  // get canonical hospitals
+
   const { data: hospitals } = await supabase.from('hospitals').select('id, name');
-  
+
   for (const [slug, record] of records.entries()) {
     if (record._affiliation) {
-      // Very rudimentary matching
       const docId = slugToId.get(slug);
       let match = null;
       for (const h of hospitals || []) {
-        // e.g. "Apollo Hospitals" matches "Apollo"
         if (record._affiliation.toLowerCase().includes(h.name.toLowerCase()) || h.name.toLowerCase().includes(record._affiliation.toLowerCase())) {
           match = h.id;
           break;
         }
       }
-      
+
       affiliationsToInsert.push({
         doctor_id: docId,
         hospital_id: match,
@@ -147,17 +217,24 @@ async function run() {
   }
 
   if (affiliationsToInsert.length > 0) {
-    // Clear old affiliations to avoid duplicates
+    console.log(`Clearing existing affiliations for ${insertedDoctors.length} doctors to prevent duplicates...`);
     await supabase.from('doctor_affiliations_directory').delete().in('doctor_id', insertedDoctors.map(d => d.id));
-    
+
     const { error: affilError } = await supabase
       .from('doctor_affiliations_directory')
       .insert(affiliationsToInsert);
-      
-    if (affilError) console.error('Error inserting affiliations:', affilError);
-    else console.log(`Inserted ${affiliationsToInsert.length} affiliations`);
+
+    if (affilError) {
+      console.error('Error inserting affiliations:', affilError.message);
+      process.exit(1);
+    }
+    console.log(`Successfully inserted ${affiliationsToInsert.length} affiliations`);
   }
-  
-  console.log('DONE.');
+
+  console.log('Data import execution completed successfully.');
 }
-run();
+
+run().catch(err => {
+  console.error('[Execution Error]', err);
+  process.exit(1);
+});
