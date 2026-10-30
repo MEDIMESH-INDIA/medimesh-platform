@@ -14,7 +14,7 @@ const profileEditorPath = resolve(process.cwd(), 'src/components/patient/Patient
 const discoveryActionsPath = resolve(process.cwd(), 'src/components/patient/PatientDiscoveryActions.jsx');
 const userAvatarPath = resolve(process.cwd(), 'src/components/common/UserAvatar.jsx');
 const appShellPath = resolve(process.cwd(), 'src/components/layout/AppShell.jsx');
-const storageMigrationPath = resolve(process.cwd(), 'supabase/migrations/20261024020000_avatar_storage_bucket.sql');
+const storageMigrationPath = resolve(process.cwd(), 'supabase/migrations/20261030170957_avatar_storage_bucket.sql');
 const emergencyMigrationPath = resolve(process.cwd(), 'supabase/migrations/20261024023000_patient_emergency_contact_unique.sql');
 
 const patientDashboardSrc = readFileSync(patientDashboardPath, 'utf8');
