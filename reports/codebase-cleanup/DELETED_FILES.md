@@ -102,3 +102,4 @@ This document provides a complete audit trail of all candidate files evaluated a
 2. **Zero Migration Tampering**: All 19 schema migrations in `supabase/migrations/` remain strictly immutable.
 3. **Preservation of Reference Data**: Canonical hospital coordinate ground truth was retained in `scripts/data/hospitals.json`.
 4. **Preservation of Operational Queries**: Critical DBA verification and trigger-bypass queries were organized into `supabase/queries/`.
+
