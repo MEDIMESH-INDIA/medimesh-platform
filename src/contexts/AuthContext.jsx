@@ -30,11 +30,15 @@ export const AuthProvider = ({ children }) => {
   const mountedRef = useRef(false);
   const activeUserIdRef = useRef(cachedUserId);
   const profileLoadedUserIdRef = useRef(null);
+  const profileRef = useRef(null);
+  const profileLoadingRef = useRef(Boolean(cachedUserId));
   const profileRequestRef = useRef(0);
 
   const clearProfileState = useCallback(() => {
     profileRequestRef.current += 1;
     profileLoadedUserIdRef.current = null;
+    profileRef.current = null;
+    profileLoadingRef.current = false;
     setProfile(null);
     setRole(null);
     setProfileError(null);
@@ -50,8 +54,10 @@ export const AuthProvider = ({ children }) => {
     if (!keepExisting) {
       setProfile(null);
       setRole(null);
+      profileRef.current = null;
     }
     setProfileError(null);
+    profileLoadingRef.current = true;
     setProfileLoading(true);
 
     try {
@@ -80,6 +86,7 @@ export const AuthProvider = ({ children }) => {
         hasAvatar: Boolean(data.avatar_url),
       });
 
+      profileRef.current = data;
       setProfile(data);
       setRole(data.role ?? null);
       return data;
@@ -96,6 +103,7 @@ export const AuthProvider = ({ children }) => {
           code: error.code || error.status || 'UNKNOWN',
         });
         profileLoadedUserIdRef.current = null;
+        profileRef.current = null;
         setProfile(null);
         setRole(null);
         setProfileError(error);
@@ -108,6 +116,7 @@ export const AuthProvider = ({ children }) => {
         && requestId === profileRequestRef.current
         && activeUserIdRef.current === userId
       ) {
+        profileLoadingRef.current = false;
         setProfileLoading(false);
       }
     }
@@ -117,7 +126,7 @@ export const AuthProvider = ({ children }) => {
     const nextUserId = nextSession?.user?.id ?? null;
     const isNewUser = activeUserIdRef.current !== nextUserId;
     const profileNotYetLoaded = profileLoadedUserIdRef.current !== nextUserId;
-    const profileMissing = !profile && !profileLoading;
+    const profileMissing = !profileRef.current && !profileLoadingRef.current;
 
     const transition = getAuthIdentityTransition(activeUserIdRef.current, nextSession, {
       requireProfileHydration: profileNotYetLoaded,
@@ -153,6 +162,8 @@ export const AuthProvider = ({ children }) => {
     if (!transition.nextUser) {
       activeUserIdRef.current = null;
       profileLoadedUserIdRef.current = null;
+      profileRef.current = null;
+      profileLoadingRef.current = false;
       setAuthLoading(false);
       setProfileLoading(false);
       return;
@@ -162,13 +173,14 @@ export const AuthProvider = ({ children }) => {
 
     if (shouldFetchProfile) {
       profileLoadedUserIdRef.current = transition.nextUserId;
+      profileLoadingRef.current = true;
       setProfileLoading(true);
       setAuthLoading(false);
       void fetchProfile(transition.nextUserId);
     } else {
       setAuthLoading(false);
     }
-  }, [clearProfileState, fetchProfile, profile, profileLoading]);
+  }, [clearProfileState, fetchProfile]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -292,8 +304,8 @@ export const AuthProvider = ({ children }) => {
     if (!userId) return Promise.resolve(null);
     logAuth('ManualProfileRefresh', { userId });
     profileLoadedUserIdRef.current = null;
-    return fetchProfile(userId, { keepExisting: Boolean(profile) });
-  }, [fetchProfile, profile]);
+    return fetchProfile(userId, { keepExisting: Boolean(profileRef.current) });
+  }, [fetchProfile]);
 
   const loading = authLoading || (Boolean(user) && profileLoading);
 
