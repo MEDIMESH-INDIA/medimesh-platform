@@ -182,11 +182,10 @@ test('10. Static Verification: Compare.jsx scopes mobile and protects desktop', 
   assert.match(code, /evaluateHospitalParamRank/);
   assert.match(code, /sticky top-16/);
 
-  // Desktop table is preserved in full
-  assert.match(code, /<table/);
-  assert.match(code, /<thead/);
-  assert.match(code, /<tbody/);
-  assert.match(code, /<Group/);
+  // Desktop comparison uses unified card-based layout matching mobile
+  assert.match(code, /Selected Hospitals/);
+  assert.match(code, /evaluateHospitalParamRank/);
+  assert.match(code, /sticky top-16/);
 });
 
 test('11. Static Verification: AppShell header provides clean bottom border divider on mobile', () => {
