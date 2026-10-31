@@ -22,7 +22,26 @@ export const ILLUSTRATIVE_HOSPITALS = [
 ];
 
 export const DISCOVERY_CATEGORIES = [
-  "Cardiology", "Neurology", "Paediatrics", "Orthopaedics", "Diagnostics", "Emergency care"
+  "Cardiology",
+  "Neurology",
+  "Paediatrics",
+  "Orthopaedics",
+  "Diagnostics",
+  "Emergency Care",
+  "General Medicine",
+  "Dermatology",
+  "Ophthalmology",
+  "Oncology",
+  "Gynaecology",
+  "Urology",
+  "Nephrology",
+  "Gastroenterology",
+  "Pulmonology",
+  "Psychiatry",
+  "Physiotherapy",
+  "Radiology",
+  "Dental Care",
+  "Critical Care",
 ];
 
 export const COMPARISON_ROWS = [

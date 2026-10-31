@@ -1,23 +1,45 @@
-import { ArrowDown, Database, FileQuestion, Search } from "lucide-react";
+import {
+  ArrowDown,
+  CheckCircle2,
+  Database,
+  FileQuestion,
+  GitCompareArrows,
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+} from "lucide-react";
 import Container from "../common/Container";
-import FrostedPanel from "../common/FrostedPanel";
 import Section from "../common/Section";
 import SectionHeading from "../common/SectionHeading";
 import ScrollReveal from "../react-bits/ScrollReveal";
 
-const sources = [
-  { label: "Search results", meta: "Different formats" },
-  { label: "Hospital websites", meta: "Provider-led detail" },
-  { label: "Public portals", meta: "Separate records" },
-  { label: "Directories", meta: "Uneven fields" },
-  { label: "Referrals", meta: "Personal context" },
-  { label: "Scheme lists", meta: "Eligibility context" },
+const FRAGMENTED_SOURCES = [
+  "Search results",
+  "Hospital websites",
+  "Public portals",
+  "Directories",
+  "Referral information",
+  "Scheme lists",
+];
+
+const CORE_CAPABILITIES = [
+  { title: "Data organization", desc: "Structured ontology & entity mapping" },
+  { title: "Standardized fields", desc: "Common clinical & facility schema" },
+  { title: "Source attribution", desc: "Transparent record provenance" },
+  { title: "Missing info handling", desc: "Explicit blanks, never assumed zero" },
+];
+
+const STRUCTURED_OUTCOMES = [
+  { label: "Discover", icon: Search, desc: "Need-first lookup" },
+  { label: "Filter", icon: SlidersHorizontal, desc: "Visible criteria" },
+  { label: "Compare", icon: GitCompareArrows, desc: "Equal side-by-side" },
+  { label: "Understand", icon: Sparkles, desc: "Contextual clarity" },
 ];
 
 export default function ProblemSection() {
   return (
     <Section id="problem" className="relative overflow-hidden border-b border-border/70 py-24 md:py-32" background="muted">
-      <Container className="grid items-center gap-14 lg:grid-cols-[0.86fr_1.14fr] lg:gap-20">
+      <Container className="grid items-center gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
         <ScrollReveal>
           <SectionHeading
             eyebrow="01 / The challenge"
@@ -27,46 +49,146 @@ export default function ProblemSection() {
           />
           <div className="mt-8 flex items-start gap-3 border-l-2 border-primary/30 pl-4">
             <FileQuestion className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            <p className="max-w-md text-sm leading-6 text-muted-foreground">The problem is not a lack of information. It is the work required to make that information comparable.</p>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">
+              The problem is not a lack of information. It is the work required to make that information comparable.
+            </p>
           </div>
         </ScrollReveal>
 
         <ScrollReveal delay={0.1}>
-          <div className="relative overflow-hidden rounded-[32px] border border-border bg-[#fdfbf7]/75 p-5 shadow-[0_20px_60px_rgba(15,40,35,0.06)] sm:p-8">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(10,122,106,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(10,122,106,0.045)_1px,transparent_1px)] bg-[size:24px_24px]" />
-            <div className="relative grid grid-cols-2 gap-3">
-              {sources.map((source, index) => (
-                <FrostedPanel
-                  key={source.label}
-                  className={`rounded-[18px] p-3.5 sm:p-4 ${index % 3 === 1 ? "sm:translate-y-2" : ""}`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full border-2 border-primary/40 bg-white" />
+          {/* Flowchart Container */}
+          <div className="relative overflow-hidden rounded-[26px] border border-border bg-[#fdfbf7]/85 p-3.5 shadow-[0_20px_60px_rgba(15,40,35,0.06)] backdrop-blur-sm sm:rounded-[32px] sm:p-6">
+            {/* Background Texture */}
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(10,122,106,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(10,122,106,0.045)_1px,transparent_1px)] bg-[size:24px_24px]" />
+
+            <div className="relative flex flex-col items-center">
+              {/* Level 1: Fragmented Healthcare Sources */}
+              <div className="w-full">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-amber-500/80" />
+                    <span className="text-[9.5px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground sm:text-[10px]">
+                      Fragmented Healthcare Sources
+                    </span>
+                  </div>
+                  <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[8.5px] font-bold text-amber-800">
+                    Disparate & Inconsistent
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-dashed border-border/90 bg-white/60 p-2.5 sm:p-3 shadow-2xs">
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2">
+                    {FRAGMENTED_SOURCES.map((source) => (
+                      <div
+                        key={source}
+                        className="flex items-center justify-center rounded-lg border border-border/80 bg-white/95 px-2 py-1.5 text-center shadow-2xs"
+                      >
+                        <span className="truncate text-[10.5px] font-medium text-foreground/80 sm:text-xs">
+                          {source}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Connector 1: Ingest & Normalize */}
+              <div className="flex flex-col items-center py-1 sm:py-1.5">
+                <div className="h-2.5 w-px bg-primary/40 sm:h-3" />
+                <div className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[8px] font-bold text-primary shadow-2xs sm:gap-1.5 sm:text-[8.5px]">
+                  <ArrowDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  <span>Ingest & Normalize</span>
+                </div>
+                <div className="h-2.5 w-px bg-primary/40 sm:h-3" />
+              </div>
+
+              {/* Level 2: Central Highlighted MEDIMESH Information Layer */}
+              <div className="relative w-full rounded-[20px] border-2 border-primary/45 bg-white p-3 shadow-[0_12px_36px_rgba(10,122,106,0.1)] sm:rounded-[22px] sm:p-4">
+                <div className="mb-2.5 flex items-center justify-between border-b border-primary/15 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-white shadow-2xs">
+                      <Database className="h-3.5 w-3.5" />
+                    </div>
                     <div>
-                      <p className="text-xs font-bold sm:text-sm">{source.label}</p>
-                      <p className="mt-1 text-[10px] font-medium text-muted-foreground sm:text-xs">{source.meta}</p>
+                      <span className="block text-[8px] font-black uppercase tracking-wider text-primary sm:text-[8.5px]">
+                        Core Architecture
+                      </span>
+                      <h4 className="text-xs font-bold text-foreground sm:text-sm">
+                        MEDIMESH Information Layer
+                      </h4>
                     </div>
                   </div>
-                </FrostedPanel>
-              ))}
-            </div>
-
-            <div className="relative my-5 flex items-center justify-center gap-3">
-              <span className="h-px flex-1 border-t border-dashed border-primary/25" />
-              <span className="grid h-9 w-9 place-items-center rounded-full border border-primary/15 bg-primary/10 text-primary"><ArrowDown className="h-4 w-4" /></span>
-              <span className="h-px flex-1 border-t border-dashed border-primary/25" />
-            </div>
-
-            <FrostedPanel variant="elevated" className="relative rounded-[22px] border-primary/15 p-4 sm:p-5">
-              <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary text-white"><Database className="h-5 w-5" /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary">The missing layer</p>
-                  <p className="mt-1 text-sm font-bold sm:text-base">A consistent, source-aware record</p>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-primary sm:text-[8.5px]">
+                    Structured Core
+                  </span>
                 </div>
-                <Search className="hidden h-4 w-4 text-muted-foreground sm:block" />
+
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                  {CORE_CAPABILITIES.map((cap) => (
+                    <div
+                      key={cap.title}
+                      className="flex flex-col justify-between rounded-lg border border-primary/15 bg-primary/[0.03] p-1.5 sm:rounded-xl sm:p-2"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle2 className="h-3 w-3 shrink-0 text-primary" />
+                        <span className="text-[10.5px] font-bold text-foreground leading-tight sm:text-xs">
+                          {cap.title}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-[8.5px] text-muted-foreground leading-normal sm:text-[9.5px]">
+                        {cap.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </FrostedPanel>
+
+              {/* Connector 2: Structured Access */}
+              <div className="flex flex-col items-center py-1 sm:py-1.5">
+                <div className="h-2.5 w-px bg-primary/40 sm:h-3" />
+                <div className="flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[8px] font-bold text-primary shadow-2xs sm:gap-1.5 sm:text-[8.5px]">
+                  <ArrowDown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  <span>Structured Access</span>
+                </div>
+                <div className="h-2.5 w-px bg-primary/40 sm:h-3" />
+              </div>
+
+              {/* Level 3: Structured Healthcare Information */}
+              <div className="w-full">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="text-[9.5px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground sm:text-[10px]">
+                      Structured Healthcare Information
+                    </span>
+                  </div>
+                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[8.5px] font-bold text-emerald-800">
+                    Comparable & Verified
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-white/70 p-2.5 sm:p-3 shadow-2xs">
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 sm:gap-2">
+                    {STRUCTURED_OUTCOMES.map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex flex-col items-center justify-center rounded-lg border border-primary/15 bg-white p-2 text-center shadow-2xs transition-shadow sm:rounded-xl sm:p-2.5"
+                      >
+                        <div className="grid h-6 w-6 place-items-center rounded-lg bg-primary/10 text-primary mb-1">
+                          <item.icon className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="text-[11px] font-bold text-foreground sm:text-xs">
+                          {item.label}
+                        </span>
+                        <span className="text-[8.5px] text-muted-foreground sm:text-[9px]">
+                          {item.desc}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </ScrollReveal>
       </Container>
