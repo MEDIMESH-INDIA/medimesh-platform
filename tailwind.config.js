@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      backdropBlur: {
+        '2xl': '5px',
+      },
       colors: {
         background: '#FDFBF7', // Warm Ivory
         foreground: '#1A1C1B', // Deep Charcoal

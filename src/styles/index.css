@@ -46,6 +46,10 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .backdrop-blur-2xl {
+    --tw-backdrop-blur: blur(5px);
+  }
 }
 
 @layer components {
