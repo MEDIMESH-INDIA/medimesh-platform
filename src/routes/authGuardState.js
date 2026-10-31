@@ -22,17 +22,18 @@ export const getCachedUserId = () => {
   return null;
 };
 
-export const getAuthIdentityTransition = (currentUserId, nextSession) => {
+export const getAuthIdentityTransition = (currentUserId, nextSession, options = {}) => {
   const nextUser = nextSession?.user ?? null;
   const nextUserId = nextUser?.id ?? null;
   const identityChanged = currentUserId !== nextUserId;
+  const requireProfileHydration = options?.requireProfileHydration ?? false;
 
   return {
     nextUser,
     nextUserId,
     identityChanged,
     shouldClearProfile: !nextUser || identityChanged,
-    shouldLoadProfile: Boolean(nextUser) && identityChanged,
+    shouldLoadProfile: Boolean(nextUser) && (identityChanged || requireProfileHydration),
   };
 };
 

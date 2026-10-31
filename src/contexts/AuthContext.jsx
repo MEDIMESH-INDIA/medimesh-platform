@@ -4,6 +4,17 @@ import { supabase } from '../lib/supabase/client';
 import { getAuthIdentityTransition, getCachedUserId } from '../routes/authGuardState';
 import { clearPersistedComparison } from '../hooks/useCompare';
 
+const logAuth = (action, details = {}) => {
+  if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+    const sanitized = { ...details };
+    delete sanitized.access_token;
+    delete sanitized.refresh_token;
+    delete sanitized.password;
+    delete sanitized.token;
+    console.debug(`[MEDIMESH:Auth:${action}]`, sanitized);
+  }
+};
+
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
@@ -12,26 +23,34 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [role, setRole] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
+  const cachedUserId = getCachedUserId();
+  const [profileLoading, setProfileLoading] = useState(Boolean(cachedUserId));
   const [authError, setAuthError] = useState(null);
   const [profileError, setProfileError] = useState(null);
   const mountedRef = useRef(false);
-  const activeUserIdRef = useRef(getCachedUserId());
+  const activeUserIdRef = useRef(cachedUserId);
+  const profileLoadedUserIdRef = useRef(null);
   const profileRequestRef = useRef(0);
 
   const clearProfileState = useCallback(() => {
     profileRequestRef.current += 1;
+    profileLoadedUserIdRef.current = null;
     setProfile(null);
     setRole(null);
     setProfileError(null);
     setProfileLoading(false);
   }, []);
 
-  const fetchProfile = useCallback(async (userId) => {
+  const fetchProfile = useCallback(async (userId, { keepExisting = false } = {}) => {
     const requestId = ++profileRequestRef.current;
+    profileLoadedUserIdRef.current = userId;
 
-    setProfile(null);
-    setRole(null);
+    logAuth('ProfileFetchStart', { userId, requestId });
+
+    if (!keepExisting) {
+      setProfile(null);
+      setRole(null);
+    }
     setProfileError(null);
     setProfileLoading(true);
 
@@ -50,8 +69,16 @@ export const AuthProvider = ({ children }) => {
         || requestId !== profileRequestRef.current
         || activeUserIdRef.current !== userId
       ) {
+        logAuth('ProfileFetchStaleDiscarded', { userId, requestId });
         return null;
       }
+
+      logAuth('ProfileFetchSuccess', {
+        userId,
+        requestId,
+        role: data.role ?? null,
+        hasAvatar: Boolean(data.avatar_url),
+      });
 
       setProfile(data);
       setRole(data.role ?? null);
@@ -62,7 +89,13 @@ export const AuthProvider = ({ children }) => {
         && requestId === profileRequestRef.current
         && activeUserIdRef.current === userId
       ) {
-        console.error('Error loading user profile:', error.message);
+        console.error('[MEDIMESH:Auth:ProfileFetchError]', {
+          userId,
+          requestId,
+          message: error.message,
+          code: error.code || error.status || 'UNKNOWN',
+        });
+        profileLoadedUserIdRef.current = null;
         setProfile(null);
         setRole(null);
         setProfileError(error);
@@ -80,13 +113,32 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const applySession = useCallback((nextSession) => {
-    const transition = getAuthIdentityTransition(activeUserIdRef.current, nextSession);
+  const applySession = useCallback((nextSession, eventSource = 'session') => {
+    const nextUserId = nextSession?.user?.id ?? null;
+    const isNewUser = activeUserIdRef.current !== nextUserId;
+    const profileNotYetLoaded = profileLoadedUserIdRef.current !== nextUserId;
+    const profileMissing = !profile && !profileLoading;
+
+    const transition = getAuthIdentityTransition(activeUserIdRef.current, nextSession, {
+      requireProfileHydration: profileNotYetLoaded,
+    });
+
+    const shouldFetchProfile = Boolean(transition.nextUser) && (
+      isNewUser || profileNotYetLoaded || profileMissing || transition.shouldLoadProfile
+    );
+
+    logAuth('IdentityTransition', {
+      eventSource,
+      currentUserId: activeUserIdRef.current,
+      nextUserId,
+      identityChanged: transition.identityChanged,
+      shouldFetchProfile,
+      hasLoadedProfile: profileLoadedUserIdRef.current === nextUserId,
+    });
 
     setSession(nextSession);
     setUser(transition.nextUser);
     setAuthError(null);
-    setAuthLoading(false);
 
     if (transition.shouldClearProfile) {
       activeUserIdRef.current = transition.nextUserId;
@@ -95,27 +147,42 @@ export const AuthProvider = ({ children }) => {
 
     if (transition.identityChanged) {
       clearPersistedComparison();
+      logAuth('IdentityChanged', { from: activeUserIdRef.current, to: transition.nextUserId });
     }
 
     if (!transition.nextUser) {
       activeUserIdRef.current = null;
+      profileLoadedUserIdRef.current = null;
+      setAuthLoading(false);
+      setProfileLoading(false);
       return;
     }
 
-    if (transition.shouldLoadProfile) {
+    activeUserIdRef.current = transition.nextUserId;
+
+    if (shouldFetchProfile) {
+      profileLoadedUserIdRef.current = transition.nextUserId;
+      setProfileLoading(true);
+      setAuthLoading(false);
       void fetchProfile(transition.nextUserId);
+    } else {
+      setAuthLoading(false);
     }
-  }, [clearProfileState, fetchProfile]);
+  }, [clearProfileState, fetchProfile, profile, profileLoading]);
 
   useEffect(() => {
     mountedRef.current = true;
     let cancelled = false;
     let authEventSeen = false;
 
+    logAuth('InitSubscription');
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, nextSession) => {
         if (cancelled) return;
         authEventSeen = true;
+        logAuth('AuthStateChange', { event, userId: nextSession?.user?.id ?? null });
+
         if (event === 'SIGNED_OUT' || !nextSession?.user) {
           clearPersistedComparison();
           if (event === 'SIGNED_OUT' && activeUserIdRef.current) {
@@ -126,7 +193,7 @@ export const AuthProvider = ({ children }) => {
             }
           }
         }
-        applySession(nextSession);
+        applySession(nextSession, event);
       }
     );
 
@@ -134,17 +201,20 @@ export const AuthProvider = ({ children }) => {
       .then(({ data, error }) => {
         if (cancelled || authEventSeen) return;
         if (error) throw error;
-        applySession(data.session);
+        logAuth('SessionRestored', { userId: data.session?.user?.id ?? null });
+        applySession(data.session, 'INITIAL_GET_SESSION');
       })
       .catch((error) => {
         if (cancelled || authEventSeen) return;
 
-        console.error('Error restoring authentication session:', error.message);
+        console.error('[MEDIMESH:Auth:RestoreSessionError]', error.message);
         activeUserIdRef.current = null;
+        profileLoadedUserIdRef.current = null;
         setSession(null);
         setUser(null);
         setAuthError(error);
         setAuthLoading(false);
+        setProfileLoading(false);
         clearProfileState();
         clearPersistedComparison();
       });
@@ -152,7 +222,6 @@ export const AuthProvider = ({ children }) => {
     return () => {
       cancelled = true;
       mountedRef.current = false;
-      activeUserIdRef.current = null;
       profileRequestRef.current += 1;
       subscription.unsubscribe();
     };
@@ -186,13 +255,18 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     clearPersistedComparison();
-    if (activeUserIdRef.current) {
+    logAuth('SignOut');
+    const userIdToClean = activeUserIdRef.current;
+    if (userIdToClean) {
       try {
-        localStorage.removeItem(`medimesh_compare_v1_${activeUserIdRef.current}`);
+        localStorage.removeItem(`medimesh_compare_v1_${userIdToClean}`);
       } catch {
         // Ignore storage cleanup issues
       }
     }
+    activeUserIdRef.current = null;
+    profileLoadedUserIdRef.current = null;
+    clearProfileState();
     return supabase.auth.signOut();
   };
 
@@ -215,8 +289,11 @@ export const AuthProvider = ({ children }) => {
 
   const refreshProfile = useCallback(() => {
     const userId = activeUserIdRef.current;
-    return userId ? fetchProfile(userId) : Promise.resolve(null);
-  }, [fetchProfile]);
+    if (!userId) return Promise.resolve(null);
+    logAuth('ManualProfileRefresh', { userId });
+    profileLoadedUserIdRef.current = null;
+    return fetchProfile(userId, { keepExisting: Boolean(profile) });
+  }, [fetchProfile, profile]);
 
   const loading = authLoading || (Boolean(user) && profileLoading);
 
