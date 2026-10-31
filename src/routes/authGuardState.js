@@ -1,5 +1,27 @@
 import { getRoleDashboardPath, getPostAuthDestination } from './roleDashboardPaths.js';
 
+export const getCachedUserId = () => {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key && ((key.startsWith('sb-') && key.endsWith('-auth-token')) || key === 'supabase.auth.token')) {
+        const item = localStorage.getItem(key);
+        if (item) {
+          const parsed = JSON.parse(item);
+          const userId = parsed?.user?.id || parsed?.currentSession?.user?.id;
+          if (typeof userId === 'string' && userId.length > 0) {
+            return userId;
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore quota/permission/parsing errors
+  }
+  return null;
+};
+
 export const getAuthIdentityTransition = (currentUserId, nextSession) => {
   const nextUser = nextSession?.user ?? null;
   const nextUserId = nextUser?.id ?? null;

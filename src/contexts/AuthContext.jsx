@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase/client';
-import { getAuthIdentityTransition } from '../routes/authGuardState';
+import { getAuthIdentityTransition, getCachedUserId } from '../routes/authGuardState';
 import { clearPersistedComparison } from '../hooks/useCompare';
 
 const AuthContext = createContext({});
@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const [profileError, setProfileError] = useState(null);
   const mountedRef = useRef(false);
-  const activeUserIdRef = useRef(null);
+  const activeUserIdRef = useRef(getCachedUserId());
   const profileRequestRef = useRef(0);
 
   const clearProfileState = useCallback(() => {
@@ -118,6 +118,13 @@ export const AuthProvider = ({ children }) => {
         authEventSeen = true;
         if (event === 'SIGNED_OUT' || !nextSession?.user) {
           clearPersistedComparison();
+          if (event === 'SIGNED_OUT' && activeUserIdRef.current) {
+            try {
+              localStorage.removeItem(`medimesh_compare_v1_${activeUserIdRef.current}`);
+            } catch {
+              // Ignore storage cleanup issues
+            }
+          }
         }
         applySession(nextSession);
       }
@@ -179,6 +186,13 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     clearPersistedComparison();
+    if (activeUserIdRef.current) {
+      try {
+        localStorage.removeItem(`medimesh_compare_v1_${activeUserIdRef.current}`);
+      } catch {
+        // Ignore storage cleanup issues
+      }
+    }
     return supabase.auth.signOut();
   };
 

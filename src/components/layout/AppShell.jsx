@@ -7,6 +7,7 @@ import MEDIMESHBackground from './MEDIMESHBackground';
 import MedimeshLogo from '../brand/MedimeshLogo';
 import UserAvatar from '../common/UserAvatar';
 import { lockScroll, unlockScroll, resetScrollLock } from '../../lib/ui/scrollLock';
+import { readStoredComparison } from '../../hooks/useCompare';
 
 export default function AppShell() {
   const { user, profile, role, signOut } = useAuth();
@@ -18,7 +19,7 @@ export default function AppShell() {
   const wasOpenRef = useRef(false);
   const [compareCount, setCompareCount] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('compareList') || '[]').length;
+      return readStoredComparison().length;
     } catch {
       return 0;
     }
@@ -61,7 +62,7 @@ export default function AppShell() {
   useEffect(() => {
     const update = () => {
       try {
-        setCompareCount(JSON.parse(localStorage.getItem('compareList') || '[]').length);
+        setCompareCount(readStoredComparison().length);
       } catch {
         setCompareCount(0);
       }

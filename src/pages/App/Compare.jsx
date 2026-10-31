@@ -194,6 +194,18 @@ export default function Compare() {
     };
   }, [hasCompareParam, isSyncedWithUrl, mode, params, setComparison, setParams, urlSlugs]);
 
+  // Gracefully prune any invalid or deleted hospital selections once loading resolves
+  useEffect(() => {
+    if (loading || error || compareList.length === 0) return;
+    if (hospitals.length < compareList.length) {
+      const validSlugs = new Set(hospitals.map((h) => h.slug));
+      const pruned = compareList.filter((item) => validSlugs.has(item.slug));
+      if (pruned.length !== compareList.length) {
+        setComparison(pruned);
+      }
+    }
+  }, [loading, error, hospitals, compareList, setComparison]);
+
   const updateUrlComparison = useCallback(
     (nextList, { replace = false } = {}) => {
       if (!params.has('compare')) return;
@@ -559,41 +571,60 @@ export default function Compare() {
           {/* When Hospitals Selected - 3 Aligned Cards (matching sketch) */}
           {compareList.length > 0 && !isSelectedCollapsed && (
             <div className="grid grid-cols-3 gap-2">
-              {hospitals.map((hospital, index) => (
-                <div
-                  key={hospital.id}
-                  className="rounded-xl border border-primary/20 bg-white/90 p-2 shadow-xs flex flex-col justify-between min-h-[92px] min-w-0 relative"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-1">
+              {loading && hospitals.length === 0 ? (
+                compareList.map((item, index) => (
+                  <div
+                    key={item.slug}
+                    className="rounded-xl border border-primary/20 bg-white/70 p-2 shadow-xs flex flex-col justify-between min-h-[92px] min-w-0 animate-pulse"
+                  >
+                    <div>
                       <span className="inline-block rounded bg-primary/10 px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary">
                         H{index + 1}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(hospital.slug)}
-                        aria-label={`Remove ${hospital.name}`}
-                        className="p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-black/5 transition"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="h-3 w-3/4 bg-muted/60 rounded mt-1.5" />
+                    </div>
+                    <div className="mt-1 pt-1 border-t border-border/50 flex items-center justify-between text-[9px]">
+                      <div className="h-2 w-1/2 bg-muted/40 rounded" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                hospitals.map((hospital, index) => (
+                  <div
+                    key={hospital.id}
+                    className="rounded-xl border border-primary/20 bg-white/90 p-2 shadow-xs flex flex-col justify-between min-h-[92px] min-w-0 relative"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="inline-block rounded bg-primary/10 px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary">
+                          H{index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(hospital.slug)}
+                          aria-label={`Remove ${hospital.name}`}
+                          className="p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-black/5 transition"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      <h3 className="font-serif text-[11px] font-bold text-foreground leading-tight line-clamp-2 mt-1" title={hospital.name}>
+                        <Link to={`${basePath}/hospitals/${hospital.slug}`} className="hover:text-primary transition-colors">
+                          {hospital.name}
+                        </Link>
+                      </h3>
                     </div>
 
-                    <h3 className="font-serif text-[11px] font-bold text-foreground leading-tight line-clamp-2 mt-1" title={hospital.name}>
-                      <Link to={`${basePath}/hospitals/${hospital.slug}`} className="hover:text-primary transition-colors">
-                        {hospital.name}
-                      </Link>
-                    </h3>
+                    <div className="mt-1 pt-1 border-t border-border/50 flex items-center justify-between text-[9px] text-muted-foreground">
+                      <span className="truncate flex items-center gap-0.5">
+                        <MapPin className="h-2.5 w-2.5 shrink-0 text-primary/70" />
+                        <span className="truncate">{hospital.location?.locality || hospital.location?.city || 'Location not provided'}</span>
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="mt-1 pt-1 border-t border-border/50 flex items-center justify-between text-[9px] text-muted-foreground">
-                    <span className="truncate flex items-center gap-0.5">
-                      <MapPin className="h-2.5 w-2.5 shrink-0 text-primary/70" />
-                      <span className="truncate">{hospital.location?.locality || hospital.location?.city || 'Location not provided'}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
 
               {/* Empty add-hospital slots up to 3 */}
               {canAdd && Array.from({ length: 3 - compareList.length }).map((_, slotIdx) => (
@@ -975,56 +1006,71 @@ export default function Compare() {
           </FrostedPanel>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {hospitals.map((hospital) => (
-              <FrostedPanel
-                key={hospital.id}
-                className="relative rounded-2xl p-4 sm:p-5 flex flex-col justify-between border-border/80 bg-white/80 shadow-xs"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
-                        {formatHospitalType(hospital.type)}
-                      </span>
-                      <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-snug">
-                        <Link to={`${basePath}/hospitals/${hospital.slug}`} className="hover:text-primary transition-colors">
-                          {hospital.name}
-                        </Link>
-                      </h3>
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/70" />
-                        <span className="truncate">{place(hospital)}</span>
-                      </p>
-                    </div>
+            {loading && hospitals.length === 0 ? (
+              compareList.map((item) => (
+                <FrostedPanel
+                  key={item.slug}
+                  className="relative rounded-2xl p-4 sm:p-5 flex flex-col justify-between border-border/80 bg-white/80 shadow-xs animate-pulse min-h-[140px]"
+                >
+                  <div>
+                    <div className="h-4 w-20 bg-muted/60 rounded mb-2" />
+                    <div className="h-5 w-3/4 bg-muted/60 rounded mb-2" />
+                    <div className="h-3 w-1/2 bg-muted/40 rounded" />
+                  </div>
+                </FrostedPanel>
+              ))
+            ) : (
+              hospitals.map((hospital) => (
+                <FrostedPanel
+                  key={hospital.id}
+                  className="relative rounded-2xl p-4 sm:p-5 flex flex-col justify-between border-border/80 bg-white/80 shadow-xs"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <span className="inline-block rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">
+                          {formatHospitalType(hospital.type)}
+                        </span>
+                        <h3 className="font-serif text-base sm:text-lg font-bold text-foreground leading-snug">
+                          <Link to={`${basePath}/hospitals/${hospital.slug}`} className="hover:text-primary transition-colors">
+                            {hospital.name}
+                          </Link>
+                        </h3>
+                        <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <MapPin className="h-3.5 w-3.5 shrink-0 text-primary/70" />
+                          <span className="truncate">{place(hospital)}</span>
+                        </p>
+                      </div>
 
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(hospital.slug)}
+                        aria-label={`Remove ${hospital.name}`}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/5 transition"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between">
                     <button
                       type="button"
-                      onClick={() => handleRemove(hospital.slug)}
-                      aria-label={`Remove ${hospital.name}`}
-                      className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/5 transition"
+                      onClick={() => setChooser({ open: true, replaceSlug: hospital.slug })}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
                     >
-                      <X className="h-4 w-4" />
+                      <Pencil className="h-3 w-3" /> Replace
                     </button>
+                    <Link
+                      to={`${basePath}/hospitals/${hospital.slug}`}
+                      className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                    >
+                      View profile →
+                    </Link>
                   </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setChooser({ open: true, replaceSlug: hospital.slug })}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-                  >
-                    <Pencil className="h-3 w-3" /> Replace
-                  </button>
-                  <Link
-                    to={`${basePath}/hospitals/${hospital.slug}`}
-                    className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-                  >
-                    View profile →
-                  </Link>
-                </div>
-              </FrostedPanel>
-            ))}
+                </FrostedPanel>
+              ))
+            )}
 
             {canAdd && compareList.length > 0 && (
               <button
