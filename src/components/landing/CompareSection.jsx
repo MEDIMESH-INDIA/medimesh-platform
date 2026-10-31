@@ -190,7 +190,7 @@ const COMPARISON_SECTIONS = [
 
 export default function CompareSection() {
   return (
-    <Section id="compare" className="relative overflow-hidden border-y border-border/70 py-20 md:py-28" background="muted">
+    <Section id="compare" className="relative overflow-hidden border-y border-border/70 py-14 md:py-20" background="muted">
       <Container>
         <ScrollReveal>
           <SectionHeading
@@ -202,47 +202,47 @@ export default function CompareSection() {
           />
         </ScrollReveal>
 
-        <ScrollReveal delay={0.1} className="mt-10 sm:mt-12">
-          {/* Compact Product Demonstration Container (780-840px desktop max-width) */}
-          <div className="mx-auto max-w-[820px] rounded-[24px] border border-border bg-white/95 p-3.5 shadow-[0_20px_60px_rgba(15,40,35,0.06)] backdrop-blur-sm sm:rounded-[28px] sm:p-5 md:p-6">
+        <ScrollReveal delay={0.1} className="mt-7 sm:mt-9">
+          {/* Wider, Compact Comparison Preview Container (1000-1100px desktop max-width) */}
+          <div className="mx-auto max-w-[1060px] rounded-[20px] border border-border bg-white/95 p-3 shadow-[0_20px_60px_rgba(15,40,35,0.06)] backdrop-blur-sm sm:rounded-[24px] sm:p-4 md:p-4">
             {/* Top Preview Status Bar */}
-            <div className="mb-3.5 flex flex-col gap-2 border-b border-border/60 pb-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mb-2 flex flex-col gap-1 border-b border-border/60 pb-1.5 sm:mb-2 sm:flex-row sm:items-center sm:justify-between sm:pb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foreground sm:text-sm">
+                <span className="text-xs font-bold text-foreground sm:text-[13px]">
                   Selected Hospitals
                 </span>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary sm:text-[10px]">
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[8.5px] font-bold text-primary sm:text-[9.5px]">
                   3/3
                 </span>
               </div>
-              <span className="w-fit rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[8.5px] font-extrabold uppercase tracking-wider text-primary sm:text-[9.5px]">
+              <span className="w-fit rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-primary sm:text-[8.5px]">
                 Illustrative demonstration preview
               </span>
             </div>
 
             {/* A. Hospital Overview Cards (Compact 3-column layout) */}
-            <section aria-label="Hospital Overview" className="mb-3 sm:mb-3.5">
-              <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+            <section aria-label="Hospital Overview" className="mb-1.5 sm:mb-2">
+              <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:gap-3">
                 {DEMO_HOSPITALS.map((hospital) => (
                   <div
                     key={hospital.id}
-                    className="relative flex flex-col justify-between rounded-xl border border-primary/20 bg-white/95 p-2 shadow-2xs transition-shadow sm:p-2.5"
+                    className="relative flex flex-col justify-between rounded-lg border border-primary/20 bg-white/95 p-1.5 shadow-2xs transition-shadow sm:rounded-xl sm:p-2 md:px-2.5 md:py-1.5"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1">
                         <span className="inline-block rounded bg-primary/10 px-1.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider text-primary sm:text-[9px]">
                           {hospital.id}
                         </span>
+                        <span className="hidden truncate text-[9px] font-medium text-muted-foreground sm:inline-block">
+                          {hospital.type}
+                        </span>
                       </div>
-                      <h4 className="mt-1 truncate text-xs font-bold leading-tight text-foreground sm:text-[13px]">
+                      <h4 className="mt-0.5 truncate text-xs font-bold leading-tight text-foreground sm:text-[13px]">
                         {hospital.name}
                       </h4>
-                      <p className="mt-0.5 hidden truncate text-[9.5px] text-muted-foreground sm:block sm:text-[10px]">
-                        {hospital.type}
-                      </p>
                     </div>
 
-                    <div className="mt-1.5 flex items-center gap-1 border-t border-border/40 pt-1 text-[8.5px] text-muted-foreground sm:text-[9.5px]">
+                    <div className="mt-1 flex items-center gap-1 border-t border-border/40 pt-0.5 text-[8.5px] text-muted-foreground sm:pt-1 sm:text-[9px]">
                       <MapPin className="h-2.5 w-2.5 shrink-0 text-primary/70 sm:h-3 sm:w-3" />
                       <span className="truncate">{hospital.location}</span>
                     </div>
@@ -251,61 +251,46 @@ export default function CompareSection() {
               </div>
             </section>
 
-            {/* Column Identifier Header Strip for Rapid Scanning */}
-            <div className="mb-2.5 rounded-lg border border-border/60 bg-[#FCFBF8]/95 px-2 py-1.5 shadow-2xs sm:mb-3 sm:rounded-xl sm:py-2">
-              <div className="grid grid-cols-3 gap-2 text-center sm:gap-2.5">
-                {DEMO_HOSPITALS.map((hospital) => (
-                  <div key={`header-${hospital.id}`} className="min-w-0">
-                    <span className="mb-0.5 inline-block rounded bg-primary/10 px-1.5 py-0.2 text-[8.5px] font-black tracking-wider text-primary sm:text-[9px]">
-                      {hospital.id}
-                    </span>
-                    <p className="truncate text-[10.5px] font-bold text-foreground sm:text-xs">
-                      {hospital.name}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* B through F: Compact Card-based Comparison Sections */}
-            <div className="space-y-2 sm:space-y-2.5">
+            {/* B through F: Wide, Compact Card-based Comparison Sections */}
+            <div className="space-y-1.5 sm:space-y-1.5">
               {COMPARISON_SECTIONS.map((section) => (
                 <div
                   key={`${section.group}-${section.label}`}
-                  className="rounded-xl border border-border/80 bg-white/90 p-2 shadow-2xs transition-shadow sm:rounded-2xl sm:p-2.5 md:p-3"
+                  className="rounded-lg border border-border/80 bg-white/90 p-1.5 shadow-2xs transition-shadow sm:rounded-xl sm:p-2 md:px-2.5 md:py-1.5"
                 >
                   {/* Parameter Label Header clearly displayed ABOVE the 3 cards */}
-                  <div className="mb-2 flex items-center justify-between border-b border-border/50 pb-1.5 sm:mb-2.5">
-                    <div className="min-w-0">
-                      <span className="block text-[8.5px] font-extrabold uppercase tracking-wider text-muted-foreground sm:text-[9px]">
+                  <div className="mb-1 flex items-center justify-between border-b border-border/50 pb-0.5 sm:mb-1 sm:pb-1">
+                    <div className="flex items-baseline gap-1.5 min-w-0">
+                      <span className="block text-[8px] font-extrabold uppercase tracking-wider text-muted-foreground sm:text-[8.5px]">
                         {section.group}
                       </span>
-                      <h3 className="text-xs font-bold leading-snug text-foreground sm:text-[13px]">
+                      <span className="text-[9px] text-muted-foreground/40">/</span>
+                      <h3 className="text-xs font-bold leading-snug text-foreground sm:text-[12.5px]">
                         {section.label}
                       </h3>
                     </div>
                     {section.differs && (
-                      <span className="shrink-0 rounded-md bg-lavender/20 px-1.5 py-0.5 text-[8.5px] font-semibold text-[#5a4880] sm:text-[9px]">
+                      <span className="shrink-0 rounded-md bg-lavender/20 px-1.5 py-0.2 text-[8px] font-semibold text-[#5a4880] sm:text-[8.5px]">
                         Differs
                       </span>
                     )}
                   </div>
 
                   {/* Three Comparison Cards Side-by-Side (Consistent Equal Widths) */}
-                  <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-2.5 md:gap-3">
                     {section.cells.map((cell) => {
                       const theme = STATUS_THEMES[cell.status] || STATUS_THEMES.neutral;
                       return (
                         <div
                           key={`${section.label}-${cell.hospitalId}`}
                           className={cn(
-                            "flex min-h-[58px] min-w-0 flex-col justify-between rounded-lg border p-2 transition-colors sm:min-h-[64px] sm:rounded-xl sm:p-2.5",
+                            "flex min-h-[46px] min-w-0 flex-col justify-between rounded-md border p-1.5 transition-colors sm:min-h-[50px] sm:rounded-lg sm:p-2 md:px-2.5 md:py-1.5",
                             theme.bg,
                             theme.border,
                           )}
                         >
                           <div className="min-w-0">
-                            <span className="mb-0.5 block text-[8.5px] font-bold text-muted-foreground/75 sm:text-[9px]">
+                            <span className="mb-0.5 block text-[8px] font-bold text-muted-foreground/75 sm:text-[8.5px]">
                               {cell.hospitalId}
                             </span>
                             <div className={cn("break-words text-[10px] font-semibold leading-snug sm:text-[11.5px]", theme.text)}>
@@ -314,10 +299,10 @@ export default function CompareSection() {
                           </div>
 
                           {cell.indicator && (
-                            <div className="mt-1.5 flex items-center border-t border-black/5 pt-1 sm:mt-2">
+                            <div className="mt-1 flex items-center border-t border-black/5 pt-0.5 sm:mt-1 sm:pt-1">
                               <span
                                 className={cn(
-                                  "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[8px] font-bold sm:gap-1 sm:text-[8.5px]",
+                                  "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.2 text-[7.5px] font-bold sm:gap-1 sm:text-[8px]",
                                   theme.badgeBg,
                                   theme.badgeText,
                                 )}
@@ -338,7 +323,7 @@ export default function CompareSection() {
             </div>
 
             {/* Trust and Neutrality Disclaimer Notice */}
-            <div className="mt-4 flex flex-col gap-1.5 border-t border-border/60 pt-3 text-[9px] text-muted-foreground sm:mt-5 sm:flex-row sm:items-center sm:justify-between sm:text-[10px]">
+            <div className="mt-2.5 flex flex-col gap-1 border-t border-border/60 pt-1.5 text-[8.5px] text-muted-foreground sm:mt-3 sm:flex-row sm:items-center sm:justify-between sm:pt-2 sm:text-[9.5px]">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="h-3 w-3 shrink-0 text-primary sm:h-3.5 sm:w-3.5" />
                 Independent comparison: each parameter evaluated separately without weighted scoring.
