@@ -2,7 +2,6 @@ import {
   ArrowUpRight,
   Building2,
   ChartNoAxesColumn,
-  Compass,
   Landmark,
   ShieldCheck,
   Stethoscope,
@@ -149,7 +148,7 @@ export default function EcosystemSection() {
                         <Link
                           key={link.href + link.label}
                           to={link.href}
-                          className="rounded-full border border-primary/5 bg-primary/[0.07] px-3.5 py-2 text-xs font-semibold text-primary/90 transition hover:border-primary/20 hover:bg-primary/12 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          className="rounded-full border border-primary/5 bg-primary/[0.07] px-3.5 py-2 text-xs font-semibold text-primary/90 transition hover:border-primary/20 hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         >
                           {link.label}
                         </Link>
