@@ -33,6 +33,10 @@ export default function Settings() {
 
   const handleClearCompare = () => {
     localStorage.removeItem('compareList');
+    localStorage.removeItem('medimesh_compare_v1');
+    if (user?.id) {
+      localStorage.removeItem(`medimesh_compare_v1_${user.id}`);
+    }
     window.dispatchEvent(new Event('compare-updated'));
     setClearedCompare(true);
     setTimeout(() => setClearedCompare(false), 2500);
