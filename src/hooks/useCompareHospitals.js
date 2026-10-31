@@ -7,6 +7,7 @@ export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(Boolean(slugs.length));
   const [error, setError] = useState(null);
+  const [fetchedKey, setFetchedKey] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -14,19 +15,30 @@ export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
       setHospitals([]);
       setLoading(false);
       setError(null);
+      setFetchedKey('');
       return undefined;
     }
     setLoading(true);
     setError(null);
     getHospitalsBySlugs(key.split('|'), { mode })
-      .then(data => { if (active) setHospitals(data); })
+      .then(data => {
+        if (active) {
+          setHospitals(data || []);
+          setFetchedKey(key);
+        }
+      })
       .catch(nextError => {
         console.error('Error loading hospitals for comparison:', nextError);
-        if (active) setError(nextError);
+        if (active) {
+          setError(nextError);
+          setFetchedKey(key);
+        }
       })
-      .finally(() => { if (active) setLoading(false); });
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => { active = false; };
   }, [key, mode]);
 
-  return { hospitals, loading, error };
+  return { hospitals, loading, error, isReady: fetchedKey === key && !loading };
 }

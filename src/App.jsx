@@ -1,66 +1,73 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthGateProvider } from "./contexts/AuthGateContext";
 import { resetScrollLock } from "./lib/ui/scrollLock";
 import LandingPage from "./pages/LandingPage/LandingPage";
+import LoadingState from "./components/common/LoadingState";
 
-// Auth Components
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-import VerifyEmail from "./pages/Auth/VerifyEmail";
-import ForgotPassword from "./pages/Auth/ForgotPassword";
-import ResetPassword from "./pages/Auth/ResetPassword";
-
-// Route Guards
+// Route Guards & Layouts (Eagerly Loaded)
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { RoleRoute } from "./routes/RoleRoute";
 import { GuestRoute } from "./routes/GuestRoute";
-
-// App Layout & Pages
 import PublicLayout from "./components/layout/PublicLayout";
 import AppShell from "./components/layout/AppShell";
-import PatientDashboard from "./pages/App/PatientDashboard";
-import PublicDiscover from "./pages/PublicDiscover";
-import PatientDiscover from "./pages/App/PatientDiscover";
-import PublicCareFinder from "./pages/PublicCareFinder";
-import PatientCareFinder from "./pages/App/PatientCareFinder";
-import PublicHospitalDetail from "./pages/PublicHospitalDetail";
-import PatientHospitalDetail from "./pages/App/PatientHospitalDetail";
-import PublicDoctors from "./pages/PublicDoctors";
-import PatientDoctors from "./pages/App/PatientDoctors";
-import PublicHomeVisits from "./pages/PublicHomeVisits";
-import PatientHomeVisits from "./pages/App/PatientHomeVisits";
-import PublicDoctorDetail from "./pages/PublicDoctorDetail";
-import PatientDoctorDetail from "./pages/App/PatientDoctorDetail";
-import PublicAbout from "./pages/PublicAbout";
-import Compare from "./pages/App/Compare";
-import Saved from "./pages/App/Saved";
-import DoctorDashboard from "./pages/App/Doctor/Dashboard";
-import DoctorProfile from "./pages/App/Doctor/Profile";
-import DoctorQualifications from "./pages/App/Doctor/Qualifications";
-import DoctorSpecializations from "./pages/App/Doctor/Specializations";
-import DoctorAffiliations from "./pages/App/Doctor/Affiliations";
-import DoctorVerification from "./pages/App/Doctor/Verification";
-import DoctorHomeVisits from "./pages/App/Doctor/HomeVisits";
-import DoctorHomeVisitRequests from "./pages/App/Doctor/HomeVisitRequests";
-import DoctorHomeVisitRequestDetail from "./pages/App/Doctor/HomeVisitRequestDetail";
-import DoctorSettings from "./pages/App/Doctor/Settings";
-import HospitalDashboard from "./pages/App/HospitalDashboard";
-import HospitalProfile from "./pages/App/Hospital/Profile";
-import HospitalSpecialties from "./pages/App/Hospital/Specialties";
-import HospitalFacilities from "./pages/App/Hospital/Facilities";
-import HospitalServices from "./pages/App/Hospital/Services";
-import HospitalDoctors from "./pages/App/Hospital/Doctors";
-import HospitalVerification from "./pages/App/Hospital/Verification";
-import HospitalSettings from "./pages/App/Hospital/Settings";
-import AdminDashboard from "./pages/App/AdminDashboard";
-import Profile from "./pages/App/Profile";
-import Settings from "./pages/App/Settings";
-import Onboarding from "./pages/App/Onboarding";
-import HomeVisitBooking from "./pages/App/Patient/HomeVisitBooking";
-import PatientHomeVisitBookings from "./pages/App/Patient/HomeVisitBookings";
-import PatientHomeVisitBookingDetail from "./pages/App/Patient/HomeVisitBookingDetail";
 import CompareTray from "./components/hospital/CompareTray";
+
+// Lazy-Loaded Auth Components
+const Login = lazy(() => import("./pages/Auth/Login"));
+const Register = lazy(() => import("./pages/Auth/Register"));
+const VerifyEmail = lazy(() => import("./pages/Auth/VerifyEmail"));
+const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
+
+// Lazy-Loaded Patient & Public Pages
+const PatientDashboard = lazy(() => import("./pages/App/PatientDashboard"));
+const PublicDiscover = lazy(() => import("./pages/PublicDiscover"));
+const PatientDiscover = lazy(() => import("./pages/App/PatientDiscover"));
+const PublicCareFinder = lazy(() => import("./pages/PublicCareFinder"));
+const PatientCareFinder = lazy(() => import("./pages/App/PatientCareFinder"));
+const PublicHospitalDetail = lazy(() => import("./pages/PublicHospitalDetail"));
+const PatientHospitalDetail = lazy(() => import("./pages/App/PatientHospitalDetail"));
+const PublicDoctors = lazy(() => import("./pages/PublicDoctors"));
+const PatientDoctors = lazy(() => import("./pages/App/PatientDoctors"));
+const PublicHomeVisits = lazy(() => import("./pages/PublicHomeVisits"));
+const PatientHomeVisits = lazy(() => import("./pages/App/PatientHomeVisits"));
+const PublicDoctorDetail = lazy(() => import("./pages/PublicDoctorDetail"));
+const PatientDoctorDetail = lazy(() => import("./pages/App/PatientDoctorDetail"));
+const PublicAbout = lazy(() => import("./pages/PublicAbout"));
+const Compare = lazy(() => import("./pages/App/Compare"));
+const Saved = lazy(() => import("./pages/App/Saved"));
+
+// Lazy-Loaded Doctor Portal Pages
+const DoctorDashboard = lazy(() => import("./pages/App/Doctor/Dashboard"));
+const DoctorProfile = lazy(() => import("./pages/App/Doctor/Profile"));
+const DoctorQualifications = lazy(() => import("./pages/App/Doctor/Qualifications"));
+const DoctorSpecializations = lazy(() => import("./pages/App/Doctor/Specializations"));
+const DoctorAffiliations = lazy(() => import("./pages/App/Doctor/Affiliations"));
+const DoctorVerification = lazy(() => import("./pages/App/Doctor/Verification"));
+const DoctorHomeVisits = lazy(() => import("./pages/App/Doctor/HomeVisits"));
+const DoctorHomeVisitRequests = lazy(() => import("./pages/App/Doctor/HomeVisitRequests"));
+const DoctorHomeVisitRequestDetail = lazy(() => import("./pages/App/Doctor/HomeVisitRequestDetail"));
+const DoctorSettings = lazy(() => import("./pages/App/Doctor/Settings"));
+
+// Lazy-Loaded Hospital Portal Pages
+const HospitalDashboard = lazy(() => import("./pages/App/HospitalDashboard"));
+const HospitalProfile = lazy(() => import("./pages/App/Hospital/Profile"));
+const HospitalSpecialties = lazy(() => import("./pages/App/Hospital/Specialties"));
+const HospitalFacilities = lazy(() => import("./pages/App/Hospital/Facilities"));
+const HospitalServices = lazy(() => import("./pages/App/Hospital/Services"));
+const HospitalDoctors = lazy(() => import("./pages/App/Hospital/Doctors"));
+const HospitalVerification = lazy(() => import("./pages/App/Hospital/Verification"));
+const HospitalSettings = lazy(() => import("./pages/App/Hospital/Settings"));
+
+// Lazy-Loaded Admin & Shared Authenticated Pages
+const AdminDashboard = lazy(() => import("./pages/App/AdminDashboard"));
+const Profile = lazy(() => import("./pages/App/Profile"));
+const Settings = lazy(() => import("./pages/App/Settings"));
+const Onboarding = lazy(() => import("./pages/App/Onboarding"));
+const HomeVisitBooking = lazy(() => import("./pages/App/Patient/HomeVisitBooking"));
+const PatientHomeVisitBookings = lazy(() => import("./pages/App/Patient/HomeVisitBookings"));
+const PatientHomeVisitBookingDetail = lazy(() => import("./pages/App/Patient/HomeVisitBookingDetail"));
 
 function RouteScrollReset() {
   const location = useLocation();
@@ -112,7 +119,8 @@ function App() {
   return (
     <AuthGateProvider>
       <RouteScrollReset />
-      <Routes>
+      <Suspense fallback={<LoadingState label="Loading MEDIMESH…" className="min-h-screen" />}>
+        <Routes>
       {/* Public/Landing Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
@@ -311,6 +319,7 @@ function App() {
         <Route path="/app/settings" element={<Settings />} />
       </Route>
     </Routes>
+    </Suspense>
     <CompareTray />
     </AuthGateProvider>
   );
