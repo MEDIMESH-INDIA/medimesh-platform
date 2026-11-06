@@ -261,50 +261,106 @@ export async function searchHospitals({ mode = 'canonical', filters = {}, sort =
   return { hospitals, totalCount, hasMore: offset + hospitals.length < totalCount };
 }
 
-export async function getHospitalFacets({ mode = 'canonical' } = {}) {
-  if (mode === 'demo') {
-    return {
-      cities: uniqueCanonicalStrings(demoHospitals.map(h => h.location)),
-      localities: [],
-      cityToLocalities: {},
-      types: uniqueCanonicalStrings(demoHospitals.map(h => h.type)),
-      specialties: uniqueCanonicalStrings(demoHospitals.flatMap(h => h.specialties || [])),
-      facilities: uniqueCanonicalStrings(demoHospitals.flatMap(h => h.facilities || [])),
-    };
+const facetsCache = new Map();
+const facetsInFlight = new Map();
+const FACETS_CACHE_TTL_MS = 60 * 1000;
+let facetsCacheGeneration = 0;
+const facetsModeGeneration = new Map();
+
+export function invalidateHospitalFacetsCache(options = {}) {
+  const mode = typeof options === 'string' ? options : options?.mode;
+  if (!mode) {
+    facetsCache.clear();
+    facetsInFlight.clear();
+    facetsCacheGeneration += 1;
+    facetsModeGeneration.clear();
+    return;
+  }
+  facetsCache.delete(mode);
+  facetsInFlight.delete(mode);
+  facetsModeGeneration.set(mode, (facetsModeGeneration.get(mode) || 0) + 1);
+}
+
+export async function getHospitalFacets({ mode = 'canonical', bypassCache = false } = {}) {
+  const cacheKey = mode || 'canonical';
+
+  if (bypassCache) {
+    facetsCache.delete(cacheKey);
+  } else {
+    const cached = facetsCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < FACETS_CACHE_TTL_MS) {
+      return cached.data;
+    }
   }
 
-  const { data, error } = await supabase
-    .from('hospitals')
-    .select('city, locality, hospital_type, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))')
-    .eq('publication_status', 'published');
-  if (error) throw error;
-  const records = data || [];
+  if (!bypassCache && facetsInFlight.has(cacheKey)) {
+    return facetsInFlight.get(cacheKey);
+  }
 
-  const rawLocalities = [];
-  const cityToLocalitiesMap = {};
-  records.forEach(h => {
-    const city = h.city?.trim();
-    const locality = h.locality?.trim();
-    if (locality) rawLocalities.push(locality);
-    if (city && locality) {
-      if (!cityToLocalitiesMap[city]) cityToLocalitiesMap[city] = [];
-      cityToLocalitiesMap[city].push(locality);
+  const reqGen = facetsCacheGeneration + ':' + (facetsModeGeneration.get(cacheKey) || 0);
+  let fetchPromise;
+
+  fetchPromise = (async () => {
+    try {
+      let result;
+      if (mode === 'demo') {
+        result = {
+          cities: uniqueCanonicalStrings(demoHospitals.map(h => h.location)),
+          localities: [],
+          cityToLocalities: {},
+          types: uniqueCanonicalStrings(demoHospitals.map(h => h.type)),
+          specialties: uniqueCanonicalStrings(demoHospitals.flatMap(h => h.specialties || [])),
+          facilities: uniqueCanonicalStrings(demoHospitals.flatMap(h => h.facilities || [])),
+        };
+      } else {
+        const { data, error } = await supabase
+          .from('hospitals')
+          .select('city, locality, hospital_type, hospital_specialties(specialties(name)), hospital_facilities(facilities(name))')
+          .eq('publication_status', 'published');
+        if (error) throw error;
+        const records = data || [];
+
+        const rawLocalities = [];
+        const cityToLocalitiesMap = {};
+        records.forEach(h => {
+          const city = h.city?.trim();
+          const locality = h.locality?.trim();
+          if (locality) rawLocalities.push(locality);
+          if (city && locality) {
+            if (!cityToLocalitiesMap[city]) cityToLocalitiesMap[city] = [];
+            cityToLocalitiesMap[city].push(locality);
+          }
+        });
+
+        const cityToLocalities = {};
+        Object.keys(cityToLocalitiesMap).forEach(k => {
+          cityToLocalities[k] = uniqueCanonicalStrings(cityToLocalitiesMap[k]);
+        });
+
+        result = {
+          cities: uniqueCanonicalStrings(records.map(h => h.city)),
+          localities: uniqueCanonicalStrings(rawLocalities),
+          cityToLocalities,
+          types: uniqueCanonicalStrings(records.map(h => h.hospital_type)),
+          specialties: uniqueCanonicalStrings(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name))),
+          facilities: uniqueCanonicalStrings(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name))),
+        };
+      }
+
+      const currentGen = facetsCacheGeneration + ':' + (facetsModeGeneration.get(cacheKey) || 0);
+      if (reqGen === currentGen) {
+        facetsCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      }
+      return result;
+    } finally {
+      if (facetsInFlight.get(cacheKey) === fetchPromise) {
+        facetsInFlight.delete(cacheKey);
+      }
     }
-  });
+  })();
 
-  const cityToLocalities = {};
-  Object.keys(cityToLocalitiesMap).forEach(k => {
-    cityToLocalities[k] = uniqueCanonicalStrings(cityToLocalitiesMap[k]);
-  });
-
-  return {
-    cities: uniqueCanonicalStrings(records.map(h => h.city)),
-    localities: uniqueCanonicalStrings(rawLocalities),
-    cityToLocalities,
-    types: uniqueCanonicalStrings(records.map(h => h.hospital_type)),
-    specialties: uniqueCanonicalStrings(records.flatMap(h => rowsFrom(h.hospital_specialties).map(item => item.specialties?.name))),
-    facilities: uniqueCanonicalStrings(records.flatMap(h => rowsFrom(h.hospital_facilities).map(item => item.facilities?.name))),
-  };
+  facetsInFlight.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
@@ -327,26 +383,72 @@ export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
   return data ? normalizeHospital(data, 'canonical') : null;
 }
 
-export async function getHospitalsBySlugs(slugs, { mode = 'canonical' } = {}) {
+const hospitalSlugsInFlight = new Map();
+const hospitalSlugsCache = new Map();
+const SLUGS_CACHE_TTL_MS = 5000;
+
+export function invalidateHospitalSlugsCache(slugs, { mode = 'canonical' } = {}) {
+  if (!slugs) {
+    hospitalSlugsCache.clear();
+    return;
+  }
+  const uniqueSlugs = [...new Set((slugs || []).filter(Boolean))].sort();
+  const cacheKey = JSON.stringify([mode, uniqueSlugs]);
+  hospitalSlugsCache.delete(cacheKey);
+}
+
+export async function getHospitalsBySlugs(slugs, { mode = 'canonical', bypassCache = false } = {}) {
   const uniqueSlugs = [...new Set((slugs || []).filter(Boolean))];
   if (uniqueSlugs.length === 0) return [];
   if (mode === 'demo') {
-    return uniqueSlugs
-      .map(slug => demoHospitals.find(item => item.slug === slug))
-      .filter(Boolean)
-      .map(normalizeDemoHospital);
+    const bySlugDemo = new Map(
+      demoHospitals
+        .filter(item => uniqueSlugs.includes(item.slug))
+        .map(normalizeDemoHospital)
+        .map(h => [h.slug, h])
+    );
+    return uniqueSlugs.map(slug => bySlugDemo.get(slug)).filter(Boolean);
   }
 
-  const execute = selectFields => supabase
-    .from('hospitals')
-    .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
-    .in('slug', uniqueSlugs)
-    .eq('publication_status', 'published');
-  let response = await execute(BASE_SELECT);
-  if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
-  const { data, error } = response;
-  if (error) throw error;
-  const bySlug = new Map((data || []).map(record => [record.slug, normalizeHospital(record, 'canonical')]));
+  const sortedSlugs = [...uniqueSlugs].sort();
+  const cacheKey = JSON.stringify([mode, sortedSlugs]);
+
+  if (bypassCache) {
+    hospitalSlugsCache.delete(cacheKey);
+  } else {
+    const cached = hospitalSlugsCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < SLUGS_CACHE_TTL_MS) {
+      return uniqueSlugs.map(slug => cached.bySlug.get(slug)).filter(Boolean);
+    }
+  }
+
+  let mapPromise;
+  if (!bypassCache && hospitalSlugsInFlight.has(cacheKey)) {
+    mapPromise = hospitalSlugsInFlight.get(cacheKey);
+  } else {
+    mapPromise = (async () => {
+      try {
+        const execute = selectFields => supabase
+          .from('hospitals')
+          .select(`${selectFields}, hospital_specialties(specialties(name)), hospital_facilities(facilities(name)), hospital_services_catalog(services(name))`)
+          .in('slug', uniqueSlugs)
+          .eq('publication_status', 'published');
+        let response = await execute(BASE_SELECT);
+        if (response.error && isMissingPlaceIdColumn(response.error)) response = await execute(LEGACY_BASE_SELECT);
+        const { data, error } = response;
+        if (error) throw error;
+        const bySlug = new Map((data || []).map(record => [record.slug, normalizeHospital(record, 'canonical')]));
+        hospitalSlugsCache.set(cacheKey, { bySlug, timestamp: Date.now() });
+        return bySlug;
+      } finally {
+        hospitalSlugsInFlight.delete(cacheKey);
+      }
+    })();
+
+    hospitalSlugsInFlight.set(cacheKey, mapPromise);
+  }
+
+  const bySlug = await mapPromise;
   return uniqueSlugs.map(slug => bySlug.get(slug)).filter(Boolean);
 }
 

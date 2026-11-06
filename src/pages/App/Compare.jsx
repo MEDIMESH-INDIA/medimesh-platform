@@ -41,7 +41,6 @@ import {
 import { formatHospitalType, formatReviewStatus } from '../../lib/utils/formatters';
 
 const EMPTY = { q: '', city: '', locality: '', specialty: '', facility: '' };
-const WAITING = { ...EMPTY, q: '__waiting_for_compare_search__' };
 const NEEDS = [
   [['cardiac', 'cardiology', 'heart'], 'Cardiology'],
   [['kidney', 'nephric', 'nephrology', 'renal', 'dialysis'], 'Nephrology'],
@@ -54,7 +53,23 @@ const NEEDS = [
   [['eye', 'vision', 'ophthalmology'], 'Ophthalmology'],
 ];
 
-const place = (hospital) => [hospital.location.locality, hospital.location.city, hospital.location.state].filter(Boolean).join(', ') || 'Unknown';
+const safeLower = (val) => (typeof val === 'string' && val.trim() ? val.trim().toLowerCase() : null);
+const matchesText = (target, query) => {
+  const normTarget = safeLower(target);
+  const normQuery = safeLower(query);
+  return Boolean(normTarget && normQuery && normTarget === normQuery);
+};
+
+const place = (hospital) => {
+  if (!hospital) return 'Unknown';
+  if (typeof hospital.location === 'string') return hospital.location.trim() || 'Unknown';
+  if (hospital.location && typeof hospital.location === 'object') {
+    const parts = [hospital.location.locality, hospital.location.city, hospital.location.state]
+      .filter((part) => typeof part === 'string' && part.trim());
+    return parts.join(', ') || 'Unknown';
+  }
+  return 'Unknown';
+};
 const known = (value) => (value === null || value === undefined || value === '' ? 'Unknown' : value);
 const available = (value) => (value === true ? 'Available' : value === false ? 'Unavailable' : 'Unknown');
 const date = (value) => {
@@ -112,7 +127,7 @@ export default function Compare() {
   const { user, authLoading } = useAuth();
   const { openAuthModal } = useAuthGate();
   const { compareList, addHospital, removeHospital, replaceHospital, clearComparison, isCompared, canAdd, setComparison } = useCompare();
-  const { hospitals, loading, error, isReady } = useCompareHospitals(compareList, { mode });
+  const { hospitals, loading, error, isReady, reload: reloadHospitals } = useCompareHospitals(compareList, { mode });
   const { facets, loading: facetsLoading } = useHospitalFacets({ mode });
   const [draft, setDraft] = useState(EMPTY);
   const [search, setSearch] = useState(null);
@@ -122,6 +137,8 @@ export default function Compare() {
   const [copyFeedback, setCopyFeedback] = useState({ status: 'idle', message: '', manualUrl: '' });
   const [isSelectedCollapsed, setIsSelectedCollapsed] = useState(false);
   const [showSearchPriorities, setShowSearchPriorities] = useState(false);
+  const [slugResolutionError, setSlugResolutionError] = useState(null);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   const compareParam = params.get('compare');
   const hasCompareParam = params.has('compare');
@@ -132,6 +149,18 @@ export default function Compare() {
     if (!hasCompareParam) return true;
     return urlSlugs.length === currentSlugs.length && urlSlugs.every((slug, i) => slug === currentSlugs[i]);
   }, [hasCompareParam, urlSlugs, currentSlugs]);
+
+  const isResolvingUrl = hasCompareParam && !isSyncedWithUrl && !slugResolutionError;
+  const activeError = error || slugResolutionError;
+
+  const handleRetry = useCallback(() => {
+    setSlugResolutionError(null);
+    if (!isSyncedWithUrl && hasCompareParam) {
+      setRetryTrigger((c) => c + 1);
+    } else {
+      reloadHospitals();
+    }
+  }, [hasCompareParam, isSyncedWithUrl, reloadHospitals]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -165,10 +194,13 @@ export default function Compare() {
 
     if (urlSlugs.length === 0) {
       setComparison([]);
+      setSlugResolutionError(null);
       return undefined;
     }
 
-    getHospitalsBySlugs(urlSlugs, { mode })
+    setSlugResolutionError(null);
+
+    getHospitalsBySlugs(urlSlugs, { mode, bypassCache: retryTrigger > 0 })
       .then((resolved) => {
         if (!active) return;
         const canonicalItems = (resolved || []).map((h) => ({ slug: h.slug, name: h.name }));
@@ -186,25 +218,37 @@ export default function Compare() {
         }
       })
       .catch((err) => {
+        if (!active) return;
         console.error('Failed to resolve comparison slugs:', err);
+        setSlugResolutionError(err);
       });
 
     return () => {
       active = false;
     };
-  }, [hasCompareParam, isSyncedWithUrl, mode, params, setComparison, setParams, urlSlugs]);
+  }, [hasCompareParam, isSyncedWithUrl, mode, params, setComparison, setParams, urlSlugs, retryTrigger]);
 
   // Gracefully prune any invalid or deleted hospital selections once loading resolves
   useEffect(() => {
-    if (!isReady || loading || error || compareList.length === 0) return;
+    if (!isReady || loading || activeError || compareList.length === 0) return;
     if (hospitals.length < compareList.length) {
       const validSlugs = new Set(hospitals.map((h) => h.slug));
       const pruned = compareList.filter((item) => validSlugs.has(item.slug));
       if (pruned.length !== compareList.length) {
         setComparison(pruned);
+        if (params.has('compare')) {
+          const next = new URLSearchParams(params);
+          const serialized = serializeComparisonSlugs(pruned);
+          if (serialized) {
+            next.set('compare', serialized);
+          } else {
+            next.delete('compare');
+          }
+          setParams(next, { replace: true });
+        }
       }
     }
-  }, [isReady, loading, error, hospitals, compareList, setComparison]);
+  }, [isReady, loading, activeError, hospitals, compareList, setComparison, params, setParams]);
 
   const updateUrlComparison = useCallback(
     (nextList, { replace = false } = {}) => {
@@ -300,10 +344,10 @@ export default function Compare() {
 
   const inferred = useMemo(() => inferNeed(search?.q, facets.specialties), [search?.q, facets.specialties]);
   const filters = useMemo(
-    () => (search ? { ...search, q: inferred ? '' : search.q, specialty: search.specialty || inferred?.specialty || '' } : WAITING),
+    () => (search ? { ...search, q: inferred ? '' : search.q, specialty: search.specialty || inferred?.specialty || '' } : EMPTY),
     [inferred, search]
   );
-  const discovery = useHospitalSearch({ mode, filters, pageSize: 9 });
+  const discovery = useHospitalSearch({ mode, filters, pageSize: 9, enabled: Boolean(search) });
   const selectedNeed = filters.specialty;
 
   useEffect(() => {
@@ -321,44 +365,48 @@ export default function Compare() {
 
   const rows = useMemo(() => {
     const list = [];
-    if (selectedNeed) {
+    const validNeed = safeLower(selectedNeed);
+    const searchLocality = safeLower(search?.locality);
+    const searchCity = safeLower(search?.city);
+
+    if (validNeed) {
       list.push({
         group: 'Your priorities',
         label: `${selectedNeed} listed`,
         priority: true,
-        get: (h) => (h.specialties.some((item) => item.toLowerCase() === selectedNeed.toLowerCase()) ? 'Available' : 'Unknown'),
+        get: (h) => (Array.isArray(h?.specialties) && h.specialties.some((item) => matchesText(item, validNeed)) ? 'Available' : 'Unknown'),
       });
     }
-    if (search?.locality) {
+    if (searchLocality) {
       list.push({
         group: 'Your priorities',
         label: `Located in ${search.locality}`,
         priority: true,
-        get: (h) => (h.location.locality?.toLowerCase() === search.locality.toLowerCase() ? 'Matches area' : 'Outside area'),
+        get: (h) => (matchesText(h?.location?.locality, searchLocality) ? 'Matches area' : 'Outside area'),
       });
-    } else if (search?.city) {
+    } else if (searchCity) {
       list.push({
         group: 'Your priorities',
         label: `Located in ${search.city}`,
         priority: true,
         get: (h) =>
-          [h.location.locality, h.location.city].some((item) => item?.toLowerCase() === search.city.toLowerCase())
+          (matchesText(h?.location?.locality, searchCity) || matchesText(h?.location?.city, searchCity))
             ? 'Matches area'
             : 'Outside area',
       });
     }
     list.push(
       { group: 'Overview', label: 'Location', priority: true, get: place },
-      { group: 'Overview', label: 'Hospital type', priority: true, get: (h) => formatHospitalType(h.type) },
-      { group: 'Care & services', label: 'Specialties', priority: Boolean(selectedNeed), get: (h) => (h.specialties.length ? h.specialties.join(', ') : 'Not listed') },
-      { group: 'Care & services', label: 'Facilities', get: (h) => (h.facilities.length ? h.facilities.join(', ') : 'Not listed') },
-      { group: 'Care & services', label: 'Emergency department', priority: true, get: (h) => available(h.metrics.emergency) },
-      { group: 'Care & services', label: 'Ambulance', get: (h) => available(h.metrics.ambulance) },
-      { group: 'Capacity', label: 'Total beds', get: (h) => known(h.metrics.totalBeds) },
-      { group: 'Capacity', label: 'ICU beds', priority: true, get: (h) => known(h.metrics.icuBeds) },
-      { group: 'Trust & freshness', label: 'Source', priority: true, get: (h) => known(h.provenance?.sourceName) },
-      { group: 'Trust & freshness', label: 'Review status', priority: true, get: (h) => formatReviewStatus(h.provenance?.reviewStatus) },
-      { group: 'Trust & freshness', label: 'Last checked', priority: true, get: (h) => date(h.provenance?.checkedAt) }
+      { group: 'Overview', label: 'Hospital type', priority: true, get: (h) => formatHospitalType(h?.type) },
+      { group: 'Care & services', label: 'Specialties', priority: Boolean(selectedNeed), get: (h) => (Array.isArray(h?.specialties) && h.specialties.length ? h.specialties.join(', ') : 'Not listed') },
+      { group: 'Care & services', label: 'Facilities', get: (h) => (Array.isArray(h?.facilities) && h.facilities.length ? h.facilities.join(', ') : 'Not listed') },
+      { group: 'Care & services', label: 'Emergency department', priority: true, get: (h) => available(h?.metrics?.emergency) },
+      { group: 'Care & services', label: 'Ambulance', get: (h) => available(h?.metrics?.ambulance) },
+      { group: 'Capacity', label: 'Total beds', get: (h) => known(h?.metrics?.totalBeds) },
+      { group: 'Capacity', label: 'ICU beds', priority: true, get: (h) => known(h?.metrics?.icuBeds) },
+      { group: 'Trust & freshness', label: 'Source', priority: true, get: (h) => known(h?.provenance?.sourceName) },
+      { group: 'Trust & freshness', label: 'Review status', priority: true, get: (h) => formatReviewStatus(h?.provenance?.reviewStatus) },
+      { group: 'Trust & freshness', label: 'Last checked', priority: true, get: (h) => date(h?.provenance?.checkedAt) }
     );
     return list.map((row) => {
       const values = hospitals.map(row.get);
@@ -464,23 +512,24 @@ export default function Compare() {
           </div>
 
           <div className="flex flex-col items-end gap-1 shrink-0">
-            {/* Comparison control (count / share action) */}
-            <Button
-              type="button"
-              variant="outline"
-              size="xs"
-              onClick={handleCopyLink}
-              disabled={compareList.length < 2}
-              className="h-8 px-2.5 rounded-lg border-border/80 text-[11px] font-bold gap-1.5 shadow-2xs"
-              aria-label={copyFeedback.status === 'success' ? 'Comparison link copied' : `Comparison options: ${compareList.length} of 3 selected`}
-            >
-              {copyFeedback.status === 'success' ? (
-                <Check className="h-3 w-3 text-emerald-600" />
-              ) : (
-                <GitCompare className="h-3 w-3 text-primary" />
-              )}
-              <span>{copyFeedback.status === 'success' ? 'Copied' : `${compareList.length}/3`}</span>
-            </Button>
+            {/* Comparison share action (matching desktop) */}
+            {compareList.length >= 2 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={handleCopyLink}
+                className="h-8 px-2.5 rounded-lg border-border/80 text-[11px] font-semibold gap-1.5 shadow-2xs"
+                aria-label="Copy comparison link"
+              >
+                {copyFeedback.status === 'success' ? (
+                  <Check className="h-3 w-3 text-emerald-600" />
+                ) : (
+                  <Link2 className="h-3 w-3" />
+                )}
+                <span>{copyFeedback.status === 'success' ? 'Link copied' : 'Share comparison'}</span>
+              </Button>
+            )}
 
             {/* Clear action directly beneath the comparison control */}
             {compareList.length > 0 && (
@@ -544,8 +593,27 @@ export default function Compare() {
             )}
           </div>
 
-          {/* When Empty */}
-          {!compareList.length && (
+          {/* When Resolving URL Slugs without existing items */}
+          {isResolvingUrl && !compareList.length ? (
+            <div className="grid grid-cols-3 gap-2">
+              {(urlSlugs.length ? urlSlugs : ['slot-1', 'slot-2']).map((slugKey, index) => (
+                <div
+                  key={`resolving-slot-${slugKey}-${index}`}
+                  className="rounded-xl border border-primary/20 bg-white/70 p-2 shadow-xs flex flex-col justify-between min-h-[92px] min-w-0 animate-pulse"
+                >
+                  <div>
+                    <span className="inline-block rounded bg-primary/10 px-1 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary">
+                      H{index + 1}
+                    </span>
+                    <div className="h-3 w-3/4 bg-muted/60 rounded mt-1.5" />
+                  </div>
+                  <div className="mt-1 pt-1 border-t border-border/50 flex items-center justify-between text-[9px]">
+                    <div className="h-2 w-1/2 bg-muted/40 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : !compareList.length ? (
             <div className="rounded-2xl border border-dashed border-border/80 bg-white/70 p-5 text-center">
               <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                 <GitCompare className="h-5 w-5" />
@@ -566,11 +634,18 @@ export default function Compare() {
                 <Plus className="h-3.5 w-3.5" /> Browse hospital directory
               </Button>
             </div>
-          )}
+          ) : null}
 
           {/* When Hospitals Selected - 3 Aligned Cards (matching sketch) */}
           {compareList.length > 0 && !isSelectedCollapsed && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="space-y-2">
+              {activeError && (
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 text-[11px] font-semibold text-amber-800 flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                  <span>Displaying cached selection. The requested comparison could not be updated.</span>
+                </div>
+              )}
+              <div className="grid grid-cols-3 gap-2">
               {loading && hospitals.length === 0 ? (
                 compareList.map((item, index) => (
                   <div
@@ -619,7 +694,7 @@ export default function Compare() {
                     <div className="mt-1 pt-1 border-t border-border/50 flex items-center justify-between text-[9px] text-muted-foreground">
                       <span className="truncate flex items-center gap-0.5">
                         <MapPin className="h-2.5 w-2.5 shrink-0 text-primary/70" />
-                        <span className="truncate">{hospital.location?.locality || hospital.location?.city || 'Location not provided'}</span>
+                        <span className="truncate">{hospital?.location?.locality || hospital?.location?.city || (typeof hospital?.location === 'string' ? hospital.location : 'Location not provided')}</span>
                       </span>
                     </div>
                   </div>
@@ -643,6 +718,7 @@ export default function Compare() {
                   </span>
                 </button>
               ))}
+              </div>
             </div>
           )}
         </section>
@@ -675,7 +751,7 @@ export default function Compare() {
           </button>
 
           {showSearchPriorities && (
-            <div className="rounded-2xl border border-border/80 bg-white/95 p-3.5 shadow-xs space-y-3">
+            <div className="rounded-2xl border border-border/80 bg-white/95 p-3.5 shadow-xs space-y-3 relative z-30">
               <form onSubmit={runSearch} className="space-y-2.5">
                 <HospitalSearchAutocomplete
                   value={draft.q}
@@ -747,11 +823,34 @@ export default function Compare() {
         </section>
 
         {/* 4. Main Comparison Matrix (Section 5, 6, 7 of prompt) */}
-        {loading && compareList.length > 0 && (
+        {activeError ? (
+          <div className="rounded-2xl border border-coral/25 bg-coral/[.06] p-4 text-xs text-[#8E463F] space-y-2.5">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-semibold">We couldn’t load this comparison</strong>
+                <p className="mt-0.5 text-[11px] text-[#8E463F]/90">
+                  The hospital catalog could not be reached or the shared comparison link could not be resolved.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-0.5 pl-6">
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={handleRetry}
+                className="text-xs font-semibold bg-white"
+              >
+                Retry loading
+              </Button>
+            </div>
+          </div>
+        ) : ((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) ? (
           <div className="h-64 animate-pulse rounded-2xl bg-surface-elevated" />
-        )}
+        ) : null}
 
-        {!loading && !error && hospitals.length >= 2 && isSyncedWithUrl && (
+        {!loading && !activeError && hospitals.length >= 2 && isSyncedWithUrl && (
           <section aria-label="Hospital comparison matrix" className="space-y-3 pt-1">
             {/* Comparison Matrix Controls */}
             <div className="flex items-center justify-between gap-2">
@@ -864,7 +963,7 @@ export default function Compare() {
           </section>
         )}
 
-        {compareList.length === 1 && !loading && (
+        {compareList.length === 1 && !loading && !activeError && !isResolvingUrl && (
           <div className="rounded-2xl border border-dashed border-border/80 bg-white/70 p-5 text-center">
             <p className="font-semibold text-foreground text-xs">You have selected 1 hospital</p>
             <p className="text-[11px] text-muted-foreground mt-1">
@@ -985,7 +1084,23 @@ export default function Compare() {
             )}
           </div>
 
-          {!compareList.length ? (
+          {/* When Resolving URL Slugs without existing items */}
+          {isResolvingUrl && !compareList.length ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(urlSlugs.length ? urlSlugs : ['slot-1', 'slot-2']).map((slugKey) => (
+                <FrostedPanel
+                  key={`desktop-resolving-${slugKey}`}
+                  className="relative rounded-2xl p-5 flex flex-col justify-between border-border/80 bg-white/80 shadow-xs animate-pulse min-h-[160px]"
+                >
+                  <div>
+                    <div className="h-4 w-12 bg-muted/60 rounded mb-2" />
+                    <div className="h-5 w-3/4 bg-muted/60 rounded mb-2" />
+                    <div className="h-3 w-1/2 bg-muted/40 rounded" />
+                  </div>
+                </FrostedPanel>
+              ))}
+            </div>
+          ) : !compareList.length ? (
             <FrostedPanel className="rounded-[22px] p-8 text-center border-dashed border-border/80">
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-lavender/15 text-[#675890]">
                 <GitCompare className="h-6 w-6" />
@@ -1005,7 +1120,14 @@ export default function Compare() {
               </Button>
             </FrostedPanel>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-3">
+              {activeError && (
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-2 text-xs font-semibold text-amber-800 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+                  <span>Displaying cached selection. The requested comparison could not be updated.</span>
+                </div>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {loading && hospitals.length === 0 ? (
                 compareList.map((item) => (
                   <FrostedPanel
@@ -1069,13 +1191,13 @@ export default function Compare() {
                         <span className="truncate">{place(hospital)}</span>
                       </p>
 
-                      {hospital.specialties && hospital.specialties.length > 0 && (
+                      {Array.isArray(hospital?.specialties) && hospital.specialties.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-1">
                           {hospital.specialties.slice(0, 3).map((spec) => (
                             <span
                               key={spec}
                               className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                spec.toLowerCase() === selectedNeed?.toLowerCase()
+                                typeof spec === 'string' && spec.toLowerCase() === selectedNeed?.toLowerCase()
                                   ? 'bg-primary/10 text-primary font-bold'
                                   : 'bg-muted/50 text-muted-foreground'
                               }`}
@@ -1122,13 +1244,14 @@ export default function Compare() {
                   <span className="text-xs text-muted-foreground mt-0.5">Compare up to 3 options</span>
                 </button>
               ))}
+              </div>
             </div>
           )}
         </section>
 
         {/* 3. Search and Priority Filters */}
-        <FrostedPanel variant="elevated" className="overflow-hidden rounded-[22px]">
-          <div className="border-b border-border bg-gradient-to-r from-primary/[0.05] via-white/40 to-lavender/[0.08] p-5 sm:p-7">
+        <FrostedPanel variant="elevated" className="rounded-[22px] relative z-30">
+          <div className={`border-border bg-gradient-to-r from-primary/[0.05] via-white/40 to-lavender/[0.08] p-5 sm:p-7 rounded-t-[22px] ${search ? 'border-b' : 'rounded-b-[22px]'}`}>
             <div className="mb-5 flex gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white">
                 <Search className="h-5 w-5" />
@@ -1144,7 +1267,7 @@ export default function Compare() {
             </div>
 
             <form onSubmit={runSearch} className="grid gap-3 lg:grid-cols-[1.2fr_.75fr_.75fr_.75fr_auto]">
-              <div className="relative">
+              <div className="relative z-30">
                 <HospitalSearchAutocomplete
                   value={draft.q}
                   onChange={(val) => setDraft((v) => ({ ...v, q: val }))}
@@ -1347,13 +1470,34 @@ export default function Compare() {
         </FrostedPanel>
 
         {/* 4. Side-by-Side Evaluation & Card-Based Comparison Matrix */}
-        {((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) && (
+        {activeError ? (
+          <div className="rounded-2xl border border-coral/25 bg-coral/[.06] p-6 text-sm text-[#8E463F] space-y-3">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-semibold text-base">We couldn’t load this comparison</strong>
+                <p className="mt-1 text-xs sm:text-sm text-[#8E463F]/90">
+                  The hospital catalog could not be reached or the shared comparison link could not be resolved.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1 pl-8">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRetry}
+                className="text-xs font-semibold bg-white hover:bg-coral/[.08]"
+              >
+                Retry loading
+              </Button>
+            </div>
+          </div>
+        ) : ((hasCompareParam && !isSyncedWithUrl) || (loading && compareList.length > 0)) ? (
           <div className="h-96 animate-pulse rounded-[22px] bg-surface-elevated" />
-        )}
+        ) : null}
 
-        {error && <Notice title="We couldn’t load this comparison">The hospital catalog could not be reached.</Notice>}
-
-        {!loading && !error && hospitals.length >= 2 && isSyncedWithUrl && (
+        {!loading && !activeError && hospitals.length >= 2 && isSyncedWithUrl && (
           <section aria-label="Hospital comparison matrix" className="space-y-6">
             {/* Matrix Control Bar */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-border/60 pb-3">
@@ -1458,7 +1602,7 @@ export default function Compare() {
                         {h.name}
                       </p>
                       <p className="text-[10px] text-muted-foreground truncate">
-                        {h.location?.locality || h.location?.city || 'Location listed'}
+                        {h?.location?.locality || h?.location?.city || (typeof h?.location === 'string' ? h.location : 'Location listed')}
                       </p>
                     </div>
                   </div>
@@ -1566,7 +1710,7 @@ export default function Compare() {
           </section>
         )}
 
-        {compareList.length === 1 && !loading && (
+        {compareList.length === 1 && !loading && !activeError && !isResolvingUrl && (
           <FrostedPanel className="rounded-2xl p-6 text-center border-dashed border-border/80">
             <p className="font-semibold text-foreground text-sm">You have selected 1 hospital</p>
             <p className="text-xs text-muted-foreground mt-1">

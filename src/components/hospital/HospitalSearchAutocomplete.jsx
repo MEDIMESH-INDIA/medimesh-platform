@@ -4,6 +4,8 @@ import { Search, X, MapPin, Building2, Sparkles, AlertCircle, Loader2 } from 'lu
 import { getHospitalSuggestions } from '../../lib/data/hospitalRepository';
 import { cn } from '../../utils/cn';
 
+const DEFAULT_FILTERS = {};
+
 export default function HospitalSearchAutocomplete({
   value = '',
   onChange,
@@ -11,7 +13,7 @@ export default function HospitalSearchAutocomplete({
   onSubmit,
   placeholder = 'Search by hospital name, specialty, or locality...',
   mode = 'canonical',
-  filters = {},
+  filters = DEFAULT_FILTERS,
   className = '',
   autoNavigate = false,
   basePath = '',
