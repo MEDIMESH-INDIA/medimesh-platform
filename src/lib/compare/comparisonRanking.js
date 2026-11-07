@@ -90,7 +90,13 @@ export function evaluateHospitalParamRank(row, hospitals, hospitalIndex) {
     return { rank: COMPARISON_RANKS.NEUTRAL, indicator: null, displayValue: 'Unknown' };
   }
 
-  const rawValues = hospitals.map((h) => (row.get ? row.get(h) : (row.values ? row.values[hospitals.indexOf(h)] : 'Unknown')));
+  const rawValues = hospitals.map((h) => {
+    try {
+      return row.get ? row.get(h) : (row.values ? row.values[hospitals.indexOf(h)] : 'Unknown');
+    } catch {
+      return 'Unknown';
+    }
+  });
   const currentVal = rawValues[hospitalIndex];
   const label = (row.label || '').toLowerCase();
 

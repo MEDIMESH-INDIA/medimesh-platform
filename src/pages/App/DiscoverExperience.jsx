@@ -18,7 +18,7 @@ import { formatHospitalType } from '../../lib/utils/formatters';
 import { AnimatePresence, motion } from 'framer-motion';
 import Toast from '../../components/common/Toast';
 
-export default function DiscoverExperience({ mode = 'canonical' }) {
+export default function DiscoverExperience({ mode = 'canonical', stickyTop = 'lg:top-24 lg:max-h-[calc(100vh-7.5rem)]' }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { savedSlugs, toggleSave } = useSavedHospitals();
@@ -146,7 +146,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
   return (
     <AppPageContainer className={`discovery-page ${isComparing ? 'pb-24 sm:pb-28' : ''}`}>
       {/* Search Introduction */}
-      <div className="discovery-header mb-6">
+      <div className="discovery-header mb-6 relative z-20">
         <SectionEyebrow className="mb-2">Healthcare Directory</SectionEyebrow>
         <h1 className="text-3xl md:text-4xl lg:text-[40px] leading-tight font-serif font-bold text-foreground mb-2.5 text-left">
           Explore Hospitals & Medical Centers
@@ -205,9 +205,14 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 xl:gap-7 items-start relative">
+      <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 xl:gap-7 items-start relative w-full">
         {/* Sidebar Filters */}
-        <FilterPanel open={isMobileFiltersOpen} onClose={() => setIsMobileFiltersOpen(false)} label="Hospital directory filters">
+        <FilterPanel
+          open={isMobileFiltersOpen}
+          onClose={() => setIsMobileFiltersOpen(false)}
+          label="Hospital directory filters"
+          stickyTop={stickyTop}
+        >
           <div className="flex items-center justify-between lg:hidden mb-4 shrink-0 pb-3 border-b border-border/60">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-foreground">Filters</h2>
@@ -281,6 +286,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
                 options={facets.facilities}
                 value={filters.facility}
                 onChange={(val) => updateFilter('facility', val)}
+                defaultOpen={true}
               />
             </div>
 
@@ -308,7 +314,7 @@ export default function DiscoverExperience({ mode = 'canonical' }) {
 
         {/* Main Content Area */}
         <section
-          className={`discovery-results flex-1 min-w-0 w-full flex flex-col ${isComparing ? 'mb-20 sm:mb-24' : 'mb-6'}`}
+          className={`discovery-results flex-1 min-w-0 w-full flex flex-col ${isComparing ? 'pb-24 sm:pb-28' : 'pb-6'} mb-6`}
           aria-labelledby="hospital-results-heading"
         >
           {/* Results Toolbar */}

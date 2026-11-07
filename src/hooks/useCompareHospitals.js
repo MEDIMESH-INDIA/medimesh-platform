@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getHospitalsBySlugs } from '../lib/data/hospitalRepository';
 
 export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
@@ -8,6 +8,11 @@ export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
   const [loading, setLoading] = useState(Boolean(slugs.length));
   const [error, setError] = useState(null);
   const [fetchedKey, setFetchedKey] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  const reload = useCallback(() => {
+    setReloadToken(prev => prev + 1);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -20,7 +25,7 @@ export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
     }
     setLoading(true);
     setError(null);
-    getHospitalsBySlugs(key.split('|'), { mode })
+    getHospitalsBySlugs(key.split('|'), { mode, bypassCache: reloadToken > 0 })
       .then(data => {
         if (active) {
           setHospitals(data || []);
@@ -38,7 +43,7 @@ export function useCompareHospitals(compareList, { mode = 'canonical' } = {}) {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, [key, mode]);
+  }, [key, mode, reloadToken]);
 
-  return { hospitals, loading, error, isReady: fetchedKey === key && !loading };
+  return { hospitals, loading, error, isReady: fetchedKey === key && !loading, reload };
 }

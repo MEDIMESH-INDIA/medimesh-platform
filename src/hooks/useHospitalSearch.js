@@ -1,45 +1,68 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { searchHospitals } from '../lib/data/hospitalRepository';
+import { searchHospitals } from '../lib/data/hospitalRepository.js';
 
-export function useHospitalSearch({ mode = 'canonical', filters = {}, sort = 'name_asc', pageSize = 12 }) {
+export function useHospitalSearch({
+  mode = 'canonical',
+  filters = {},
+  sort = 'name_asc',
+  pageSize = 12,
+  enabled = true,
+}) {
   const { q = '', city = '', locality = '', type = '', specialty = '', facility = '' } = filters;
   const [hospitals, setHospitals] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(enabled));
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [totalCount, setTotalCount] = useState(null);
   const requestRef = useRef(0);
 
   const fetchResults = useCallback(async (offset = 0, append = false) => {
+    if (!enabled) return;
     const requestId = ++requestRef.current;
     try {
       setLoading(true);
       setError(null);
-      const result = await searchHospitals({ mode, filters: { q, city, locality, type, specialty, facility }, sort, offset, pageSize });
-      if (requestId !== requestRef.current) return;
+      const result = await searchHospitals({
+        mode,
+        filters: { q, city, locality, type, specialty, facility },
+        sort,
+        offset,
+        pageSize,
+      });
+      if (!enabled || requestId !== requestRef.current) return;
       setHospitals(previous => append ? [...previous, ...result.hospitals] : result.hospitals);
       setTotalCount(result.totalCount);
       setHasMore(result.hasMore);
     } catch (nextError) {
-      if (requestId !== requestRef.current) return;
+      if (!enabled || requestId !== requestRef.current) return;
       console.error('Error in useHospitalSearch:', nextError);
       setError(nextError);
       if (!append) setHospitals([]);
     } finally {
-      if (requestId === requestRef.current) setLoading(false);
+      if (enabled && requestId === requestRef.current) setLoading(false);
     }
-  }, [mode, q, city, locality, type, specialty, facility, sort, pageSize]);
+  }, [enabled, mode, q, city, locality, type, specialty, facility, sort, pageSize]);
 
   useEffect(() => {
+    if (!enabled) {
+      requestRef.current += 1;
+      setHospitals([]);
+      setTotalCount(null);
+      setHasMore(false);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setHospitals([]);
     setTotalCount(null);
     void fetchResults(0, false);
     return () => { requestRef.current += 1; };
-  }, [fetchResults]);
+  }, [enabled, fetchResults]);
 
   const loadMore = useCallback(() => {
-    if (!loading && hasMore) void fetchResults(hospitals.length, true);
-  }, [fetchResults, hasMore, hospitals.length, loading]);
+    if (enabled && !loading && hasMore) void fetchResults(hospitals.length, true);
+  }, [enabled, fetchResults, hasMore, hospitals.length, loading]);
 
   return { hospitals, loading, error, hasMore, totalCount, loadMore };
 }

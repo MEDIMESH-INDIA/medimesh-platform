@@ -4,7 +4,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { lockScroll, unlockScroll } from '../../lib/ui/scrollLock';
 
 // A viewport-level drawer avoids clipping inside animated page containers.
-export default function FilterPanel({ open, onClose, label, children }) {
+export default function FilterPanel({ open, onClose, label, children, stickyTop }) {
   const desktop = useMediaQuery('(min-width: 1024px)');
   const panel = useRef(null);
   const close = useRef(onClose);
@@ -35,8 +35,22 @@ export default function FilterPanel({ open, onClose, label, children }) {
   }, [open, desktop]);
 
   if (desktop) {
+    if (stickyTop) {
+      return (
+        <aside
+          className={`discovery-filters w-[235px] xl:w-[245px] shrink-0 lg:sticky ${stickyTop} lg:self-start lg:overflow-y-auto lg:overscroll-contain custom-scrollbar`}
+          aria-label={label}
+        >
+          {children}
+        </aside>
+      );
+    }
+
     return (
-      <aside className="discovery-filters w-[235px] xl:w-[245px] shrink-0 sticky top-24 self-start" aria-label={label}>
+      <aside
+        className="discovery-filters w-[235px] xl:w-[245px] shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7.5rem)] lg:overflow-y-auto lg:overscroll-contain custom-scrollbar"
+        aria-label={label}
+      >
         {children}
       </aside>
     );
