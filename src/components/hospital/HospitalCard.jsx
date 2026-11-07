@@ -49,7 +49,7 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
 
   return (
     <div
-      className={`rounded-3xl p-5 sm:p-6 transition-all duration-200 flex flex-col h-full min-w-0 border bg-white ${
+      className={`rounded-2xl p-4 sm:p-5 transition-all duration-200 flex flex-col h-full min-w-0 border bg-white ${
         compared
           ? 'border-primary ring-2 ring-primary/20 shadow-card-hover'
           : 'border-border/80 hover:border-primary/40 hover:shadow-card-hover hover:-translate-y-0.5'
@@ -57,8 +57,8 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
     >
       {/* Top Row: Hospital Icon Badge and Save / Favorite Button */}
       <div className="flex items-center justify-between gap-3">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#E6F4F1] flex items-center justify-center shrink-0">
-          <Hospital className="w-8 h-8 sm:w-9 sm:h-9 text-primary" />
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#E6F4F1] flex items-center justify-center shrink-0">
+          <Hospital className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-primary" />
         </div>
 
         <button
@@ -66,13 +66,13 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
           onClick={onSave}
           className={`shrink-0 ${
             showSaveLabel
-              ? 'flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-2xl'
-              : 'w-11 h-11 sm:w-12 sm:h-12 rounded-2xl'
+              ? 'flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl'
+              : 'w-9 h-9 sm:w-10 sm:h-10 rounded-xl'
           } border border-border/80 bg-white flex items-center justify-center hover:bg-surface-elevated transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-95`}
           title={isSaved ? 'Saved to your profile' : 'Save hospital'}
           aria-label={isSaved ? 'Remove from saved hospitals' : 'Save hospital'}
         >
-          <Heart className={`w-5 h-5 ${isSaved ? 'text-primary fill-current' : 'text-foreground/80'}`} />
+          <Heart className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${isSaved ? 'text-primary fill-current' : 'text-foreground/80'}`} />
           {showSaveLabel && <span>{isSaved ? 'Saved' : 'Save'}</span>}
         </button>
       </div>
@@ -80,60 +80,57 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
       {/* Hospital Name */}
       <Link
         to={`${basePath}/hospitals/${slug}`}
-        className="group/link block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm mt-4 mb-2"
+        className="group/link block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-sm mt-2.5 mb-1"
       >
-        <h3 className="text-xl sm:text-2xl font-serif font-bold text-foreground leading-snug group-hover/link:text-primary transition-colors line-clamp-2">
+        <h3 className="text-lg sm:text-xl font-serif font-bold text-foreground leading-snug group-hover/link:text-primary transition-colors line-clamp-2">
           {name}
         </h3>
       </Link>
 
       {/* Location */}
-      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-1">
-        <MapPin className="w-4 h-4 shrink-0 text-muted-foreground/80" />
-        <span className="truncate">{locString}</span>
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5 min-w-0">
+        <MapPin className="w-3.5 h-3.5 shrink-0 text-muted-foreground/80" />
+        <span className="truncate" title={locString}>{locString}</span>
       </div>
 
       {/* Specialties */}
-      <div className="mb-2">
-        {safeSpecialties.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {safeSpecialties.slice(0, 3).map((s) => (
-              <span
-                key={s}
-                className="px-2.5 py-0.5 text-xs font-medium bg-surface-elevated/80 text-foreground rounded-md border border-border/60 whitespace-nowrap"
-              >
-                {s}
-              </span>
-            ))}
-            {safeSpecialties.length > 3 && (
-              <span className="px-2 py-0.5 text-[11px] font-semibold bg-surface-elevated/40 text-muted-foreground rounded-md border border-border/40 whitespace-nowrap">
-                +{safeSpecialties.length - 3} more
-              </span>
-            )}
-          </div>
-        ) : (
-          <div className="italic text-xs sm:text-sm text-muted-foreground/80">Specialties not specified in directory</div>
-        )}
-      </div>
+      {safeSpecialties.length > 0 && (
+        <div className="mb-1.5 flex flex-wrap gap-1 min-w-0">
+          {safeSpecialties.slice(0, 3).map((s) => (
+            <span
+              key={s}
+              className="px-2 py-0.5 text-[11px] font-medium bg-surface-elevated/80 text-foreground rounded-md border border-border/60 whitespace-nowrap"
+            >
+              {s}
+            </span>
+          ))}
+          {safeSpecialties.length > 3 && (
+            <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-surface-elevated/40 text-muted-foreground rounded-md border border-border/40 whitespace-nowrap">
+              +{safeSpecialties.length - 3} more
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Hospital Type Pill */}
       {type && (
-        <div className="mb-4">
-          <span className="inline-block px-3 py-1 rounded-lg text-xs font-semibold bg-[#F5EFE6] text-[#4F4A43] border border-border/40">
+        <div className="mb-2.5">
+          <span className="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-[#F5EFE6] text-[#4F4A43] border border-border/40">
             {formatHospitalType(type)}
           </span>
         </div>
       )}
 
       {/* 2x2 Facilities Grid */}
-      <div className="rounded-2xl bg-[#EEF7F4]/90 border border-[#D5EAE2] grid grid-cols-2 mb-4 overflow-hidden">
+      <div className="rounded-xl bg-[#EEF7F4]/90 border border-[#D5EAE2] grid grid-cols-2 mb-2.5 sm:mb-3 overflow-hidden">
         {/* Emergency */}
-        <div className="p-3 sm:p-3.5 border-r border-b border-[#D5EAE2] flex items-center gap-2.5 min-w-0">
-          <Siren className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-          <div className="min-w-0">
-            <div className="text-[11px] sm:text-xs text-muted-foreground font-medium">Emergency</div>
+        <div className="p-2 sm:p-2.5 border-r border-b border-[#D5EAE2] flex items-center gap-2 min-w-0">
+          <Siren className="w-4 h-4 text-primary shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium truncate">Emergency</div>
             <div
-              className={`text-xs sm:text-sm truncate ${
+              title={formatMetricValue('Emergency', metrics?.emergency)}
+              className={`text-[11px] sm:text-xs truncate ${
                 metrics?.emergency === true
                   ? 'text-primary font-bold'
                   : metrics?.emergency === false
@@ -147,12 +144,13 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
         </div>
 
         {/* ICU Beds */}
-        <div className="p-3 sm:p-3.5 border-b border-[#D5EAE2] flex items-center gap-2.5 min-w-0">
-          <Bed className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-          <div className="min-w-0">
-            <div className="text-[11px] sm:text-xs text-muted-foreground font-medium">ICU Beds</div>
+        <div className="p-2 sm:p-2.5 border-b border-[#D5EAE2] flex items-center gap-2 min-w-0">
+          <Bed className="w-4 h-4 text-primary shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium truncate">ICU Beds</div>
             <div
-              className={`text-xs sm:text-sm truncate ${
+              title={formatMetricValue('ICU Beds', metrics?.icuBeds)}
+              className={`text-[11px] sm:text-xs truncate ${
                 typeof metrics?.icuBeds === 'number' && metrics.icuBeds > 0
                   ? 'text-foreground font-bold'
                   : 'text-muted-foreground/80 font-normal'
@@ -164,12 +162,13 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
         </div>
 
         {/* Ambulance */}
-        <div className="p-3 sm:p-3.5 border-r border-[#D5EAE2] flex items-center gap-2.5 min-w-0">
-          <Ambulance className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-          <div className="min-w-0">
-            <div className="text-[11px] sm:text-xs text-muted-foreground font-medium">Ambulance</div>
+        <div className="p-2 sm:p-2.5 border-r border-[#D5EAE2] flex items-center gap-2 min-w-0">
+          <Ambulance className="w-4 h-4 text-primary shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium truncate">Ambulance</div>
             <div
-              className={`text-xs sm:text-sm truncate ${
+              title={formatMetricValue('Ambulance', metrics?.ambulance)}
+              className={`text-[11px] sm:text-xs truncate ${
                 metrics?.ambulance === true
                   ? 'text-primary font-bold'
                   : metrics?.ambulance === false
@@ -183,14 +182,15 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
         </div>
 
         {/* Total Beds */}
-        <div className="p-3 sm:p-3.5 flex items-center gap-2.5 min-w-0">
-          <BedDouble className="w-5 h-5 sm:w-6 sm:h-6 text-primary shrink-0" />
-          <div className="min-w-0">
-            <div className="text-[11px] sm:text-xs text-muted-foreground font-medium">Total Beds</div>
+        <div className="p-2 sm:p-2.5 flex items-center gap-2 min-w-0">
+          <BedDouble className="w-4 h-4 text-primary shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium truncate">Total Beds</div>
             <div
-              className={`text-xs sm:text-sm truncate ${
+              title={formatMetricValue('Total Beds', metrics?.totalBeds)}
+              className={`text-[11px] sm:text-xs truncate ${
                 typeof metrics?.totalBeds === 'number' && metrics.totalBeds > 0
-                  ? 'text-foreground font-bold text-sm sm:text-base'
+                  ? 'text-foreground font-bold'
                   : 'text-muted-foreground/80 font-normal'
               }`}
             >
@@ -201,16 +201,20 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
       </div>
 
       {/* Provenance & Verification Metadata */}
-      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-4 mt-auto">
-        <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
-        <span className="truncate">
-          {provenance?.reviewStatus === 'verified' ? 'Verified directory record' : 'Public directory record'}
-          {provenance?.sourceName ? ` • ${provenance.sourceName}` : ''}
-        </span>
-      </div>
+      {(() => {
+        const provText = `${provenance?.reviewStatus === 'verified' ? 'Verified directory record' : 'Public directory record'}${provenance?.sourceName ? ` • ${provenance.sourceName}` : ''}`;
+        return (
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground mb-2.5 mt-auto min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            <span className="truncate" title={provText}>
+              {provText}
+            </span>
+          </div>
+        );
+      })()}
 
       {/* Footer Action Buttons */}
-      <div className="flex items-center gap-3 pt-1 mt-auto">
+      <div className="flex items-center gap-2.5 pt-1 mt-auto">
         <button
           type="button"
           onClick={(e) => {
@@ -228,7 +232,7 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
           }}
           disabled={!compared && !canAdd}
           title={!compared && !canAdd ? 'You can compare up to 3 hospitals at once' : ''}
-          className={`flex-1 h-11 sm:h-12 px-3 sm:px-4 rounded-xl border border-border/80 flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold transition active:scale-95 ${
+          className={`flex-1 h-9 sm:h-10 px-3 rounded-xl border border-border/80 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold transition active:scale-95 ${
             compared
               ? 'bg-primary/10 text-primary border-primary/30'
               : 'bg-white hover:bg-surface-elevated text-foreground'
@@ -244,7 +248,7 @@ export default function HospitalCard({ hospital = {}, isSaved, onSave, showSaveL
 
         <Link
           to={`${basePath}/hospitals/${slug}`}
-          className="flex-1 h-11 sm:h-12 px-3 sm:px-4 bg-primary hover:bg-primary-hover text-white rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold shadow-sm transition active:scale-95 shrink-0"
+          className="flex-1 h-9 sm:h-10 px-3 bg-primary hover:bg-primary-hover text-white rounded-xl flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold shadow-sm transition active:scale-95 shrink-0"
         >
           <span>View details</span>
           <ArrowRight className="w-4 h-4 shrink-0" />

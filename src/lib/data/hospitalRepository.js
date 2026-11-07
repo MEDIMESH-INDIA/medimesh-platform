@@ -386,15 +386,91 @@ export async function getHospitalBySlug(slug, { mode = 'canonical' } = {}) {
 const hospitalSlugsInFlight = new Map();
 const hospitalSlugsCache = new Map();
 const SLUGS_CACHE_TTL_MS = 5000;
+export const MAX_SLUGS_CACHE_SIZE = 50;
+
+let hospitalSlugsCacheGeneration = 0;
+const hospitalSlugsKeyGeneration = new Map();
+
+function pruneExpiredSlugsCache(now = Date.now()) {
+  for (const [key, entry] of hospitalSlugsCache.entries()) {
+    if (!entry || now - entry.timestamp >= SLUGS_CACHE_TTL_MS) {
+      hospitalSlugsCache.delete(key);
+    }
+  }
+}
+
+function setBoundedSlugsCache(key, value, now = Date.now()) {
+  pruneExpiredSlugsCache(now);
+  if (hospitalSlugsCache.has(key)) {
+    hospitalSlugsCache.delete(key);
+  } else if (hospitalSlugsCache.size >= MAX_SLUGS_CACHE_SIZE) {
+    while (hospitalSlugsCache.size >= MAX_SLUGS_CACHE_SIZE) {
+      const oldestKey = hospitalSlugsCache.keys().next().value;
+      if (oldestKey === undefined) break;
+      hospitalSlugsCache.delete(oldestKey);
+    }
+  }
+  hospitalSlugsCache.set(key, value);
+}
+
+function getFromSlugsCache(key, now = Date.now()) {
+  const cached = hospitalSlugsCache.get(key);
+  if (!cached) return null;
+  if (now - cached.timestamp >= SLUGS_CACHE_TTL_MS) {
+    hospitalSlugsCache.delete(key);
+    return null;
+  }
+  return cached;
+}
 
 export function invalidateHospitalSlugsCache(slugs, { mode = 'canonical' } = {}) {
   if (!slugs) {
     hospitalSlugsCache.clear();
+    hospitalSlugsInFlight.clear();
+    hospitalSlugsCacheGeneration += 1;
+    hospitalSlugsKeyGeneration.clear();
     return;
   }
-  const uniqueSlugs = [...new Set((slugs || []).filter(Boolean))].sort();
+  const slugList = Array.isArray(slugs) ? slugs : [slugs];
+  const uniqueSlugs = [...new Set(slugList.filter(Boolean))].sort();
   const cacheKey = JSON.stringify([mode, uniqueSlugs]);
+  const slugSet = new Set(uniqueSlugs);
+
   hospitalSlugsCache.delete(cacheKey);
+  hospitalSlugsInFlight.delete(cacheKey);
+  hospitalSlugsKeyGeneration.set(cacheKey, (hospitalSlugsKeyGeneration.get(cacheKey) || 0) + 1);
+
+  // Invalidate any compound cached combinations containing any of the invalidated slugs
+  for (const k of hospitalSlugsCache.keys()) {
+    try {
+      const [kMode, kSlugs] = JSON.parse(k);
+      if (kMode === mode && Array.isArray(kSlugs) && kSlugs.some(s => slugSet.has(s))) {
+        hospitalSlugsCache.delete(k);
+        hospitalSlugsKeyGeneration.set(k, (hospitalSlugsKeyGeneration.get(k) || 0) + 1);
+      }
+    } catch {
+      // ignore non-json keys if any
+    }
+  }
+  for (const k of hospitalSlugsInFlight.keys()) {
+    try {
+      const [kMode, kSlugs] = JSON.parse(k);
+      if (kMode === mode && Array.isArray(kSlugs) && kSlugs.some(s => slugSet.has(s))) {
+        hospitalSlugsInFlight.delete(k);
+        hospitalSlugsKeyGeneration.set(k, (hospitalSlugsKeyGeneration.get(k) || 0) + 1);
+      }
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export function _getHospitalSlugsCacheStateForTesting() {
+  return {
+    cacheSize: hospitalSlugsCache.size,
+    inFlightSize: hospitalSlugsInFlight.size,
+    generation: hospitalSlugsCacheGeneration,
+  };
 }
 
 export async function getHospitalsBySlugs(slugs, { mode = 'canonical', bypassCache = false } = {}) {
@@ -415,9 +491,11 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical', bypassCac
 
   if (bypassCache) {
     hospitalSlugsCache.delete(cacheKey);
+    hospitalSlugsInFlight.delete(cacheKey);
+    hospitalSlugsKeyGeneration.set(cacheKey, (hospitalSlugsKeyGeneration.get(cacheKey) || 0) + 1);
   } else {
-    const cached = hospitalSlugsCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < SLUGS_CACHE_TTL_MS) {
+    const cached = getFromSlugsCache(cacheKey);
+    if (cached) {
       return uniqueSlugs.map(slug => cached.bySlug.get(slug)).filter(Boolean);
     }
   }
@@ -426,7 +504,9 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical', bypassCac
   if (!bypassCache && hospitalSlugsInFlight.has(cacheKey)) {
     mapPromise = hospitalSlugsInFlight.get(cacheKey);
   } else {
-    mapPromise = (async () => {
+    const reqGen = hospitalSlugsCacheGeneration + ':' + (hospitalSlugsKeyGeneration.get(cacheKey) || 0);
+    let fetchPromise;
+    fetchPromise = (async () => {
       try {
         const execute = selectFields => supabase
           .from('hospitals')
@@ -438,14 +518,21 @@ export async function getHospitalsBySlugs(slugs, { mode = 'canonical', bypassCac
         const { data, error } = response;
         if (error) throw error;
         const bySlug = new Map((data || []).map(record => [record.slug, normalizeHospital(record, 'canonical')]));
-        hospitalSlugsCache.set(cacheKey, { bySlug, timestamp: Date.now() });
+
+        const currentGen = hospitalSlugsCacheGeneration + ':' + (hospitalSlugsKeyGeneration.get(cacheKey) || 0);
+        if (reqGen === currentGen) {
+          setBoundedSlugsCache(cacheKey, { bySlug, timestamp: Date.now() });
+        }
         return bySlug;
       } finally {
-        hospitalSlugsInFlight.delete(cacheKey);
+        if (hospitalSlugsInFlight.get(cacheKey) === fetchPromise) {
+          hospitalSlugsInFlight.delete(cacheKey);
+        }
       }
     })();
 
-    hospitalSlugsInFlight.set(cacheKey, mapPromise);
+    hospitalSlugsInFlight.set(cacheKey, fetchPromise);
+    mapPromise = fetchPromise;
   }
 
   const bySlug = await mapPromise;
